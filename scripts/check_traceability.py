@@ -16,14 +16,25 @@ from pathlib import Path
 import pytest
 
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
-DEFAULT_SPEC_PATH = PROJECT_ROOT / "specs" / "000-glodex-mvp" / "spec.md"
+M0_SPEC_PATH = PROJECT_ROOT / "specs" / "000-glodex-mvp" / "spec.md"
+M1A_SPEC_PATH = PROJECT_ROOT / "specs" / "001-glodex-m1-api" / "spec.md"
+DEFAULT_SPEC_PATH = M0_SPEC_PATH
 DEFAULT_TESTS_PATH = PROJECT_ROOT / "tests"
 DEFAULT_PYTEST_CONFIG = PROJECT_ROOT / "pyproject.toml"
 
-_P0_DEFINITION = re.compile(r"^\|\s*`(GLO-P0-\d{3})`\s*\|", re.MULTILINE)
-_NFR_DEFINITION = re.compile(r"^\|\s*`(GLO-NFR-\d{3})`\s*\|", re.MULTILINE)
-_AC_DEFINITION = re.compile(r"^###\s+`(AC-\d{3})`(?:\s|$)", re.MULTILINE)
-_SPEC_ID_SHAPE = re.compile(r"(?:GLO-(?:P0|NFR)-\d{3}|AC-\d{3})\Z")
+_P0_DEFINITION = re.compile(
+    r"^\|\s*`((?:GLO-P0|GLO-M1-P0)-\d{3})`\s*\|",
+    re.MULTILINE,
+)
+_NFR_DEFINITION = re.compile(
+    r"^\|\s*`((?:GLO-NFR|GLO-M1-NFR)-\d{3})`\s*\|",
+    re.MULTILINE,
+)
+_AC_DEFINITION = re.compile(
+    r"^###\s+`((?:AC|M1-AC)-\d{3})`(?:\s|$)",
+    re.MULTILINE,
+)
+_SPEC_ID_SHAPE = re.compile(r"(?:GLO-(?:P0|NFR)|GLO-M1-(?:P0|NFR)|AC|M1-AC)-\d{3}\Z")
 
 
 class SpecFormatError(ValueError):
@@ -52,6 +63,48 @@ _APPROVED_M0_INVENTORY = SpecInventory(
     nfr_ids=tuple(f"GLO-NFR-{index:03d}" for index in range(1, 12)),
     ac_ids=tuple(f"AC-{index:03d}" for index in range(1, 13)),
 )
+
+_APPROVED_M1A_INVENTORY = SpecInventory(
+    p0_ids=tuple(f"GLO-M1-P0-{index:03d}" for index in range(1, 10)),
+    nfr_ids=tuple(f"GLO-M1-NFR-{index:03d}" for index in range(1, 11)),
+    ac_ids=tuple(f"M1-AC-{index:03d}" for index in range(1, 11)),
+)
+
+
+@dataclass(frozen=True, slots=True)
+class TraceabilityProfile:
+    """One milestone's authoritative spec, owned tests, and exact inventory."""
+
+    label: str
+    spec_path: Path
+    test_paths: tuple[Path, ...]
+    approved_inventory: SpecInventory
+
+
+_TRACEABILITY_PROFILES = {
+    "m0": TraceabilityProfile(
+        label="M0",
+        spec_path=M0_SPEC_PATH,
+        test_paths=tuple(
+            DEFAULT_TESTS_PATH / directory
+            for directory in (
+                "unit",
+                "contract",
+                "generated",
+                "acceptance",
+                "nfr",
+                "architecture",
+            )
+        ),
+        approved_inventory=_APPROVED_M0_INVENTORY,
+    ),
+    "m1a": TraceabilityProfile(
+        label="M1a",
+        spec_path=M1A_SPEC_PATH,
+        test_paths=(DEFAULT_TESTS_PATH / "m1a",),
+        approved_inventory=_APPROVED_M1A_INVENTORY,
+    ),
+}
 
 
 @dataclass(frozen=True)
@@ -199,17 +252,21 @@ def load_spec_inventory(path: Path) -> SpecInventory:
     )
 
 
-def require_approved_m0_inventory(inventory: SpecInventory) -> None:
-    """Reject coverage claims against anything except the approved M0 ID set."""
+def require_approved_inventory(
+    inventory: SpecInventory,
+    profile: TraceabilityProfile,
+) -> None:
+    """Reject coverage claims against anything except a profile's approved ID set."""
 
-    if inventory == _APPROVED_M0_INVENTORY:
+    expected_inventory = profile.approved_inventory
+    if inventory == expected_inventory:
         return
 
     differences: list[str] = []
     for category, actual, expected in (
-        ("P0", inventory.p0_ids, _APPROVED_M0_INVENTORY.p0_ids),
-        ("AC", inventory.ac_ids, _APPROVED_M0_INVENTORY.ac_ids),
-        ("NFR", inventory.nfr_ids, _APPROVED_M0_INVENTORY.nfr_ids),
+        ("P0", inventory.p0_ids, expected_inventory.p0_ids),
+        ("AC", inventory.ac_ids, expected_inventory.ac_ids),
+        ("NFR", inventory.nfr_ids, expected_inventory.nfr_ids),
     ):
         missing = tuple(sorted(set(expected) - set(actual)))
         unexpected = tuple(sorted(set(actual) - set(expected)))
@@ -219,8 +276,15 @@ def require_approved_m0_inventory(inventory: SpecInventory) -> None:
             differences.append(f"{category} unexpected: {', '.join(unexpected)}")
 
     raise SpecFormatError(
-        "coverage mode requires the exact approved M0 inventory; " + "; ".join(differences)
+        f"coverage mode requires the exact approved {profile.label} inventory; "
+        + "; ".join(differences)
     )
+
+
+def require_approved_m0_inventory(inventory: SpecInventory) -> None:
+    """Preserve the original M0 inventory-checking API."""
+
+    require_approved_inventory(inventory, _TRACEABILITY_PROFILES["m0"])
 
 
 class _SpecCollectionPlugin:
@@ -473,6 +537,12 @@ def analyze_coverage(
 def _build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description="Validate pytest specification references.")
     parser.add_argument(
+        "--profile",
+        choices=tuple(_TRACEABILITY_PROFILES),
+        default="m0",
+        help="milestone profile selecting the default spec, tests, and exact inventory",
+    )
+    parser.add_argument(
         "--mode",
         choices=("references", "coverage"),
         default="references",
@@ -484,15 +554,13 @@ def _build_parser() -> argparse.ArgumentParser:
     parser.add_argument(
         "--spec",
         type=Path,
-        default=DEFAULT_SPEC_PATH,
-        help="path to the authoritative Markdown specification",
+        help="override the profile's authoritative Markdown specification",
     )
     parser.add_argument(
         "--tests",
         type=Path,
         nargs="+",
-        default=(DEFAULT_TESTS_PATH,),
-        help="pytest paths to collect",
+        help="override the profile's pytest paths to collect",
     )
     return parser
 
@@ -501,11 +569,14 @@ def main(argv: Sequence[str] | None = None) -> int:
     """Run the traceability checker and return a process exit code."""
 
     args = _build_parser().parse_args(argv)
+    profile = _TRACEABILITY_PROFILES[args.profile]
+    spec_path = profile.spec_path if args.spec is None else args.spec
+    test_paths = profile.test_paths if args.tests is None else tuple(args.tests)
     try:
-        inventory = load_spec_inventory(args.spec)
+        inventory = load_spec_inventory(spec_path)
         if args.mode == "coverage":
-            require_approved_m0_inventory(inventory)
-        collected = collect_pytest_references(args.tests)
+            require_approved_inventory(inventory, profile)
+        collected = collect_pytest_references(test_paths)
         report: ReferenceReport | CoverageReport
         if args.mode == "coverage":
             report = analyze_coverage(inventory, collected)

@@ -171,13 +171,23 @@ _PHASE_A_STEPS = (
             "--locked",
             "python",
             "scripts/check_traceability.py",
+            "--profile",
+            "m0",
             "--mode",
             "references",
         ),
     ),
     VerificationStep(
         name="implemented test suite",
-        command=("uv", "run", "--locked", "pytest", "-q", "tests"),
+        command=(
+            "uv",
+            "run",
+            "--locked",
+            "pytest",
+            "-q",
+            "tests",
+            "--ignore=tests/m1a",
+        ),
     ),
 )
 
@@ -454,6 +464,8 @@ _M0_STEPS = (
             "--locked",
             "python",
             "scripts/check_traceability.py",
+            "--profile",
+            "m0",
             "--mode",
             "coverage",
         ),

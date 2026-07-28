@@ -7,6 +7,8 @@ import re
 from copy import deepcopy
 from dataclasses import dataclass
 
+from pydantic import TypeAdapter
+
 from glodex.application.issue_mapping import catalog_issue_to_public
 from glodex.application.journal import RunJournal, StageResult
 from glodex.application.ports import (
@@ -14,6 +16,7 @@ from glodex.application.ports import (
     Clock,
     IntentInterpreter,
     QueryRanker,
+    RunEventObserver,
     RunIdProvider,
 )
 from glodex.config import GlodexConfig
@@ -24,6 +27,7 @@ from glodex.contracts import (
     FilterReasonCount,
     FilterStageSummary,
     FilterSummary,
+    Identifier,
     InterpretedCriterionSummary,
     InterpretedRequestSummary,
     Issue,
@@ -90,6 +94,7 @@ PHASE_C_ALGORITHM = "phase-c-v1"
 PHASE_D_ALGORITHM = "phase-d-v1"
 RANKER_TIMEOUT_SECONDS = 1.0
 _PUBLIC_ISSUE_CODE = re.compile(r"[A-Za-z0-9][A-Za-z0-9._:/-]{0,127}\Z")
+_RUN_ID_ADAPTER = TypeAdapter(Identifier)
 
 
 @dataclass(frozen=True, slots=True)
@@ -139,17 +144,39 @@ class SearchService:
         if not isinstance(request, SearchRequest):
             raise TypeError("SearchService requires a validated SearchRequest")
 
+        return await self.execute_run(
+            request,
+            run_id=self.run_id_provider.next_run_id(),
+        )
+
+    async def execute_run(
+        self,
+        request: SearchRequest,
+        *,
+        run_id: str,
+        observer: RunEventObserver | None = None,
+    ) -> SearchExecution:
+        """Execute one run whose identifier was allocated by the caller."""
+
+        if not isinstance(request, SearchRequest):
+            raise TypeError("SearchService requires a validated SearchRequest")
+        checked_run_id = _RUN_ID_ADAPTER.validate_python(run_id, strict=True)
         snapshot_version = request.snapshot_version or self.config.default_snapshot
         journal = RunJournal.new(
-            run_id=self.run_id_provider.next_run_id(),
+            run_id=checked_run_id,
             snapshot_version=snapshot_version,
         )
         journal = journal.start(self.clock.now_utc())
+        self._notify_observer(journal, observer)
         stage_diagnostics: list[StageDiagnostic] = []
         filter_stages: list[FilterStageSummary] = []
         public_issues: list[Issue] = []
 
-        journal, started_ns = self._start_stage(journal, INTENT_STAGE)
+        journal, started_ns = self._start_stage(
+            journal,
+            INTENT_STAGE,
+            observer=observer,
+        )
         try:
             untrusted_intent = await self.intent_interpreter.interpret(request)
         except Exception as error:
@@ -159,6 +186,7 @@ class SearchService:
                 journal,
                 INTENT_STAGE,
                 started_ns,
+                observer=observer,
                 before=1,
                 after=0,
                 issue_codes=(issue.code,),
@@ -182,6 +210,7 @@ class SearchService:
                 journal,
                 INTENT_STAGE,
                 started_ns,
+                observer=observer,
                 before=1,
                 after=0,
                 issue_codes=issue_codes,
@@ -204,6 +233,7 @@ class SearchService:
             journal,
             INTENT_STAGE,
             started_ns,
+            observer=observer,
             before=1,
             after=1,
         )
@@ -222,7 +252,11 @@ class SearchService:
             else request.display_currency
         )
 
-        journal, started_ns = self._start_stage(journal, SNAPSHOT_STAGE)
+        journal, started_ns = self._start_stage(
+            journal,
+            SNAPSHOT_STAGE,
+            observer=observer,
+        )
         try:
             batch = await self.catalog_gateway.load(
                 snapshot_version,
@@ -243,6 +277,7 @@ class SearchService:
                 journal,
                 SNAPSHOT_STAGE,
                 started_ns,
+                observer=observer,
                 before=0,
                 after=0,
                 issue_codes=(issue.code,),
@@ -271,6 +306,7 @@ class SearchService:
                 journal,
                 SNAPSHOT_STAGE,
                 started_ns,
+                observer=observer,
                 before=0,
                 after=0,
                 issue_codes=(issue.code,),
@@ -294,6 +330,7 @@ class SearchService:
                 journal,
                 SNAPSHOT_STAGE,
                 started_ns,
+                observer=observer,
                 before=0,
                 after=0,
                 issue_codes=tuple(issue.code for issue in fatal_issues),
@@ -321,6 +358,7 @@ class SearchService:
             journal,
             SNAPSHOT_STAGE,
             started_ns,
+            observer=observer,
             before=raw_product_count,
             after=valid_product_count,
             issue_codes=tuple(issue.code.value for issue in batch.quarantine_issues),
@@ -334,7 +372,11 @@ class SearchService:
             )
         )
 
-        journal, started_ns = self._start_stage(journal, AGGREGATION_STAGE)
+        journal, started_ns = self._start_stage(
+            journal,
+            AGGREGATION_STAGE,
+            observer=observer,
+        )
         try:
             aggregation = aggregate_catalog_batch(batch)
         except Exception:
@@ -349,6 +391,7 @@ class SearchService:
                 journal,
                 AGGREGATION_STAGE,
                 started_ns,
+                observer=observer,
                 before=valid_product_count,
                 after=0,
                 issue_codes=(issue.code,),
@@ -383,6 +426,7 @@ class SearchService:
             journal,
             AGGREGATION_STAGE,
             started_ns,
+            observer=observer,
             before=valid_product_count,
             after=canonical_product_count,
             issue_codes=tuple(issue.code.value for issue in aggregation_issues),
@@ -396,7 +440,11 @@ class SearchService:
             )
         )
 
-        journal, started_ns = self._start_stage(journal, ELIGIBILITY_STAGE)
+        journal, started_ns = self._start_stage(
+            journal,
+            ELIGIBILITY_STAGE,
+            observer=observer,
+        )
         try:
             if batch.exchange_rates is None:
                 raise ValueError("catalog batch has no exchange-rate table")
@@ -448,6 +496,7 @@ class SearchService:
                 journal,
                 ELIGIBILITY_STAGE,
                 started_ns,
+                observer=observer,
                 before=canonical_product_count,
                 after=0,
                 issue_codes=(issue.code,),
@@ -477,6 +526,7 @@ class SearchService:
             journal,
             ELIGIBILITY_STAGE,
             started_ns,
+            observer=observer,
             before=canonical_product_count,
             after=eligible_count,
         )
@@ -496,7 +546,11 @@ class SearchService:
                 aggregation=aggregation,
             )
 
-        journal, started_ns = self._start_stage(journal, RANKING_STAGE)
+        journal, started_ns = self._start_stage(
+            journal,
+            RANKING_STAGE,
+            observer=observer,
+        )
         rankable = scorer_input(eligibility_output)
         candidate_count = len(rankable.candidates)
         try:
@@ -514,6 +568,7 @@ class SearchService:
                 journal,
                 RANKING_STAGE,
                 started_ns,
+                observer=observer,
                 before=candidate_count,
                 after=0,
                 issue_codes=(issue.code,),
@@ -557,6 +612,7 @@ class SearchService:
                 journal,
                 RANKING_STAGE,
                 started_ns,
+                observer=observer,
                 before=candidate_count,
                 after=0,
                 issue_codes=(issue.code,),
@@ -616,6 +672,7 @@ class SearchService:
                     issue_codes=("ranking.degraded",),
                 ),
             )
+            self._notify_observer(journal, observer)
         ranking_issue_codes = tuple(
             issue.code for issue in public_issues if issue.stage == RANKING_STAGE
         )
@@ -623,13 +680,18 @@ class SearchService:
             journal,
             RANKING_STAGE,
             started_ns,
+            observer=observer,
             before=candidate_count,
             after=len(ranked_candidates),
             issue_codes=ranking_issue_codes,
         )
         stage_diagnostics.append(StageDiagnostic(stage=RANKING_STAGE, duration_ms=duration_ms))
 
-        journal, started_ns = self._start_stage(journal, RESULT_ASSEMBLY_STAGE)
+        journal, started_ns = self._start_stage(
+            journal,
+            RESULT_ASSEMBLY_STAGE,
+            observer=observer,
+        )
         try:
             exchange_rates = batch.exchange_rates
             if exchange_rates is None:
@@ -674,6 +736,7 @@ class SearchService:
                 journal,
                 RESULT_ASSEMBLY_STAGE,
                 started_ns,
+                observer=observer,
                 before=len(ranked_candidates),
                 after=0,
                 issue_codes=(issue.code,),
@@ -698,6 +761,7 @@ class SearchService:
             journal,
             RESULT_ASSEMBLY_STAGE,
             started_ns,
+            observer=observer,
             before=len(ranked_candidates),
             after=len(results),
         )
@@ -720,13 +784,25 @@ class SearchService:
             guarded_results=guarded_results,
         )
 
+    @staticmethod
+    def _notify_observer(
+        journal: RunJournal,
+        observer: RunEventObserver | None,
+    ) -> None:
+        if observer is not None:
+            observer.on_event(journal.events[-1])
+
     def _start_stage(
         self,
         journal: RunJournal,
         stage: str,
+        *,
+        observer: RunEventObserver | None,
     ) -> tuple[RunJournal, int]:
         started_ns = self.clock.monotonic_ns()
-        return journal.stage_started(stage, self.clock.now_utc()), started_ns
+        journal = journal.stage_started(stage, self.clock.now_utc())
+        self._notify_observer(journal, observer)
+        return journal, started_ns
 
     def _complete_stage(
         self,
@@ -734,6 +810,7 @@ class SearchService:
         stage: str,
         started_ns: int,
         *,
+        observer: RunEventObserver | None,
         before: int,
         after: int,
         issue_codes: tuple[str, ...] = (),
@@ -742,19 +819,18 @@ class SearchService:
         if ended_ns < started_ns:
             raise ValueError("monotonic clock moved backwards")
         duration_ms = (ended_ns - started_ns) // 1_000_000
-        return (
-            journal.stage_completed(
-                stage,
-                self.clock.now_utc(),
-                duration_ms=duration_ms,
-                result=StageResult(
-                    before=before,
-                    after=after,
-                    issue_codes=issue_codes,
-                ),
+        journal = journal.stage_completed(
+            stage,
+            self.clock.now_utc(),
+            duration_ms=duration_ms,
+            result=StageResult(
+                before=before,
+                after=after,
+                issue_codes=issue_codes,
             ),
-            duration_ms,
         )
+        self._notify_observer(journal, observer)
+        return journal, duration_ms
 
     def _finish(
         self,

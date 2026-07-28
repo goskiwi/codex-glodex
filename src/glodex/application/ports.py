@@ -5,6 +5,7 @@ from __future__ import annotations
 from datetime import datetime
 from typing import Protocol
 
+from glodex.application.journal import RunEvent
 from glodex.contracts import SearchRequest
 from glodex.domain.catalog import CatalogBatch
 from glodex.domain.eligibility import EligibleProduct
@@ -15,6 +16,12 @@ class RunIdProvider(Protocol):
     """Generate one opaque identifier for each established run."""
 
     def next_run_id(self) -> str: ...
+
+
+class RunEventObserver(Protocol):
+    """Observe one immutable non-terminal journal event synchronously."""
+
+    def on_event(self, event: RunEvent) -> None: ...
 
 
 class Clock(Protocol):
@@ -59,5 +66,6 @@ __all__ = [
     "Clock",
     "IntentInterpreter",
     "QueryRanker",
+    "RunEventObserver",
     "RunIdProvider",
 ]
