@@ -1,4 +1,4 @@
-"""Guard the intentionally tiny M0 runtime dependency surface."""
+"""Guard the intentionally tiny Glodex runtime dependency surface."""
 
 from __future__ import annotations
 
@@ -16,7 +16,7 @@ pytestmark = [
 
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
 PYPROJECT_PATH = PROJECT_ROOT / "pyproject.toml"
-ALLOWED_RUNTIME_DEPENDENCIES = frozenset({"pydantic"})
+ALLOWED_RUNTIME_DEPENDENCIES = frozenset({"fastapi", "pydantic"})
 
 _DISTRIBUTION_NAME = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._-]*")
 
@@ -43,7 +43,7 @@ def runtime_dependency_names(pyproject: dict[str, Any]) -> frozenset[str]:
     )
 
 
-def test_runtime_dependency_allowlist_contains_only_pydantic() -> None:
+def test_runtime_dependency_allowlist_contains_only_fastapi_and_pydantic() -> None:
     with PYPROJECT_PATH.open("rb") as pyproject_file:
         pyproject = tomllib.load(pyproject_file)
 
@@ -56,6 +56,7 @@ def test_allowlist_checker_rejects_network_database_and_model_sdks() -> None:
     violating_pyproject = {
         "project": {
             "dependencies": [
+                "fastapi>=0.135",
                 "pydantic>=2",
                 "requests>=2",
                 "openai>=2",

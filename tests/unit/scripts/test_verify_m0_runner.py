@@ -40,11 +40,33 @@ def test_phase_a_profile_contains_every_approved_gate() -> None:
         "--locked",
         "python",
         "scripts/check_traceability.py",
+        "--profile",
+        "m0",
         "--mode",
         "references",
     ) in commands
-    assert ("uv", "run", "--locked", "pytest", "-q", "tests") in commands
+    assert (
+        "uv",
+        "run",
+        "--locked",
+        "pytest",
+        "-q",
+        "tests",
+        "--ignore=tests/m1a",
+    ) in commands
     assert all(isinstance(command, tuple) for command in commands)
+
+
+def test_historical_profiles_exclude_m1a_from_whole_suite_collection() -> None:
+    for phase in ("A", "B", "C", "D"):
+        whole_suite_commands = tuple(
+            step.command
+            for step in verify.steps_for_phase(phase)
+            if "pytest" in step.command and "tests" in step.command
+        )
+
+        assert whole_suite_commands
+        assert all("--ignore=tests/m1a" in command for command in whole_suite_commands)
 
 
 def test_phase_b_profile_includes_phase_a_and_every_approved_phase_b_gate() -> None:
@@ -269,6 +291,8 @@ def test_final_m0_profile_contains_every_approved_gate_in_exact_order() -> None:
             "--locked",
             "python",
             "scripts/check_traceability.py",
+            "--profile",
+            "m0",
             "--mode",
             "coverage",
         ),

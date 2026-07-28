@@ -25,7 +25,6 @@ _FORBIDDEN_EXTERNAL_PREFIXES = (
     "botocore",
     "cohere",
     "django",
-    "fastapi",
     "google.cloud",
     "grpc",
     "httpx",
@@ -43,6 +42,11 @@ _FORBIDDEN_EXTERNAL_PREFIXES = (
     "requests",
     "sqlalchemy",
     "transformers",
+)
+
+_API_ONLY_FRAMEWORK_PREFIXES = (
+    "fastapi",
+    "starlette",
 )
 
 _FORBIDDEN_NETWORK_OR_DATABASE_PREFIXES = (
@@ -123,6 +127,10 @@ def find_import_boundary_violations(package_root: Path) -> list[str]:
         layer = relative_parts[0] if len(relative_parts) > 1 else None
 
         for module, line_number in _imports(path, package_root):
+            if layer != "api" and _matches_prefix(module, _API_ONLY_FRAMEWORK_PREFIXES):
+                violations.add(
+                    f"{relative_path}:{line_number}: framework import outside api ({module})"
+                )
             if _matches_prefix(module, _FORBIDDEN_EXTERNAL_PREFIXES):
                 violations.add(
                     f"{relative_path}:{line_number}: external SDK/framework import ({module})"
