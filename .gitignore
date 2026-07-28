@@ -1,0 +1,27 @@
+.DS_Store
+.serena/
+.claude/settings.local.json
+
+.venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+coverage.xml
+htmlcov/
+
+build/
+dist/
+*.egg-info/
+
+.env
+.env.*
+!.env.example
+
+output/
+uploaded/
+
+# Local architecture references; keep them out of the published repository.
+项目架构/

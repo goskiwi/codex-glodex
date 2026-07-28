@@ -1,0 +1,1004 @@
+{
+  "algorithm_version": "phase-d-v1",
+  "config_fingerprint": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+  "diagnostics": {
+    "issues": [
+      {
+        "code": "catalog.missing-identity",
+        "details": [
+          {
+            "key": "record_ordinal",
+            "value": 36
+          }
+        ],
+        "entity_ref": "products[36]",
+        "message": "Catalog validation reported catalog.missing-identity.",
+        "severity": "WARNING",
+        "stage": "products"
+      },
+      {
+        "code": "catalog.missing-source",
+        "details": [
+          {
+            "key": "record_ordinal",
+            "value": 37
+          }
+        ],
+        "entity_ref": "products[37]",
+        "message": "Catalog validation reported catalog.missing-source.",
+        "severity": "WARNING",
+        "stage": "products"
+      },
+      {
+        "code": "catalog.evidence-not-found",
+        "details": [
+          {
+            "key": "record_ordinal",
+            "value": 38
+          }
+        ],
+        "entity_ref": "products[38]",
+        "message": "Catalog validation reported catalog.evidence-not-found.",
+        "severity": "WARNING",
+        "stage": "products"
+      },
+      {
+        "code": "catalog.missing-identity",
+        "details": [
+          {
+            "key": "record_ordinal",
+            "value": 37
+          }
+        ],
+        "entity_ref": "offers[37]",
+        "message": "Catalog validation reported catalog.missing-identity.",
+        "severity": "WARNING",
+        "stage": "offers"
+      },
+      {
+        "code": "catalog.missing-source",
+        "details": [
+          {
+            "key": "record_ordinal",
+            "value": 38
+          }
+        ],
+        "entity_ref": "offers[38]",
+        "message": "Catalog validation reported catalog.missing-source.",
+        "severity": "WARNING",
+        "stage": "offers"
+      },
+      {
+        "code": "catalog.orphan-offer",
+        "details": [
+          {
+            "key": "record_ordinal",
+            "value": 39
+          }
+        ],
+        "entity_ref": "offers[39]",
+        "message": "Catalog validation reported catalog.orphan-offer.",
+        "severity": "WARNING",
+        "stage": "offers"
+      },
+      {
+        "code": "catalog.evidence-not-found",
+        "details": [
+          {
+            "key": "record_ordinal",
+            "value": 40
+          }
+        ],
+        "entity_ref": "offers[40]",
+        "message": "Catalog validation reported catalog.evidence-not-found.",
+        "severity": "WARNING",
+        "stage": "offers"
+      }
+    ],
+    "ranker_degraded": false,
+    "stages": [
+      "intent",
+      "snapshot",
+      "aggregation",
+      "eligibility",
+      "ranking",
+      "result_assembly"
+    ]
+  },
+  "filter_summary": {
+    "reason_counts": [
+      {
+        "offer_count": 0,
+        "product_count": 18,
+        "reason": "product.category-mismatch"
+      },
+      {
+        "offer_count": 0,
+        "product_count": 4,
+        "reason": "product.not-primary-product"
+      },
+      {
+        "offer_count": 1,
+        "product_count": 1,
+        "reason": "offer.out-of-stock"
+      },
+      {
+        "offer_count": 1,
+        "product_count": 1,
+        "reason": "offer.cost-unknown"
+      },
+      {
+        "offer_count": 1,
+        "product_count": 1,
+        "reason": "offer.over-budget"
+      },
+      {
+        "offer_count": 0,
+        "product_count": 3,
+        "reason": "product.no-eligible-offer"
+      }
+    ],
+    "stages": [
+      {
+        "after": 1,
+        "before": 1,
+        "gate": "intent"
+      },
+      {
+        "after": 36,
+        "before": 39,
+        "gate": "snapshot"
+      },
+      {
+        "after": 34,
+        "before": 36,
+        "gate": "aggregation"
+      },
+      {
+        "after": 16,
+        "before": 34,
+        "gate": "product.category"
+      },
+      {
+        "after": 15,
+        "before": 16,
+        "gate": "product.entity_kind"
+      },
+      {
+        "after": 15,
+        "before": 15,
+        "gate": "product.exclusion"
+      },
+      {
+        "after": 15,
+        "before": 15,
+        "gate": "product.required_evidence"
+      },
+      {
+        "after": 18,
+        "before": 18,
+        "gate": "offer.source"
+      },
+      {
+        "after": 17,
+        "before": 18,
+        "gate": "offer.stock"
+      },
+      {
+        "after": 16,
+        "before": 17,
+        "gate": "offer.cost_completeness"
+      },
+      {
+        "after": 16,
+        "before": 16,
+        "gate": "offer.exchange_rate"
+      },
+      {
+        "after": 15,
+        "before": 16,
+        "gate": "offer.budget"
+      },
+      {
+        "after": 12,
+        "before": 15,
+        "gate": "product.has_eligible_offer"
+      }
+    ]
+  },
+  "interpreted_request": {
+    "parser_version": "rules-zh-cn-v1",
+    "preferred": [
+      {
+        "kind": "preferred",
+        "source_span": {
+          "end": 20,
+          "start": 16,
+          "text": "适合出差"
+        },
+        "value": "travel"
+      },
+      {
+        "kind": "preferred",
+        "source_span": {
+          "end": 23,
+          "start": 21,
+          "text": "轻薄"
+        },
+        "value": "lightweight"
+      }
+    ],
+    "required": [
+      {
+        "kind": "budget_max",
+        "source_span": {
+          "end": 11,
+          "start": 3,
+          "text": "800 美元以内"
+        },
+        "value": "800 USD"
+      },
+      {
+        "kind": "stock_required",
+        "source_span": {
+          "end": 15,
+          "start": 12,
+          "text": "有库存"
+        },
+        "value": "true"
+      },
+      {
+        "kind": "target_category",
+        "source_span": {
+          "end": 24,
+          "start": 21,
+          "text": "轻薄本"
+        },
+        "value": "laptop"
+      }
+    ]
+  },
+  "results": [
+    {
+      "category": "laptop",
+      "eligible_offers": [
+        {
+          "landed_cost": {
+            "currency": "USD",
+            "display": "800.00",
+            "exact": "800"
+          },
+          "market": "US",
+          "offer_id": "offer-budget-exact-800",
+          "provider_id": "shop-us"
+        }
+      ],
+      "evidence": [
+        {
+          "evidence_id": "ev-shop-us-prod-budget-exact-800-category"
+        },
+        {
+          "evidence_id": "ev-shop-us-prod-budget-exact-800-entity-kind"
+        },
+        {
+          "evidence_id": "ev-shop-us-prod-budget-exact-800-title"
+        },
+        {
+          "evidence_id": "ev-shop-us-prod-budget-exact-800-attribute-travel_ready"
+        },
+        {
+          "evidence_id": "ev-shop-us-prod-budget-exact-800-attribute-verified_segment"
+        },
+        {
+          "evidence_id": "ev-shop-us-offer-budget-exact-800-inventory"
+        },
+        {
+          "evidence_id": "ev-shop-us-offer-budget-exact-800-market"
+        },
+        {
+          "evidence_id": "ev-shop-us-offer-budget-exact-800-item_price"
+        },
+        {
+          "evidence_id": "ev-shop-us-offer-budget-exact-800-shipping"
+        },
+        {
+          "evidence_id": "ev-shop-us-offer-budget-exact-800-tax"
+        },
+        {
+          "evidence_id": "ev-shop-us-offer-budget-exact-800-duty"
+        },
+        {
+          "evidence_id": "ev-shop-us-offer-budget-exact-800-currency"
+        },
+        {
+          "evidence_id": "ev-rate-usd"
+        }
+      ],
+      "landed_cost": {
+        "currency": "USD",
+        "display": "800.00",
+        "exact": "800"
+      },
+      "matched_requirements": [
+        "budget_max",
+        "stock_required",
+        "target_category"
+      ],
+      "pricing_replay": [
+        {
+          "algorithm_version": "pricing-v1",
+          "components": [
+            {
+              "evidence_id": "ev-shop-us-offer-budget-exact-800-item_price",
+              "name": "item_price",
+              "source_amount": "740"
+            },
+            {
+              "evidence_id": "ev-shop-us-offer-budget-exact-800-shipping",
+              "name": "shipping",
+              "source_amount": "20"
+            },
+            {
+              "evidence_id": "ev-shop-us-offer-budget-exact-800-tax",
+              "name": "tax",
+              "source_amount": "40"
+            },
+            {
+              "evidence_id": "ev-shop-us-offer-budget-exact-800-duty",
+              "name": "duty",
+              "source_amount": "0.00"
+            }
+          ],
+          "display": "800.00",
+          "display_exact": "800",
+          "display_rate": {
+            "base_per_unit": "1",
+            "currency": "USD",
+            "evidence_id": "ev-rate-usd",
+            "minor_units": 2
+          },
+          "market": "US",
+          "offer_id": "offer-budget-exact-800",
+          "provider_id": "shop-us",
+          "source_currency": "USD",
+          "source_rate": {
+            "base_per_unit": "1",
+            "currency": "USD",
+            "evidence_id": "ev-rate-usd",
+            "minor_units": 2
+          }
+        }
+      ],
+      "product_id": "prod-budget-exact-800",
+      "reason": "满足预算：到手价 800 USD ≤ 800 USD；有库存：shop-us/US",
+      "selected_offer": {
+        "landed_cost": {
+          "currency": "USD",
+          "display": "800.00",
+          "exact": "800"
+        },
+        "market": "US",
+        "offer_id": "offer-budget-exact-800",
+        "provider_id": "shop-us"
+      },
+      "title": "Glodex BoundaryBook 800",
+      "unknowns": [
+        "未证实偏好：适合出差",
+        "未证实偏好：轻薄"
+      ]
+    },
+    {
+      "category": "laptop",
+      "eligible_offers": [
+        {
+          "landed_cost": {
+            "currency": "USD",
+            "display": "700.00",
+            "exact": "700"
+          },
+          "market": "US",
+          "offer_id": "offer-cross-market-travelbook",
+          "provider_id": "shop-us"
+        },
+        {
+          "landed_cost": {
+            "currency": "USD",
+            "display": "799.20",
+            "exact": "799.2"
+          },
+          "market": "DE",
+          "offer_id": "offer-cross-market-eu",
+          "provider_id": "shop-eu"
+        },
+        {
+          "landed_cost": {
+            "currency": "USD",
+            "display": "733.60",
+            "exact": "733.6"
+          },
+          "market": "CN",
+          "offer_id": "offer-cross-market-cn",
+          "provider_id": "shop-cn"
+        },
+        {
+          "landed_cost": {
+            "currency": "USD",
+            "display": "755.65",
+            "exact": "755.65"
+          },
+          "market": "GB",
+          "offer_id": "offer-cross-market-gb",
+          "provider_id": "shop-eu"
+        }
+      ],
+      "evidence": [
+        {
+          "evidence_id": "ev-shop-cn-prod-cross-market-travelbook-category"
+        },
+        {
+          "evidence_id": "ev-shop-eu-prod-cross-market-travelbook-category"
+        },
+        {
+          "evidence_id": "ev-shop-us-prod-cross-market-travelbook-category"
+        },
+        {
+          "evidence_id": "ev-shop-cn-prod-cross-market-travelbook-entity-kind"
+        },
+        {
+          "evidence_id": "ev-shop-eu-prod-cross-market-travelbook-entity-kind"
+        },
+        {
+          "evidence_id": "ev-shop-us-prod-cross-market-travelbook-entity-kind"
+        },
+        {
+          "evidence_id": "ev-shop-cn-prod-cross-market-travelbook-title"
+        },
+        {
+          "evidence_id": "ev-shop-eu-prod-cross-market-travelbook-title"
+        },
+        {
+          "evidence_id": "ev-shop-us-prod-cross-market-travelbook-title"
+        },
+        {
+          "evidence_id": "ev-shop-cn-prod-cross-market-travelbook-attribute-travel_ready"
+        },
+        {
+          "evidence_id": "ev-shop-eu-prod-cross-market-travelbook-attribute-travel_ready"
+        },
+        {
+          "evidence_id": "ev-shop-us-prod-cross-market-travelbook-attribute-travel_ready"
+        },
+        {
+          "evidence_id": "ev-shop-cn-prod-cross-market-travelbook-attribute-verified_segment"
+        },
+        {
+          "evidence_id": "ev-shop-eu-prod-cross-market-travelbook-attribute-verified_segment"
+        },
+        {
+          "evidence_id": "ev-shop-us-prod-cross-market-travelbook-attribute-verified_segment"
+        },
+        {
+          "evidence_id": "ev-shop-us-offer-cross-market-travelbook-inventory"
+        },
+        {
+          "evidence_id": "ev-shop-us-offer-cross-market-travelbook-market"
+        },
+        {
+          "evidence_id": "ev-shop-us-offer-cross-market-travelbook-item_price"
+        },
+        {
+          "evidence_id": "ev-shop-us-offer-cross-market-travelbook-shipping"
+        },
+        {
+          "evidence_id": "ev-shop-us-offer-cross-market-travelbook-tax"
+        },
+        {
+          "evidence_id": "ev-shop-us-offer-cross-market-travelbook-duty"
+        },
+        {
+          "evidence_id": "ev-shop-us-offer-cross-market-travelbook-currency"
+        },
+        {
+          "evidence_id": "ev-rate-usd"
+        },
+        {
+          "evidence_id": "ev-shop-eu-offer-cross-market-eu-inventory"
+        },
+        {
+          "evidence_id": "ev-shop-eu-offer-cross-market-eu-market"
+        },
+        {
+          "evidence_id": "ev-shop-eu-offer-cross-market-eu-item_price"
+        },
+        {
+          "evidence_id": "ev-shop-eu-offer-cross-market-eu-shipping"
+        },
+        {
+          "evidence_id": "ev-shop-eu-offer-cross-market-eu-tax"
+        },
+        {
+          "evidence_id": "ev-shop-eu-offer-cross-market-eu-duty"
+        },
+        {
+          "evidence_id": "ev-shop-eu-offer-cross-market-eu-currency"
+        },
+        {
+          "evidence_id": "ev-rate-eur"
+        },
+        {
+          "evidence_id": "ev-shop-cn-offer-cross-market-cn-inventory"
+        },
+        {
+          "evidence_id": "ev-shop-cn-offer-cross-market-cn-market"
+        },
+        {
+          "evidence_id": "ev-shop-cn-offer-cross-market-cn-item_price"
+        },
+        {
+          "evidence_id": "ev-shop-cn-offer-cross-market-cn-shipping"
+        },
+        {
+          "evidence_id": "ev-shop-cn-offer-cross-market-cn-tax"
+        },
+        {
+          "evidence_id": "ev-shop-cn-offer-cross-market-cn-duty"
+        },
+        {
+          "evidence_id": "ev-shop-cn-offer-cross-market-cn-currency"
+        },
+        {
+          "evidence_id": "ev-rate-cny"
+        },
+        {
+          "evidence_id": "ev-shop-eu-offer-cross-market-gb-inventory"
+        },
+        {
+          "evidence_id": "ev-shop-eu-offer-cross-market-gb-market"
+        },
+        {
+          "evidence_id": "ev-shop-eu-offer-cross-market-gb-item_price"
+        },
+        {
+          "evidence_id": "ev-shop-eu-offer-cross-market-gb-shipping"
+        },
+        {
+          "evidence_id": "ev-shop-eu-offer-cross-market-gb-tax"
+        },
+        {
+          "evidence_id": "ev-shop-eu-offer-cross-market-gb-duty"
+        },
+        {
+          "evidence_id": "ev-shop-eu-offer-cross-market-gb-currency"
+        },
+        {
+          "evidence_id": "ev-rate-gbp"
+        }
+      ],
+      "landed_cost": {
+        "currency": "USD",
+        "display": "700.00",
+        "exact": "700"
+      },
+      "matched_requirements": [
+        "budget_max",
+        "stock_required",
+        "target_category"
+      ],
+      "pricing_replay": [
+        {
+          "algorithm_version": "pricing-v1",
+          "components": [
+            {
+              "evidence_id": "ev-shop-us-offer-cross-market-travelbook-item_price",
+              "name": "item_price",
+              "source_amount": "650"
+            },
+            {
+              "evidence_id": "ev-shop-us-offer-cross-market-travelbook-shipping",
+              "name": "shipping",
+              "source_amount": "10"
+            },
+            {
+              "evidence_id": "ev-shop-us-offer-cross-market-travelbook-tax",
+              "name": "tax",
+              "source_amount": "40"
+            },
+            {
+              "evidence_id": "ev-shop-us-offer-cross-market-travelbook-duty",
+              "name": "duty",
+              "source_amount": "0.00"
+            }
+          ],
+          "display": "700.00",
+          "display_exact": "700",
+          "display_rate": {
+            "base_per_unit": "1",
+            "currency": "USD",
+            "evidence_id": "ev-rate-usd",
+            "minor_units": 2
+          },
+          "market": "US",
+          "offer_id": "offer-cross-market-travelbook",
+          "provider_id": "shop-us",
+          "source_currency": "USD",
+          "source_rate": {
+            "base_per_unit": "1",
+            "currency": "USD",
+            "evidence_id": "ev-rate-usd",
+            "minor_units": 2
+          }
+        },
+        {
+          "algorithm_version": "pricing-v1",
+          "components": [
+            {
+              "evidence_id": "ev-shop-eu-offer-cross-market-eu-item_price",
+              "name": "item_price",
+              "source_amount": "680"
+            },
+            {
+              "evidence_id": "ev-shop-eu-offer-cross-market-eu-shipping",
+              "name": "shipping",
+              "source_amount": "15"
+            },
+            {
+              "evidence_id": "ev-shop-eu-offer-cross-market-eu-tax",
+              "name": "tax",
+              "source_amount": "45"
+            },
+            {
+              "evidence_id": "ev-shop-eu-offer-cross-market-eu-duty",
+              "name": "duty",
+              "source_amount": "0.00"
+            }
+          ],
+          "display": "799.20",
+          "display_exact": "799.2",
+          "display_rate": {
+            "base_per_unit": "1",
+            "currency": "USD",
+            "evidence_id": "ev-rate-usd",
+            "minor_units": 2
+          },
+          "market": "DE",
+          "offer_id": "offer-cross-market-eu",
+          "provider_id": "shop-eu",
+          "source_currency": "EUR",
+          "source_rate": {
+            "base_per_unit": "1.08",
+            "currency": "EUR",
+            "evidence_id": "ev-rate-eur",
+            "minor_units": 2
+          }
+        },
+        {
+          "algorithm_version": "pricing-v1",
+          "components": [
+            {
+              "evidence_id": "ev-shop-cn-offer-cross-market-cn-item_price",
+              "name": "item_price",
+              "source_amount": "4900"
+            },
+            {
+              "evidence_id": "ev-shop-cn-offer-cross-market-cn-shipping",
+              "name": "shipping",
+              "source_amount": "80"
+            },
+            {
+              "evidence_id": "ev-shop-cn-offer-cross-market-cn-tax",
+              "name": "tax",
+              "source_amount": "260"
+            },
+            {
+              "evidence_id": "ev-shop-cn-offer-cross-market-cn-duty",
+              "name": "duty",
+              "source_amount": "0.00"
+            }
+          ],
+          "display": "733.60",
+          "display_exact": "733.6",
+          "display_rate": {
+            "base_per_unit": "1",
+            "currency": "USD",
+            "evidence_id": "ev-rate-usd",
+            "minor_units": 2
+          },
+          "market": "CN",
+          "offer_id": "offer-cross-market-cn",
+          "provider_id": "shop-cn",
+          "source_currency": "CNY",
+          "source_rate": {
+            "base_per_unit": "0.14",
+            "currency": "CNY",
+            "evidence_id": "ev-rate-cny",
+            "minor_units": 2
+          }
+        },
+        {
+          "algorithm_version": "pricing-v1",
+          "components": [
+            {
+              "evidence_id": "ev-shop-eu-offer-cross-market-gb-item_price",
+              "name": "item_price",
+              "source_amount": "560"
+            },
+            {
+              "evidence_id": "ev-shop-eu-offer-cross-market-gb-shipping",
+              "name": "shipping",
+              "source_amount": "15"
+            },
+            {
+              "evidence_id": "ev-shop-eu-offer-cross-market-gb-tax",
+              "name": "tax",
+              "source_amount": "20"
+            },
+            {
+              "evidence_id": "ev-shop-eu-offer-cross-market-gb-duty",
+              "name": "duty",
+              "source_amount": "0.00"
+            }
+          ],
+          "display": "755.65",
+          "display_exact": "755.65",
+          "display_rate": {
+            "base_per_unit": "1",
+            "currency": "USD",
+            "evidence_id": "ev-rate-usd",
+            "minor_units": 2
+          },
+          "market": "GB",
+          "offer_id": "offer-cross-market-gb",
+          "provider_id": "shop-eu",
+          "source_currency": "GBP",
+          "source_rate": {
+            "base_per_unit": "1.27",
+            "currency": "GBP",
+            "evidence_id": "ev-rate-gbp",
+            "minor_units": 2
+          }
+        }
+      ],
+      "product_id": "prod-cross-market-travelbook",
+      "reason": "满足预算：到手价 700 USD ≤ 800 USD；有库存：shop-us/US",
+      "selected_offer": {
+        "landed_cost": {
+          "currency": "USD",
+          "display": "700.00",
+          "exact": "700"
+        },
+        "market": "US",
+        "offer_id": "offer-cross-market-travelbook",
+        "provider_id": "shop-us"
+      },
+      "title": "Glodex TravelBook Cross",
+      "unknowns": [
+        "未证实偏好：适合出差",
+        "未证实偏好：轻薄"
+      ]
+    },
+    {
+      "category": "laptop",
+      "eligible_offers": [
+        {
+          "landed_cost": {
+            "currency": "USD",
+            "display": "700.00",
+            "exact": "700"
+          },
+          "market": "US",
+          "offer_id": "offer-laptop-01",
+          "provider_id": "shop-us"
+        }
+      ],
+      "evidence": [
+        {
+          "evidence_id": "ev-shop-us-prod-laptop-01-category"
+        },
+        {
+          "evidence_id": "ev-shop-us-prod-laptop-01-entity-kind"
+        },
+        {
+          "evidence_id": "ev-shop-us-prod-laptop-01-title"
+        },
+        {
+          "evidence_id": "ev-shop-us-prod-laptop-01-attribute-travel_ready"
+        },
+        {
+          "evidence_id": "ev-shop-us-prod-laptop-01-attribute-verified_segment"
+        },
+        {
+          "evidence_id": "ev-shop-us-offer-laptop-01-inventory"
+        },
+        {
+          "evidence_id": "ev-shop-us-offer-laptop-01-market"
+        },
+        {
+          "evidence_id": "ev-shop-us-offer-laptop-01-item_price"
+        },
+        {
+          "evidence_id": "ev-shop-us-offer-laptop-01-shipping"
+        },
+        {
+          "evidence_id": "ev-shop-us-offer-laptop-01-tax"
+        },
+        {
+          "evidence_id": "ev-shop-us-offer-laptop-01-duty"
+        },
+        {
+          "evidence_id": "ev-shop-us-offer-laptop-01-currency"
+        },
+        {
+          "evidence_id": "ev-rate-usd"
+        }
+      ],
+      "landed_cost": {
+        "currency": "USD",
+        "display": "700.00",
+        "exact": "700"
+      },
+      "matched_requirements": [
+        "budget_max",
+        "stock_required",
+        "target_category"
+      ],
+      "pricing_replay": [
+        {
+          "algorithm_version": "pricing-v1",
+          "components": [
+            {
+              "evidence_id": "ev-shop-us-offer-laptop-01-item_price",
+              "name": "item_price",
+              "source_amount": "650"
+            },
+            {
+              "evidence_id": "ev-shop-us-offer-laptop-01-shipping",
+              "name": "shipping",
+              "source_amount": "10"
+            },
+            {
+              "evidence_id": "ev-shop-us-offer-laptop-01-tax",
+              "name": "tax",
+              "source_amount": "40"
+            },
+            {
+              "evidence_id": "ev-shop-us-offer-laptop-01-duty",
+              "name": "duty",
+              "source_amount": "0.00"
+            }
+          ],
+          "display": "700.00",
+          "display_exact": "700",
+          "display_rate": {
+            "base_per_unit": "1",
+            "currency": "USD",
+            "evidence_id": "ev-rate-usd",
+            "minor_units": 2
+          },
+          "market": "US",
+          "offer_id": "offer-laptop-01",
+          "provider_id": "shop-us",
+          "source_currency": "USD",
+          "source_rate": {
+            "base_per_unit": "1",
+            "currency": "USD",
+            "evidence_id": "ev-rate-usd",
+            "minor_units": 2
+          }
+        }
+      ],
+      "product_id": "prod-laptop-01",
+      "reason": "满足预算：到手价 700 USD ≤ 800 USD；有库存：shop-us/US",
+      "selected_offer": {
+        "landed_cost": {
+          "currency": "USD",
+          "display": "700.00",
+          "exact": "700"
+        },
+        "market": "US",
+        "offer_id": "offer-laptop-01",
+        "provider_id": "shop-us"
+      },
+      "title": "Glodex Laptop 01",
+      "unknowns": [
+        "未证实偏好：适合出差",
+        "未证实偏好：轻薄"
+      ]
+    }
+  ],
+  "scenario": "completed",
+  "snapshot_version": "m0-v1",
+  "status": "COMPLETED",
+  "warnings": [
+    {
+      "code": "catalog.missing-identity",
+      "details": [
+        {
+          "key": "record_ordinal",
+          "value": 36
+        }
+      ],
+      "entity_ref": "products[36]",
+      "message": "Catalog validation reported catalog.missing-identity.",
+      "severity": "WARNING",
+      "stage": "products"
+    },
+    {
+      "code": "catalog.missing-source",
+      "details": [
+        {
+          "key": "record_ordinal",
+          "value": 37
+        }
+      ],
+      "entity_ref": "products[37]",
+      "message": "Catalog validation reported catalog.missing-source.",
+      "severity": "WARNING",
+      "stage": "products"
+    },
+    {
+      "code": "catalog.evidence-not-found",
+      "details": [
+        {
+          "key": "record_ordinal",
+          "value": 38
+        }
+      ],
+      "entity_ref": "products[38]",
+      "message": "Catalog validation reported catalog.evidence-not-found.",
+      "severity": "WARNING",
+      "stage": "products"
+    },
+    {
+      "code": "catalog.missing-identity",
+      "details": [
+        {
+          "key": "record_ordinal",
+          "value": 37
+        }
+      ],
+      "entity_ref": "offers[37]",
+      "message": "Catalog validation reported catalog.missing-identity.",
+      "severity": "WARNING",
+      "stage": "offers"
+    },
+    {
+      "code": "catalog.missing-source",
+      "details": [
+        {
+          "key": "record_ordinal",
+          "value": 38
+        }
+      ],
+      "entity_ref": "offers[38]",
+      "message": "Catalog validation reported catalog.missing-source.",
+      "severity": "WARNING",
+      "stage": "offers"
+    },
+    {
+      "code": "catalog.orphan-offer",
+      "details": [
+        {
+          "key": "record_ordinal",
+          "value": 39
+        }
+      ],
+      "entity_ref": "offers[39]",
+      "message": "Catalog validation reported catalog.orphan-offer.",
+      "severity": "WARNING",
+      "stage": "offers"
+    },
+    {
+      "code": "catalog.evidence-not-found",
+      "details": [
+        {
+          "key": "record_ordinal",
+          "value": 40
+        }
+      ],
+      "entity_ref": "offers[40]",
+      "message": "Catalog validation reported catalog.evidence-not-found.",
+      "severity": "WARNING",
+      "stage": "offers"
+    }
+  ]
+}

@@ -1,0 +1,328 @@
+{
+  "algorithm_version": "phase-d-v1",
+  "config_fingerprint": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+  "diagnostics": {
+    "issues": [
+      {
+        "code": "catalog.missing-identity",
+        "details": [
+          {
+            "key": "record_ordinal",
+            "value": 36
+          }
+        ],
+        "entity_ref": "products[36]",
+        "message": "Catalog validation reported catalog.missing-identity.",
+        "severity": "WARNING",
+        "stage": "products"
+      },
+      {
+        "code": "catalog.missing-source",
+        "details": [
+          {
+            "key": "record_ordinal",
+            "value": 37
+          }
+        ],
+        "entity_ref": "products[37]",
+        "message": "Catalog validation reported catalog.missing-source.",
+        "severity": "WARNING",
+        "stage": "products"
+      },
+      {
+        "code": "catalog.evidence-not-found",
+        "details": [
+          {
+            "key": "record_ordinal",
+            "value": 38
+          }
+        ],
+        "entity_ref": "products[38]",
+        "message": "Catalog validation reported catalog.evidence-not-found.",
+        "severity": "WARNING",
+        "stage": "products"
+      },
+      {
+        "code": "catalog.missing-identity",
+        "details": [
+          {
+            "key": "record_ordinal",
+            "value": 37
+          }
+        ],
+        "entity_ref": "offers[37]",
+        "message": "Catalog validation reported catalog.missing-identity.",
+        "severity": "WARNING",
+        "stage": "offers"
+      },
+      {
+        "code": "catalog.missing-source",
+        "details": [
+          {
+            "key": "record_ordinal",
+            "value": 38
+          }
+        ],
+        "entity_ref": "offers[38]",
+        "message": "Catalog validation reported catalog.missing-source.",
+        "severity": "WARNING",
+        "stage": "offers"
+      },
+      {
+        "code": "catalog.orphan-offer",
+        "details": [
+          {
+            "key": "record_ordinal",
+            "value": 39
+          }
+        ],
+        "entity_ref": "offers[39]",
+        "message": "Catalog validation reported catalog.orphan-offer.",
+        "severity": "WARNING",
+        "stage": "offers"
+      },
+      {
+        "code": "catalog.evidence-not-found",
+        "details": [
+          {
+            "key": "record_ordinal",
+            "value": 40
+          }
+        ],
+        "entity_ref": "offers[40]",
+        "message": "Catalog validation reported catalog.evidence-not-found.",
+        "severity": "WARNING",
+        "stage": "offers"
+      }
+    ],
+    "ranker_degraded": false,
+    "stages": [
+      "intent",
+      "snapshot",
+      "aggregation",
+      "eligibility"
+    ]
+  },
+  "filter_summary": {
+    "reason_counts": [
+      {
+        "offer_count": 0,
+        "product_count": 18,
+        "reason": "product.category-mismatch"
+      },
+      {
+        "offer_count": 0,
+        "product_count": 4,
+        "reason": "product.not-primary-product"
+      },
+      {
+        "offer_count": 1,
+        "product_count": 1,
+        "reason": "offer.out-of-stock"
+      },
+      {
+        "offer_count": 1,
+        "product_count": 1,
+        "reason": "offer.cost-unknown"
+      },
+      {
+        "offer_count": 17,
+        "product_count": 14,
+        "reason": "offer.over-budget"
+      },
+      {
+        "offer_count": 0,
+        "product_count": 15,
+        "reason": "product.no-eligible-offer"
+      }
+    ],
+    "stages": [
+      {
+        "after": 1,
+        "before": 1,
+        "gate": "intent"
+      },
+      {
+        "after": 36,
+        "before": 39,
+        "gate": "snapshot"
+      },
+      {
+        "after": 34,
+        "before": 36,
+        "gate": "aggregation"
+      },
+      {
+        "after": 16,
+        "before": 34,
+        "gate": "product.category"
+      },
+      {
+        "after": 15,
+        "before": 16,
+        "gate": "product.entity_kind"
+      },
+      {
+        "after": 15,
+        "before": 15,
+        "gate": "product.exclusion"
+      },
+      {
+        "after": 15,
+        "before": 15,
+        "gate": "product.required_evidence"
+      },
+      {
+        "after": 18,
+        "before": 18,
+        "gate": "offer.source"
+      },
+      {
+        "after": 17,
+        "before": 18,
+        "gate": "offer.stock"
+      },
+      {
+        "after": 16,
+        "before": 17,
+        "gate": "offer.cost_completeness"
+      },
+      {
+        "after": 16,
+        "before": 16,
+        "gate": "offer.exchange_rate"
+      },
+      {
+        "after": 0,
+        "before": 16,
+        "gate": "offer.budget"
+      },
+      {
+        "after": 0,
+        "before": 15,
+        "gate": "product.has_eligible_offer"
+      }
+    ]
+  },
+  "interpreted_request": {
+    "parser_version": "rules-zh-cn-v1",
+    "preferred": [],
+    "required": [
+      {
+        "kind": "budget_max",
+        "source_span": {
+          "end": 9,
+          "start": 0,
+          "text": "预算 1 美元以内"
+        },
+        "value": "1 USD"
+      },
+      {
+        "kind": "target_category",
+        "source_span": {
+          "end": 13,
+          "start": 10,
+          "text": "笔记本"
+        },
+        "value": "laptop"
+      }
+    ]
+  },
+  "results": [],
+  "scenario": "no-match",
+  "snapshot_version": "m0-v1",
+  "status": "NO_MATCH",
+  "warnings": [
+    {
+      "code": "catalog.missing-identity",
+      "details": [
+        {
+          "key": "record_ordinal",
+          "value": 36
+        }
+      ],
+      "entity_ref": "products[36]",
+      "message": "Catalog validation reported catalog.missing-identity.",
+      "severity": "WARNING",
+      "stage": "products"
+    },
+    {
+      "code": "catalog.missing-source",
+      "details": [
+        {
+          "key": "record_ordinal",
+          "value": 37
+        }
+      ],
+      "entity_ref": "products[37]",
+      "message": "Catalog validation reported catalog.missing-source.",
+      "severity": "WARNING",
+      "stage": "products"
+    },
+    {
+      "code": "catalog.evidence-not-found",
+      "details": [
+        {
+          "key": "record_ordinal",
+          "value": 38
+        }
+      ],
+      "entity_ref": "products[38]",
+      "message": "Catalog validation reported catalog.evidence-not-found.",
+      "severity": "WARNING",
+      "stage": "products"
+    },
+    {
+      "code": "catalog.missing-identity",
+      "details": [
+        {
+          "key": "record_ordinal",
+          "value": 37
+        }
+      ],
+      "entity_ref": "offers[37]",
+      "message": "Catalog validation reported catalog.missing-identity.",
+      "severity": "WARNING",
+      "stage": "offers"
+    },
+    {
+      "code": "catalog.missing-source",
+      "details": [
+        {
+          "key": "record_ordinal",
+          "value": 38
+        }
+      ],
+      "entity_ref": "offers[38]",
+      "message": "Catalog validation reported catalog.missing-source.",
+      "severity": "WARNING",
+      "stage": "offers"
+    },
+    {
+      "code": "catalog.orphan-offer",
+      "details": [
+        {
+          "key": "record_ordinal",
+          "value": 39
+        }
+      ],
+      "entity_ref": "offers[39]",
+      "message": "Catalog validation reported catalog.orphan-offer.",
+      "severity": "WARNING",
+      "stage": "offers"
+    },
+    {
+      "code": "catalog.evidence-not-found",
+      "details": [
+        {
+          "key": "record_ordinal",
+          "value": 40
+        }
+      ],
+      "entity_ref": "offers[40]",
+      "message": "Catalog validation reported catalog.evidence-not-found.",
+      "severity": "WARNING",
+      "stage": "offers"
+    }
+  ]
+}

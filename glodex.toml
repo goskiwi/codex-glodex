@@ -1,0 +1,8 @@
+[app]
+data_dir = "data/snapshots"
+default_snapshot = "m0-v1"
+
+[search]
+default_locale = "zh-CN"
+default_currency = "USD"
+default_top_k = 3
