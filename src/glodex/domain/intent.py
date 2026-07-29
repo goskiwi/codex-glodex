@@ -89,6 +89,10 @@ class InterpretedRequest:
 class IntentIssueCode(StrEnum):
     """Stable machine-readable failures emitted by the intent safety boundary."""
 
+    PROVIDER_UNAVAILABLE = "intent.provider-unavailable"
+    PROVIDER_RESPONSE_INVALID = "intent.provider-response-invalid"
+    REQUIRED_BASELINE_FAILED = "intent.required-baseline-failed"
+    REQUIRED_INCOMPLETE = "intent.required-incomplete"
     INVALID_INTERPRETED_REQUEST = "intent.invalid-interpreted-request"
     INVALID_COLLECTION = "intent.invalid-collection"
     INVALID_PARSER_VERSION = "intent.invalid-parser-version"
@@ -243,6 +247,7 @@ _CATEGORY_BY_TEXT = {
 }
 _STOCK_TEXTS = frozenset({"有库存", "现货", "在售"})
 _EXCLUSION_TEXTS = {
+    "lightweight": frozenset({"轻薄"}),
     "替换件": frozenset({"替换件"}),
     "翻新": frozenset({"翻新"}),
     "refurbished": frozenset({"翻新"}),
@@ -253,6 +258,7 @@ _EXCLUSION_TEXTS = {
     "轻薄": frozenset({"轻薄"}),
 }
 _EXCLUSION_CANONICAL = {
+    "lightweight": "lightweight",
     "替换件": "替换件",
     "翻新": "refurbished",
     "refurbished": "refurbished",
@@ -341,6 +347,43 @@ _COORDINATING_CONNECTORS = (
     "且",
     "并",
 )
+
+
+def required_constraints_match(
+    baseline: InterpretedRequest,
+    candidate: InterpretedRequest,
+) -> bool:
+    """Compare validated Required constraints without trusting collection order."""
+
+    try:
+        if type(baseline) is not InterpretedRequest or type(candidate) is not InterpretedRequest:
+            return False
+        if type(baseline.required) is not tuple or type(candidate.required) is not tuple:
+            return False
+        return _required_signatures(baseline.required) == _required_signatures(candidate.required)
+    except Exception:
+        return False
+
+
+def _required_signatures(
+    required: tuple[RequiredConstraint, ...],
+) -> tuple[tuple[int, int, str, object], ...]:
+    signatures: list[tuple[int, int, str, object]] = []
+    for criterion in required:
+        span = criterion.source_span
+        if type(criterion) is BudgetMax:
+            value: object = (criterion.amount, criterion.currency)
+        elif type(criterion) is TargetCategory:
+            value = criterion.category
+        elif type(criterion) is StockRequired:
+            value = True
+        elif type(criterion) is Exclusion:
+            value = _EXCLUSION_CANONICAL.get(criterion.value, criterion.value)
+        else:
+            raise TypeError("unsupported Required constraint")
+        signatures.append((span.start, span.end, criterion.kind, value))
+    signatures.sort(key=lambda item: (item[0], item[1], item[2], repr(item[3])))
+    return tuple(signatures)
 
 
 def validate_source_span(
@@ -1103,6 +1146,7 @@ __all__ = [
     "SourceSpan",
     "StockRequired",
     "TargetCategory",
+    "required_constraints_match",
     "validate_interpreted_request",
     "validate_source_span",
 ]

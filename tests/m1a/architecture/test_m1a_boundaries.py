@@ -147,9 +147,10 @@ def test_m1a_dependency_groups_keep_frameworks_in_their_approved_scope() -> None
     runtime_names = runtime_dependency_names(pyproject)
     dev_names = _dependency_names(list(pyproject["dependency-groups"]["dev"]))
 
-    assert runtime_names == frozenset({"fastapi", "pydantic"})
-    assert {"httpx", "uvicorn"} <= dev_names
-    assert {"httpx", "uvicorn"}.isdisjoint(runtime_names)
+    assert runtime_names == frozenset({"fastapi", "httpx", "pydantic"})
+    assert "uvicorn" in dev_names
+    assert "httpx" not in dev_names
+    assert "uvicorn" not in runtime_names
 
 
 def test_framework_imports_are_allowed_inside_api(tmp_path: Path) -> None:
@@ -188,15 +189,19 @@ def test_framework_imports_are_rejected_outside_api(
     assert any(module in violation for violation in violations)
 
 
-def test_httpx_is_rejected_from_runtime_source(tmp_path: Path) -> None:
+def test_httpx_is_allowed_only_in_the_deepseek_transport(tmp_path: Path) -> None:
     package_root = tmp_path / "glodex"
+    adapters_root = package_root / "adapters"
     api_root = package_root / "api"
+    adapters_root.mkdir(parents=True)
     api_root.mkdir(parents=True)
+    (adapters_root / "deepseek_http.py").write_text("import httpx\n", encoding="utf-8")
     (api_root / "bad_client.py").write_text("import httpx\n", encoding="utf-8")
 
     violations = find_import_boundary_violations(package_root)
 
-    assert any("external SDK/framework import (httpx)" in item for item in violations)
+    assert not any("adapters/deepseek_http.py" in item for item in violations)
+    assert any("api/bad_client.py" in item for item in violations)
 
 
 def test_repository_keeps_http_clients_and_web_frameworks_in_approved_roots() -> None:
@@ -206,7 +211,8 @@ def test_repository_keeps_http_clients_and_web_frameworks_in_approved_roots() ->
             relative_path = path.relative_to(PROJECT_ROOT)
             api_module = relative_path.parts[:3] == ("src", "glodex", "api")
             for module in sorted(_absolute_imports(path)):
-                if module == "httpx" or module.startswith("httpx."):
+                approved_httpx_path = relative_path == Path("src/glodex/adapters/deepseek_http.py")
+                if (module == "httpx" or module.startswith("httpx.")) and not approved_httpx_path:
                     violations.append(f"{relative_path}: httpx import outside tests")
                 if not api_module and (
                     module in {"fastapi", "starlette"}

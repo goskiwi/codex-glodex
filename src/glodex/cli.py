@@ -60,6 +60,11 @@ def _build_parser() -> argparse.ArgumentParser:
     search = subparsers.add_parser("search", help="submit one search request")
     _add_common_options(search)
     search.add_argument("--query", required=True, help="shopping request text")
+    search.add_argument(
+        "--live-intent",
+        action="store_true",
+        help="send the complete query to DeepSeek for live Intent interpretation",
+    )
 
     validate = subparsers.add_parser(
         "validate-snapshot",
@@ -303,7 +308,23 @@ def main(argv: Sequence[str] | None = None) -> int:
         _emit(snapshot_outcome)
         return exit_code_for(snapshot_outcome)
 
-    service = build_service(config)
+    if namespace.command == "search" and namespace.live_intent:
+        from glodex.adapters.deepseek_http import DeepSeekPreflightError
+        from glodex.bootstrap import build_live_intent_service
+
+        try:
+            service = build_live_intent_service(config)
+        except DeepSeekPreflightError as error:
+            message = str(error).partition(": ")[2] or "DeepSeek live activation failed."
+            rejection = _rejected(
+                field="intent",
+                code=error.code,
+                message=message,
+            )
+            _emit(rejection)
+            return exit_code_for(rejection)
+    else:
+        service = build_service(config)
     search_outcome = asyncio.run(submit_search(_payload(namespace, config), service))
     _emit(search_outcome)
     return exit_code_for(search_outcome)

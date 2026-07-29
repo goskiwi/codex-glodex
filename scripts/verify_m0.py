@@ -44,6 +44,7 @@ _SENSITIVE_PREFIXES = (
     "COHERE_",
     "DATABASE_",
     "DB_",
+    "DEEPSEEK_",
     "EBAY_",
     "ELASTIC_",
     "GCP_",
@@ -189,6 +190,7 @@ _PHASE_A_STEPS = (
             "tests",
             "--ignore=tests/m1a",
             "--ignore=tests/m1b",
+            "--ignore=tests/m1c",
         ),
     ),
 )

@@ -54,6 +54,7 @@ def test_phase_a_profile_contains_every_approved_gate() -> None:
         "tests",
         "--ignore=tests/m1a",
         "--ignore=tests/m1b",
+        "--ignore=tests/m1c",
     ) in commands
     assert all(isinstance(command, tuple) for command in commands)
 
@@ -69,6 +70,7 @@ def test_historical_profiles_exclude_later_milestones_from_whole_suite_collectio
         assert whole_suite_commands
         assert all("--ignore=tests/m1a" in command for command in whole_suite_commands)
         assert all("--ignore=tests/m1b" in command for command in whole_suite_commands)
+        assert all("--ignore=tests/m1c" in command for command in whole_suite_commands)
 
 
 def test_phase_b_profile_includes_phase_a_and_every_approved_phase_b_gate() -> None:
@@ -342,6 +344,7 @@ def test_sanitized_environment_removes_external_service_configuration() -> None:
         "AWS_REGION": "region",
         "DB_HOST": "db.invalid",
         "DATABASE_URL": "postgresql://invalid",
+        "DEEPSEEK_API_KEY": "deepseek-secret",
         "EBAY_APP_ID": "app-secret",
         "EBAY_CERT_ID": "cert-secret",
         "GEMINI_API_KEY": "secret",
@@ -371,6 +374,7 @@ def test_sanitized_environment_removes_external_service_configuration() -> None:
     assert "AWS_REGION" not in sanitized
     assert "DB_HOST" not in sanitized
     assert "DATABASE_URL" not in sanitized
+    assert "DEEPSEEK_API_KEY" not in sanitized
     assert "EBAY_APP_ID" not in sanitized
     assert "EBAY_CERT_ID" not in sanitized
     assert "GEMINI_API_KEY" not in sanitized
@@ -384,6 +388,7 @@ def test_sanitized_environment_removes_external_service_configuration() -> None:
     assert "PYTHONPATH" not in sanitized
     assert "SQLALCHEMY_DATABASE_URI" not in sanitized
     assert original["OPENAI_API_KEY"] == "secret"
+    assert original["DEEPSEEK_API_KEY"] == "deepseek-secret"
 
 
 @pytest.mark.parametrize(
