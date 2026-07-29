@@ -18,23 +18,27 @@ import pytest
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
 M0_SPEC_PATH = PROJECT_ROOT / "specs" / "000-glodex-mvp" / "spec.md"
 M1A_SPEC_PATH = PROJECT_ROOT / "specs" / "001-glodex-m1-api" / "spec.md"
+M1B_SPEC_PATH = PROJECT_ROOT / "specs" / "002-glodex-m1b-provider" / "spec.md"
 DEFAULT_SPEC_PATH = M0_SPEC_PATH
 DEFAULT_TESTS_PATH = PROJECT_ROOT / "tests"
 DEFAULT_PYTEST_CONFIG = PROJECT_ROOT / "pyproject.toml"
 
 _P0_DEFINITION = re.compile(
-    r"^\|\s*`((?:GLO-P0|GLO-M1-P0)-\d{3})`\s*\|",
+    r"^\|\s*`((?:GLO-P0|GLO-M1-P0|GLO-M1B-P0)-\d{3})`\s*\|",
     re.MULTILINE,
 )
 _NFR_DEFINITION = re.compile(
-    r"^\|\s*`((?:GLO-NFR|GLO-M1-NFR)-\d{3})`\s*\|",
+    r"^\|\s*`((?:GLO-NFR|GLO-M1-NFR|GLO-M1B-NFR)-\d{3})`\s*\|",
     re.MULTILINE,
 )
 _AC_DEFINITION = re.compile(
-    r"^###\s+`((?:AC|M1-AC)-\d{3})`(?:\s|$)",
+    r"^###\s+`((?:AC|M1-AC|M1B-AC)-\d{3})`(?:\s|$)",
     re.MULTILINE,
 )
-_SPEC_ID_SHAPE = re.compile(r"(?:GLO-(?:P0|NFR)|GLO-M1-(?:P0|NFR)|AC|M1-AC)-\d{3}\Z")
+_SPEC_ID_SHAPE = re.compile(
+    r"(?:GLO-(?:P0|NFR)|GLO-M1-(?:P0|NFR)|GLO-M1B-(?:P0|NFR)|AC|M1-AC|M1B-AC)"
+    r"-\d{3}\Z"
+)
 
 
 class SpecFormatError(ValueError):
@@ -70,6 +74,12 @@ _APPROVED_M1A_INVENTORY = SpecInventory(
     ac_ids=tuple(f"M1-AC-{index:03d}" for index in range(1, 11)),
 )
 
+_APPROVED_M1B_INVENTORY = SpecInventory(
+    p0_ids=tuple(f"GLO-M1B-P0-{index:03d}" for index in range(1, 7)),
+    nfr_ids=tuple(f"GLO-M1B-NFR-{index:03d}" for index in range(1, 7)),
+    ac_ids=tuple(f"M1B-AC-{index:03d}" for index in range(1, 7)),
+)
+
 
 @dataclass(frozen=True, slots=True)
 class TraceabilityProfile:
@@ -103,6 +113,12 @@ _TRACEABILITY_PROFILES = {
         spec_path=M1A_SPEC_PATH,
         test_paths=(DEFAULT_TESTS_PATH / "m1a",),
         approved_inventory=_APPROVED_M1A_INVENTORY,
+    ),
+    "m1b": TraceabilityProfile(
+        label="M1b",
+        spec_path=M1B_SPEC_PATH,
+        test_paths=(DEFAULT_TESTS_PATH / "m1b",),
+        approved_inventory=_APPROVED_M1B_INVENTORY,
     ),
 }
 

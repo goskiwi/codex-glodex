@@ -53,11 +53,12 @@ def test_phase_a_profile_contains_every_approved_gate() -> None:
         "-q",
         "tests",
         "--ignore=tests/m1a",
+        "--ignore=tests/m1b",
     ) in commands
     assert all(isinstance(command, tuple) for command in commands)
 
 
-def test_historical_profiles_exclude_m1a_from_whole_suite_collection() -> None:
+def test_historical_profiles_exclude_later_milestones_from_whole_suite_collection() -> None:
     for phase in ("A", "B", "C", "D"):
         whole_suite_commands = tuple(
             step.command
@@ -67,6 +68,7 @@ def test_historical_profiles_exclude_m1a_from_whole_suite_collection() -> None:
 
         assert whole_suite_commands
         assert all("--ignore=tests/m1a" in command for command in whole_suite_commands)
+        assert all("--ignore=tests/m1b" in command for command in whole_suite_commands)
 
 
 def test_phase_b_profile_includes_phase_a_and_every_approved_phase_b_gate() -> None:
@@ -340,6 +342,8 @@ def test_sanitized_environment_removes_external_service_configuration() -> None:
         "AWS_REGION": "region",
         "DB_HOST": "db.invalid",
         "DATABASE_URL": "postgresql://invalid",
+        "EBAY_APP_ID": "app-secret",
+        "EBAY_CERT_ID": "cert-secret",
         "GEMINI_API_KEY": "secret",
         "GLODEX_CONFIG": "/untrusted/config.toml",
         "GLODEX_REFERENCE_CI": "1",
@@ -367,6 +371,8 @@ def test_sanitized_environment_removes_external_service_configuration() -> None:
     assert "AWS_REGION" not in sanitized
     assert "DB_HOST" not in sanitized
     assert "DATABASE_URL" not in sanitized
+    assert "EBAY_APP_ID" not in sanitized
+    assert "EBAY_CERT_ID" not in sanitized
     assert "GEMINI_API_KEY" not in sanitized
     assert "GLODEX_CONFIG" not in sanitized
     assert "MISTRAL_API_KEY" not in sanitized
