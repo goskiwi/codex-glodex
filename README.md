@@ -1,12 +1,16 @@
 # Glodex
 
-Glodex 目前包含三个叠加的里程碑：
+Glodex 目前包含四个叠加的里程碑：
 
 - **M0** 是本地、离线、确定性的跨市场购物检索业务基线。它接收中文购物请求，从版本化快照中聚合同款商品和各市场报价，使用 `Decimal` 计算到手价，在排序前执行预算、品类、库存、商品本体和证据硬门，最后返回最多 3 个可核验结果。
 - **M1a** 在不改变 M0 业务合同与不变量的前提下，增加一个本地 FastAPI + SSE 服务化垂直切片。
 - **M1b** 增加一个 operator-only、显式 opt-in 的 eBay Buy Browse Capture 链路，把一个有界的真实结果页归一化为现有 manifest v1 snapshot；搜索、API 和 SSE 仍只读取本地快照。
+- **M1c** 增加一个 operator-only、显式 opt-in 的固定 DeepSeek Intent 适配器；模型只产生待校验 Intent，完整搜索仍复用既有本地快照、硬门、排序、Evidence、CLI、API 与 SSE。
 
-M0 仍是可保留的业务与合同基线；M1a 是单进程 Demo，不是生产 Agent 平台。M1b 只允许 Operator 通过独立命令显式连接一个固定 Provider，不把联网能力带入搜索请求路径。项目仍不连接真实 LLM 或网络数据库，也不保存长期用户画像。
+M0 仍是可保留的业务与合同基线；M1a 是单进程 Demo，不是生产 Agent 平台。M1b
+Capture 与 M1c live Intent 都只能由 Operator 通过各自独立入口显式联网；默认
+CLI/API 仍使用 Rule Intent 且只读取本地快照。项目不连接网络数据库，也不保存长期
+用户画像。
 
 ## 已实现
 
@@ -40,6 +44,19 @@ M0 仍是可保留的业务与合同基线；M1a 是单进程 Demo，不是生�
 - 每个已发布快照（包括合法空快照）都包含 USD identity FX 与对应 Evidence；
 - Capture 只生成不可变本地快照，后续 `validate-snapshot`、`search`、API 和 SSE 不再访问 Provider。
 
+### M1c DeepSeek Intent
+
+- 默认 `demo`、`search` 和 API factory 继续使用 `RuleIntentInterpreter`，不读取模型凭据或访问模型网络；
+- 只有 `search --live-intent` 与独立 live API factory 能启用固定
+  DeepSeek Open Platform / `deepseek-v4-flash`；
+- 执行顺序固定为 Rule Required baseline → 一次模型调用 → 既有 Intent validator
+  → Required 等值完整性检查 → 既有 Catalog、hard gates、ranking 与 Evidence；
+- Provider、解析或 Required 完整性故障在 Intent 阶段形成业务 `FAILED`，不回退
+  Rule，也不进入 Catalog/Ranker；SSE 使用既有 `RUN_ERROR`，不是 transport-only
+  `ABORTED`；
+- 生产 adapter 下方可注入窄 Fake transport，因此默认自动化仍然确定、禁网且不读取
+  真实凭据。
+
 ## 环境与安装
 
 需要 Python `>=3.12,<3.13` 和 [uv](https://docs.astral.sh/uv/)。
@@ -49,7 +66,7 @@ uv sync --locked --dev
 uv run --locked glodex --help
 ```
 
-运行时依赖包含 FastAPI 和 Pydantic 2。本地服务命令使用 dev 依赖组中的 Uvicorn；pytest、pytest-socket、Ruff 和 mypy 也位于 dev 依赖组。
+运行时依赖包含 FastAPI、Pydantic 2 和 HTTPX。本地服务命令使用 dev 依赖组中的 Uvicorn；pytest、pytest-socket、Ruff 和 mypy 也位于 dev 依赖组。
 
 ## CLI
 
@@ -69,6 +86,26 @@ uv run --locked glodex search \
   --currency USD \
   --top-k 3
 ```
+
+M1c live Intent 必须由 Operator 显式开启。它会把完整的 trimmed query 与固定
+`zh-CN` 发送给 DeepSeek，因此只应用于本地 Demo 的非敏感输入。它不发送
+用户、Thread、Run、snapshot、商品或搜索结果数据；项目不承诺控制 Provider 的训练、
+处理地域或保留策略。凭据只从当前进程的 `DEEPSEEK_API_KEY` 读取，不自动加载
+`.env`：
+
+```bash
+read -r -s DEEPSEEK_API_KEY
+export DEEPSEEK_API_KEY
+uv run --locked glodex search --live-intent \
+  --query "推荐 800 美元以内、有库存、适合出差的轻薄本" \
+  --snapshot m0-v1 --currency USD --top-k 3
+unset DEEPSEEK_API_KEY
+```
+
+目标固定为 `deepseek-v4-flash`：每个已建立 Run 至多一个非流式 POST，没有 retry、
+fallback、tool call 或 cache；total deadline 为 15 秒，decoded response body
+上限为 65,536 bytes，`max_tokens=1024`。模型输出仍是不可信输入，必须通过本地
+schema、source span、语义与 Required 完整性校验。
 
 M1b 的真实采集只供 Operator 显式执行。`--query` 的原文会发送给 eBay；它不会写入 snapshot 或 receipt，但仍应避免输入敏感信息。项目不会自动寻找 `.env`，使用本地凭据文件时必须显式传入 `--env-file`。`--output-root` 必须是已存在、权限恰为 `0700`、位于当前 checkout 之外的绝对目录：
 
@@ -133,6 +170,18 @@ Capture 使用同一组稳定退出码，但语义独立：
 ```bash
 uv run --locked uvicorn glodex.api.app:create_app --factory --host 127.0.0.1 --port 8000
 ```
+
+上面的默认 factory 始终使用 Rule Intent。需要显式启用 M1c 时，先把
+`DEEPSEEK_API_KEY` 注入当前进程，再启动独立 factory：
+
+```bash
+uv run --locked uvicorn glodex.api.live_app:create_live_app \
+  --factory --host 127.0.0.1 --port 8000
+```
+
+live factory 在监听前校验凭据，并要求 API `run_timeout_seconds` 严格大于模型的
+15 秒 deadline；启动阶段不向 Provider 发探测请求。HTTP request、header、query
+或 SSE cursor 都不能启用 live，也不能修改 Provider、model 或 endpoint。
 
 保持服务运行，在另一个终端创建 Run。下面的命令不依赖 `jq`，使用项目的 Python 从 202 响应中取出 `run_id`：
 
@@ -207,7 +256,9 @@ default_top_k = 3
 
 环境覆盖项为 `GLODEX_DATA_DIR`、`GLODEX_DEFAULT_SNAPSHOT`、`GLODEX_DEFAULT_LOCALE`、`GLODEX_DEFAULT_CURRENCY` 和 `GLODEX_DEFAULT_TOP_K`。请求参数再覆盖对应默认值。相对 `data_dir` 以配置文件所在目录为基准。
 
-M0 只支持 `zh-CN`；币种必须为三位大写字母；`top_k` 必须在 1–3。未知配置键、无效值或缺失的显式配置都会 fail closed。业务配置不读取 `.env` 或密钥；只有 M1b Capture 会读取进程环境，或读取 Operator 通过 `--env-file` 明确指定的文件。
+M0 只支持 `zh-CN`；币种必须为三位大写字母；`top_k` 必须在 1–3。未知配置键、无效值或缺失的显式配置都会 fail closed。普通业务配置和默认搜索/API 不读取
+`.env` 或密钥。M1b Capture 可读取进程环境，或读取 Operator 通过 `--env-file`
+明确指定的文件；M1c live 只读取进程环境中的 `DEEPSEEK_API_KEY`，不加载 `.env`。
 
 ## 快照
 
@@ -254,6 +305,14 @@ uv run --locked glodex search \
 
 若搜索带预算，预算币种也必须与 receipt 一致。真实结果可能是 `COMPLETED` 或 `NO_MATCH`；不要为了得到推荐而把 `UNKNOWN` 库存或 `UnknownCost` 改写成已知值。
 
+## M1c 独立 live smoke
+
+M1c smoke 不属于 pytest 或 `verify_m1c.py`。必须先完成下面的完整离线门禁，再由
+Operator 直接执行 CLI 章节中的 `search --live-intent` 命令。只接受
+`COMPLETED` 或可信 `NO_MATCH`；不要把本次完整 query、prompt、响应、secret、
+terminal 输出或其他 live artifact 保存到仓库。单次 smoke 只证明这次固定链路可
+到达合法终态，不构成质量、可用性、延迟、成本、隐私保留或远程确定性 SLA。
+
 ## Golden、追踪与门禁
 
 ```bash
@@ -271,6 +330,9 @@ uv run --locked python scripts/verify_m1a.py
 
 # 运行完整 M1b 离线门禁；它会先运行完整 M1a 门禁
 uv run --locked python scripts/verify_m1b.py
+
+# 运行完整 M1c 离线门禁；它会先运行完整 M1b 门禁
+uv run --locked python scripts/verify_m1c.py
 ```
 
 `scripts/verify_m0.py` 依次检查锁文件、格式、lint、类型、离线/安全/架构、unit/contract/generated、全部 AC、Golden、20 进程确定性、traceability 和 20k/100 性能工作负载。任一步失败都会整体非零，门禁不会 skip/xfail 或自动更新 Golden。
@@ -278,6 +340,11 @@ uv run --locked python scripts/verify_m1b.py
 `scripts/verify_m1a.py` 是 M1a 的一键总门禁：它先完整执行 M0，再检查 M1a 的架构、离线与安全边界、unit/contract、acceptance 和 exact traceability coverage。当前分支的分阶段证据与最终门禁记录见 [M1a 验证记录](./specs/001-glodex-m1-api/verification.md)。
 
 `scripts/verify_m1b.py` 是默认禁网的一键总门禁：它先完整执行 M1a，再检查 M1b 的 architecture/NFR、unit/contract、acceptance 和 exact traceability coverage。它不读取真实凭据、不执行 live smoke，也不会自动生成或提交真实数据。当前分支的完整离线门禁与独立真实三步 smoke 证据见 [M1b 验证记录](./specs/002-glodex-m1b-provider/verification.md)。
+
+`scripts/verify_m1c.py` 先完整执行 M1b，再依次检查 M1c 的
+architecture/NFR、unit/contract、acceptance 和 exact `6 P0 / 6 AC / 6 NFR`
+coverage。它会清除模型凭据与代理变量并保持禁网，不执行 live smoke，也不更新
+Golden。
 
 Golden 的 `--write` 只应在已批准的语义变更后人工执行，并先审阅 diff。
 
@@ -313,13 +380,26 @@ GLODEX_REFERENCE_CI=1 uv run --locked python scripts/verify_m0.py
 - **没有持久化和用户取消 API**：超时、Runner 异常或 shutdown 使用 `ABORTED`，它不是业务 `FAILED`。
 - **默认没有 CORS**：项目没有安装 CORS middleware，不提供跨源浏览器访问承诺。
 - **没有生产 SLA**：容量值用于有界和可测试的本地行为，不代表吞吐、可用性或延迟承诺。
-- **没有真实智能体或 request-time Provider 集成**：AG-UI、WebSocket、前端和真实 LLM 均未实现；M1b 的 eBay Capture 是独立 operator 链路，不进入搜索/API/SSE 请求路径。
+- **没有开放式智能体或 request-time 商品 Provider 集成**：AG-UI、WebSocket、前端、tool calling 和 AgentLoop 均未实现；M1b 的 eBay Capture 是独立 operator 链路。M1c 只在 Intent 阶段进行一次固定模型调用。
+
+## M1c 边界
+
+- 只支持一个固定 Provider/model、`zh-CN` 与现有 Intent 语义，不是通用 LLM
+  gateway；
+- 远程模型跨调用不保证相同输出；通过验证后的 Intent 与既有本地 snapshot 的下游
+  领域投影仍保持确定；
+- 没有第二 Provider、动态 model/base URL、retry、fallback、cache、tool、
+  AgentLoop 或 prompt 管理系统；
+- 既有、经过验证的 `source_span.text` 摘录仍可进入 SearchResponse 与
+  `STATE_SNAPSHOT`，但系统不记录或持久化本次完整 query、prompt 或原始模型响应；
+- 本地 Demo 无生产认证、隔离或 SLA，不应暴露到不可信网络。
 
 ## 后续范围
 
-M1a 已交付最小 FastAPI + SSE 服务化切片，M1b 已交付单 Provider 的 capture-first 切片；以下能力仍明确延期：
+M1a 已交付最小 FastAPI + SSE 服务化切片，M1b 已交付单 Provider 的 capture-first
+切片，M1c 已交付固定 DeepSeek Intent 安全接入；以下能力仍明确延期：
 
-- **后续 M1**：真实 LLM Intent、request-time Provider fan-out、AG-UI 投影、Category Insight；
+- **后续 M1**：request-time 商品 Provider fan-out、AG-UI 投影、Category Insight；
 - **M2**：OpenSearch/Hybrid/cross-encoder、Postgres/checkpoint、Redis、长期记忆、User-only/Reflect、React UI；
 - **范围外**：生产部署、实时/全量商品覆盖、Provider 可用性、价格时效、真实推荐质量承诺和开放式 AgentLoop。
 
@@ -328,6 +408,7 @@ M1a 已交付最小 FastAPI + SSE 服务化切片，M1b 已交付单 Provider �
 - M0：[产品规格](./specs/000-glodex-mvp/spec.md) · [技术计划](./specs/000-glodex-mvp/plan.md) · [实施任务](./specs/000-glodex-mvp/tasks.md)
 - M1a：[API 与实时事件规格](./specs/001-glodex-m1-api/spec.md) · [技术计划](./specs/001-glodex-m1-api/plan.md) · [实施任务](./specs/001-glodex-m1-api/tasks.md) · [验证记录](./specs/001-glodex-m1-api/verification.md)
 - M1b：[Provider Capture 规格](./specs/002-glodex-m1b-provider/spec.md) · [技术计划](./specs/002-glodex-m1b-provider/plan.md) · [实施任务](./specs/002-glodex-m1b-provider/tasks.md) · [验证记录](./specs/002-glodex-m1b-provider/verification.md)
+- M1c：[DeepSeek Intent 规格](./specs/003-glodex-m1c-llm-intent/spec.md) · [技术计划](./specs/003-glodex-m1c-llm-intent/plan.md) · [实施任务](./specs/003-glodex-m1c-llm-intent/tasks.md) · [验证记录](./specs/003-glodex-m1c-llm-intent/verification.md)
 - [ADR-0001：确定性领域核心](./specs/000-glodex-mvp/adr/0001-deterministic-domain-core.md)
 - [ADR-0002：金额、汇率与舍入](./specs/000-glodex-mvp/adr/0002-money-fx-and-rounding.md)
 - [ADR-0003：硬门与排序降级](./specs/000-glodex-mvp/adr/0003-hard-gates-and-ranking-degradation.md)

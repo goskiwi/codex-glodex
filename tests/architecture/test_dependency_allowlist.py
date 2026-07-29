@@ -16,7 +16,7 @@ pytestmark = [
 
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
 PYPROJECT_PATH = PROJECT_ROOT / "pyproject.toml"
-ALLOWED_RUNTIME_DEPENDENCIES = frozenset({"fastapi", "pydantic"})
+ALLOWED_RUNTIME_DEPENDENCIES = frozenset({"fastapi", "httpx", "pydantic"})
 
 _DISTRIBUTION_NAME = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._-]*")
 
@@ -43,7 +43,7 @@ def runtime_dependency_names(pyproject: dict[str, Any]) -> frozenset[str]:
     )
 
 
-def test_runtime_dependency_allowlist_contains_only_fastapi_and_pydantic() -> None:
+def test_runtime_dependency_allowlist_contains_only_approved_dependencies() -> None:
     with PYPROJECT_PATH.open("rb") as pyproject_file:
         pyproject = tomllib.load(pyproject_file)
 

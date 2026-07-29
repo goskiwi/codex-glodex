@@ -50,6 +50,7 @@ def build_service(
     intent_interpreter: IntentInterpreter | None = None,
     catalog_gateway: CatalogGateway | None = None,
     query_ranker: QueryRanker | None = None,
+    required_baseline_interpreter: IntentInterpreter | None = None,
 ) -> SearchService:
     """Build the service without importing adapters into the application layer."""
 
@@ -60,6 +61,27 @@ def build_service(
         intent_interpreter=intent_interpreter or RuleIntentInterpreter(),
         catalog_gateway=catalog_gateway or LocalSnapshotCatalog(config.data_dir),
         query_ranker=query_ranker or DeterministicQueryRanker(),
+        required_baseline_interpreter=required_baseline_interpreter,
+    )
+
+
+def build_live_intent_service(
+    config: GlodexConfig,
+    *,
+    run_id_provider: RunIdProvider | None = None,
+    clock: Clock | None = None,
+) -> SearchService:
+    """Preflight and compose the one explicitly activated live Intent service."""
+
+    from glodex.adapters.deepseek_http import build_deepseek_transport
+    from glodex.adapters.deepseek_intent import DeepSeekIntentInterpreter
+
+    return build_service(
+        config,
+        run_id_provider=run_id_provider,
+        clock=clock,
+        intent_interpreter=DeepSeekIntentInterpreter(build_deepseek_transport()),
+        required_baseline_interpreter=RuleIntentInterpreter(),
     )
 
 
@@ -78,6 +100,7 @@ async def submit_search(
 __all__ = [
     "SystemClock",
     "UuidRunIdProvider",
+    "build_live_intent_service",
     "build_service",
     "submit_search",
 ]

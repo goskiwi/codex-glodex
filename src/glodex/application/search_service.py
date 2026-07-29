@@ -65,11 +65,13 @@ from glodex.domain.eligibility import (
 from glodex.domain.intent import (
     BudgetMax,
     Exclusion,
+    IntentIssueCode,
     InterpretedRequest,
     PreferredCriterion,
     SourceSpan,
     StockRequired,
     TargetCategory,
+    required_constraints_match,
     validate_interpreted_request,
 )
 from glodex.domain.issues import CatalogIssue, IssueStage
@@ -125,6 +127,7 @@ class SearchService:
         intent_interpreter: IntentInterpreter,
         catalog_gateway: CatalogGateway,
         query_ranker: QueryRanker,
+        required_baseline_interpreter: IntentInterpreter | None = None,
     ) -> None:
         self.config = config
         self.run_id_provider = run_id_provider
@@ -132,6 +135,7 @@ class SearchService:
         self.intent_interpreter = intent_interpreter
         self.catalog_gateway = catalog_gateway
         self.query_ranker = query_ranker
+        self.required_baseline_interpreter = required_baseline_interpreter
 
     async def search(self, request: SearchRequest) -> SearchResponse:
         """Return the approved public response contract."""
@@ -177,34 +181,10 @@ class SearchService:
             INTENT_STAGE,
             observer=observer,
         )
-        try:
-            untrusted_intent = await self.intent_interpreter.interpret(request)
-        except Exception as error:
-            issue = _intent_adapter_issue(error)
-            public_issues.append(issue)
-            journal, duration_ms = self._complete_stage(
-                journal,
-                INTENT_STAGE,
-                started_ns,
-                observer=observer,
-                before=1,
-                after=0,
-                issue_codes=(issue.code,),
-            )
-            stage_diagnostics.append(StageDiagnostic(stage=INTENT_STAGE, duration_ms=duration_ms))
-            filter_stages.append(FilterStageSummary(gate=INTENT_STAGE, before=1, after=0))
-            return self._finish(
-                journal,
-                RunStatus.FAILED,
-                snapshot_version=snapshot_version,
-                filter_stages=filter_stages,
-                stage_diagnostics=stage_diagnostics,
-                public_issues=public_issues,
-            )
 
-        validation = validate_interpreted_request(request.query, untrusted_intent)
-        if not validation.is_valid:
-            public_issues.extend(_intent_validation_issue(item) for item in validation.issues)
+        def fail_intent(issues: tuple[Issue, ...]) -> SearchExecution:
+            nonlocal journal
+            public_issues.extend(issues)
             issue_codes = tuple(issue.code for issue in public_issues)
             journal, duration_ms = self._complete_stage(
                 journal,
@@ -226,8 +206,38 @@ class SearchService:
                 public_issues=public_issues,
             )
 
+        baseline: InterpretedRequest | None = None
+        if self.required_baseline_interpreter is not None:
+            try:
+                untrusted_baseline = await self.required_baseline_interpreter.interpret(request)
+            except Exception:
+                return fail_intent(
+                    (_intent_boundary_issue(IntentIssueCode.REQUIRED_BASELINE_FAILED),)
+                )
+            baseline_validation = validate_interpreted_request(
+                request.query,
+                untrusted_baseline,
+            )
+            if not baseline_validation.is_valid:
+                return fail_intent(
+                    (_intent_boundary_issue(IntentIssueCode.REQUIRED_BASELINE_FAILED),)
+                )
+            baseline = baseline_validation.interpreted_request
+            assert baseline is not None
+
+        try:
+            untrusted_intent = await self.intent_interpreter.interpret(request)
+        except Exception as error:
+            return fail_intent((_intent_adapter_issue(error),))
+
+        validation = validate_interpreted_request(request.query, untrusted_intent)
+        if not validation.is_valid:
+            return fail_intent(tuple(_intent_validation_issue(item) for item in validation.issues))
+
         interpreted = validation.interpreted_request
         assert interpreted is not None
+        if baseline is not None and not required_constraints_match(baseline, interpreted):
+            return fail_intent((_intent_boundary_issue(IntentIssueCode.REQUIRED_INCOMPLETE),))
         interpreted_summary = _summarize_intent(interpreted)
         journal, duration_ms = self._complete_stage(
             journal,
@@ -1031,6 +1041,27 @@ def _intent_adapter_issue(error: Exception) -> Issue:
         code=code,
         stage=INTENT_STAGE,
         message="Request intent could not be interpreted safely.",
+        severity=IssueSeverity.ERROR,
+    )
+
+
+def _intent_boundary_issue(code: IntentIssueCode) -> Issue:
+    messages = {
+        IntentIssueCode.REQUIRED_BASELINE_FAILED: (
+            "Required intent baseline could not be formed safely."
+        ),
+        IntentIssueCode.REQUIRED_INCOMPLETE: (
+            "Interpreted Required constraints did not preserve the safe baseline."
+        ),
+    }
+    try:
+        message = messages[code]
+    except KeyError as error:
+        raise ValueError("unsupported intent boundary issue code") from error
+    return Issue(
+        code=code.value,
+        stage=INTENT_STAGE,
+        message=message,
         severity=IssueSeverity.ERROR,
     )
 

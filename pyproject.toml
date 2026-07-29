@@ -5,6 +5,7 @@ description = "Evidence-grounded global commerce search"
 requires-python = ">=3.12,<3.13"
 dependencies = [
     "fastapi>=0.135,<1",
+    "httpx>=0.28,<1",
     "pydantic>=2.12,<3",
 ]
 
@@ -20,7 +21,6 @@ packages = ["src/glodex"]
 
 [dependency-groups]
 dev = [
-    "httpx>=0.28,<1",
     "mypy>=1.18,<2",
     "pytest>=9,<10",
     "pytest-socket>=0.7,<1",
