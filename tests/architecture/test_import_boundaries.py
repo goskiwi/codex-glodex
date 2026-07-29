@@ -75,6 +75,7 @@ _DOMAIN_IO_ROOTS = frozenset(
         "tempfile",
     }
 )
+_CAPTURE_HTTP_PATH = Path("capture/ebay_http.py")
 
 
 def _matches_prefix(module: str, prefixes: tuple[str, ...]) -> bool:
@@ -123,6 +124,7 @@ def find_import_boundary_violations(package_root: Path) -> list[str]:
     violations: set[str] = set()
     for path in sorted(package_root.rglob("*.py")):
         relative_path = path.relative_to(package_root.parent)
+        package_relative_path = path.relative_to(package_root)
         relative_parts = path.relative_to(package_root).parts
         layer = relative_parts[0] if len(relative_parts) > 1 else None
 
@@ -136,7 +138,14 @@ def find_import_boundary_violations(package_root: Path) -> list[str]:
                     f"{relative_path}:{line_number}: external SDK/framework import ({module})"
                 )
             if _matches_prefix(module, _FORBIDDEN_NETWORK_OR_DATABASE_PREFIXES):
-                violations.add(f"{relative_path}:{line_number}: network/database import ({module})")
+                approved_capture_http = (
+                    package_relative_path == _CAPTURE_HTTP_PATH
+                    and _matches_prefix(module, ("http.client",))
+                )
+                if not approved_capture_http:
+                    violations.add(
+                        f"{relative_path}:{line_number}: network/database import ({module})"
+                    )
 
             if layer == "domain":
                 root_module = module.partition(".")[0]

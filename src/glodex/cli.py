@@ -1,4 +1,4 @@
-"""JSON-only command-line entrypoint for the M0 application."""
+"""JSON-only command-line entrypoint for Glodex."""
 
 from __future__ import annotations
 
@@ -72,6 +72,33 @@ def _build_parser() -> argparse.ArgumentParser:
         help="path to glodex.toml (overrides GLODEX_CONFIG)",
     )
     validate.add_argument("--currency", help="currency compatibility check")
+
+    capture = subparsers.add_parser(
+        "capture-provider",
+        help="capture one approved live eBay result page into a local snapshot",
+    )
+    capture.add_argument(
+        "--live",
+        action="store_true",
+        required=True,
+        help="explicitly opt in to the approved live Provider request",
+    )
+    capture.add_argument(
+        "--query",
+        required=True,
+        help="shopping query text sent to eBay",
+    )
+    capture.add_argument(
+        "--env-file",
+        type=Path,
+        help="explicit local file containing eBay credentials",
+    )
+    capture.add_argument(
+        "--output-root",
+        type=Path,
+        required=True,
+        help="absolute external snapshot output root",
+    )
     return parser
 
 
@@ -125,6 +152,63 @@ def _emit(outcome: CliOutcome) -> None:
         sys.stderr.write(f"glodex: request rejected ({codes})\n")
 
 
+def _emit_capture(receipt: object) -> None:
+    from glodex.capture.contracts import (
+        FailedCaptureReceipt,
+        PublishedCaptureReceipt,
+        RejectedCaptureReceipt,
+    )
+
+    if not isinstance(
+        receipt,
+        (RejectedCaptureReceipt, FailedCaptureReceipt, PublishedCaptureReceipt),
+    ):
+        raise TypeError("unsupported Capture receipt type")
+    sys.stdout.write(receipt.model_dump_json() + "\n")
+    if isinstance(receipt, RejectedCaptureReceipt):
+        codes = ",".join(issue.code.value for issue in receipt.issues)
+        sys.stderr.write(f"glodex: capture rejected ({codes})\n")
+    elif isinstance(receipt, FailedCaptureReceipt):
+        codes = ",".join(issue.code.value for issue in receipt.issues)
+        sys.stderr.write(f"glodex: capture failed ({codes})\n")
+
+
+def _run_capture(namespace: argparse.Namespace) -> int:
+    from glodex.capture.bootstrap import run_capture
+    from glodex.capture.config import CaptureRequest
+    from glodex.capture.contracts import capture_exit_code_for
+
+    receipt = run_capture(
+        CaptureRequest(
+            live=namespace.live,
+            query=namespace.query,
+            env_file=namespace.env_file,
+            output_root=namespace.output_root,
+        )
+    )
+    _emit_capture(receipt)
+    return capture_exit_code_for(receipt)
+
+
+def _capture_usage_rejected() -> int:
+    from glodex.capture.contracts import (
+        CaptureIssue,
+        CaptureIssueCode,
+        RejectedCaptureReceipt,
+        capture_exit_code_for,
+    )
+
+    receipt = RejectedCaptureReceipt(
+        issues=(
+            CaptureIssue(
+                code=CaptureIssueCode.CAPTURE_INPUT_INVALID,
+            ),
+        )
+    )
+    _emit_capture(receipt)
+    return capture_exit_code_for(receipt)
+
+
 async def _validate_snapshot(
     namespace: argparse.Namespace,
     config: GlodexConfig,
@@ -168,9 +252,12 @@ async def _validate_snapshot(
 def main(argv: Sequence[str] | None = None) -> int:
     """Parse once, run the async application once, and emit one JSON document."""
 
+    arguments = tuple(sys.argv[1:] if argv is None else argv)
     try:
-        namespace = _build_parser().parse_args(argv)
+        namespace = _build_parser().parse_args(arguments)
     except CliUsageError as error:
+        if arguments and arguments[0] == "capture-provider":
+            return _capture_usage_rejected()
         rejection = _rejected(
             field="cli",
             code="CLI_USAGE",
@@ -178,6 +265,9 @@ def main(argv: Sequence[str] | None = None) -> int:
         )
         _emit(rejection)
         return exit_code_for(rejection)
+
+    if namespace.command == "capture-provider":
+        return _run_capture(namespace)
 
     try:
         config = load_config(explicit_path=namespace.config)

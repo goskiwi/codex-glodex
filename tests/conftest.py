@@ -49,6 +49,7 @@ _EXTERNAL_ENVIRONMENT_PREFIXES = (
     "COHERE_",
     "DATABASE_",
     "DB_",
+    "EBAY_",
     "GCP_",
     "GEMINI_",
     "GOOGLE_CLOUD_",

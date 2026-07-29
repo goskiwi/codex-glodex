@@ -45,6 +45,8 @@ def test_environment_sanitizer_removes_proxies_credentials_and_service_endpoints
         "OPENAI_API_KEY": "secret",
         "AWS_ACCESS_KEY_ID": "secret",
         "DATABASE_URL": "postgresql://database.invalid/glodex",
+        "EBAY_APP_ID": "secret",
+        "ebay_cert_id": "secret",
         "REDIS_URL": "redis://cache.invalid",
         "MODEL_ENDPOINT": "https://model.invalid",
     }
@@ -57,6 +59,8 @@ def test_environment_sanitizer_removes_proxies_credentials_and_service_endpoints
             "OPENAI_API_KEY",
             "AWS_ACCESS_KEY_ID",
             "DATABASE_URL",
+            "EBAY_APP_ID",
+            "ebay_cert_id",
             "REDIS_URL",
             "MODEL_ENDPOINT",
         }
