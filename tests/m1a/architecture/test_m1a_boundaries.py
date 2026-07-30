@@ -147,7 +147,9 @@ def test_m1a_dependency_groups_keep_frameworks_in_their_approved_scope() -> None
     runtime_names = runtime_dependency_names(pyproject)
     dev_names = _dependency_names(list(pyproject["dependency-groups"]["dev"]))
 
-    assert runtime_names == frozenset({"fastapi", "httpx", "pydantic"})
+    assert runtime_names == frozenset(
+        {"asyncpg", "fastapi", "httpx", "opensearch-py", "pydantic", "redis"}
+    )
     assert "uvicorn" in dev_names
     assert "httpx" not in dev_names
     assert "uvicorn" not in runtime_names
@@ -216,12 +218,19 @@ def test_repository_keeps_http_clients_and_web_frameworks_in_approved_roots() ->
                 approved_httpx_path = relative_path in {
                     Path("src/glodex/adapters/deepseek_http.py"),
                     Path("src/glodex/adapters/agent_live_http.py"),
+                    Path("src/glodex/adapters/dashscope_rerank.py"),
+                    Path("src/glodex/adapters/m2c_model_service.py"),
                 }
                 if (module == "httpx" or module.startswith("httpx.")) and not approved_httpx_path:
                     violations.append(f"{relative_path}: httpx import outside tests")
-                if not api_module and (
-                    module in {"fastapi", "starlette"}
-                    or module.startswith(("fastapi.", "starlette."))
+                approved_m2c_gpu_service = relative_path == Path("src/glodex/m2c_gpu_service.py")
+                if (
+                    not api_module
+                    and not approved_m2c_gpu_service
+                    and (
+                        module in {"fastapi", "starlette"}
+                        or module.startswith(("fastapi.", "starlette."))
+                    )
                 ):
                     violations.append(f"{relative_path}: framework import outside glodex.api")
 

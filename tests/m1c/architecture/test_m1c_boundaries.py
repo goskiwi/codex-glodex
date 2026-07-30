@@ -19,9 +19,11 @@ PROJECT_ROOT = Path(__file__).parents[3]
 PACKAGE_ROOT = PROJECT_ROOT / "src" / "glodex"
 DEEPSEEK_HTTP_PATH = Path("adapters/deepseek_http.py")
 AGENT_LIVE_HTTP_PATH = Path("adapters/agent_live_http.py")
+M2A_RERANK_PATH = Path("adapters/dashscope_rerank.py")
 EBAY_HTTP_PATH = Path("capture/ebay_http.py")
 DEEPSEEK_HTTP_SOURCE = Path("src/glodex") / DEEPSEEK_HTTP_PATH
 AGENT_LIVE_HTTP_SOURCE = Path("src/glodex") / AGENT_LIVE_HTTP_PATH
+M2A_RERANK_SOURCE = Path("src/glodex") / M2A_RERANK_PATH
 EBAY_HTTP_SOURCE = Path("src/glodex") / EBAY_HTTP_PATH
 
 
@@ -32,7 +34,10 @@ def test_runtime_dependency_inventory_adds_only_httpx() -> None:
     with PYPROJECT_PATH.open("rb") as pyproject_file:
         pyproject = tomllib.load(pyproject_file)
 
-    assert frozenset({"fastapi", "httpx", "pydantic"}) == ALLOWED_RUNTIME_DEPENDENCIES
+    assert (
+        frozenset({"asyncpg", "fastapi", "httpx", "opensearch-py", "pydantic", "redis"})
+        == ALLOWED_RUNTIME_DEPENDENCIES
+    )
     assert runtime_dependency_names(pyproject) == ALLOWED_RUNTIME_DEPENDENCIES
 
 
@@ -71,6 +76,7 @@ def test_deepseek_network_literals_stay_in_the_approved_transport() -> None:
                 DEEPSEEK_HTTP_SOURCE,
                 AGENT_LIVE_HTTP_SOURCE,
                 EBAY_HTTP_SOURCE,
+                M2A_RERANK_SOURCE,
             }:
                 violations.append(f"{relative_path}: Bearer Authorization")
 

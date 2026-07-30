@@ -1,6 +1,6 @@
 # Glodex
 
-Glodex 目前包含七个叠加的里程碑：
+Glodex 目前包含九个叠加的里程碑：
 
 - **M0** 是本地、离线、确定性的跨市场购物检索业务基线。它接收中文购物请求，从版本化快照中聚合同款商品和各市场报价，使用 `Decimal` 计算到手价，在排序前执行预算、品类、库存、商品本体和证据硬门，最后返回最多 3 个可核验结果。
 - **M1a** 在不改变 M0 业务合同与不变量的前提下，增加一个本地 FastAPI + SSE 服务化垂直切片。
@@ -9,11 +9,18 @@ Glodex 目前包含七个叠加的里程碑：
 - **M1d** 增加一个 operator-only、显式 opt-in 的固定 DeepSeek AgentLoop，完整组装九个业务工具、`dispatch_tool`、最多四路子 Agent、Hybrid Category RAG、Tavily evidence 与 eBay live item search；最终商品仍必须通过既有 Canonical hard gates 与 Evidence closure。
 - **M1e** 增加一个独立、公开、可复现的 ESCI 历史检索/重排 benchmark；它只评测固定候选池，不进入 Catalog、搜索、Agent、API 或 SSE。
 - **M1f** 增加一个零凭据、本地静态 Showcase：它回放安全的 M1d 公开事件投影，并展示 M1e 的聚合 benchmark 证据；它不是实时 Agent 或 marketplace UI。
+- **M2a** 增加一个 operator-only 的本机检索智能闭环：local OpenSearch Query Hybrid、显式 typed profile 的 User ANN 补充、固定 DashScope `qwen3-rerank` 与 Category Card rerank；它复用 M1d 的 AgentLoop 和最终 Hard Gates，但不改变默认 Agent/API/SSE。
+- **M2b** 增加一个 operator-only 的本机 durable runtime：PostgreSQL 保存 Run、安全 SSE event、checkpoint 与 typed Profile；Redis 只缓存可重建的 retrieval/context 投影，OpenSearch User ANN 只接收当前 Profile revision 的可丢弃投影。
+- **M2c** 增加一个 operator-only 的私有 GPU BGE retrieval model service：固定 loopback model verifier、独立 BGE Product/Card/Profile aliases 与 cross-encoder rerank；它复用 M1d 的可信发布 gates，但不改变 M2a DashScope 或 M2b durable backend。
 
 M0 仍是可保留的业务与合同基线；M1a 是单进程 Demo，不是生产 Agent 平台。M1b
 Capture 与 M1c live Intent 都只能由 Operator 通过各自独立入口显式联网；默认
-CLI/API 仍使用 Rule Intent 且只读取本地快照。项目不连接网络数据库，也不保存长期
-用户画像。M1d 是独立 Agent 入口；M1e 是本地 benchmark 入口；M1f 是独立静态展示入口，三者都不改变这些默认行为。
+CLI/API 仍使用 Rule Intent 且只读取本地快照。M2a 的 profile 仅是 Operator 明确写入的本机
+typed soft preference，不会保存聊天记录、隐式画像或跨设备用户数据。M1d 是独立 Agent 入口；
+M1e 是本地 benchmark 入口；M1f 是独立静态展示入口；M2a 也不改变这些默认行为。
+M2b 同样不会改变它们：只有 `m2b-*` 命令和独立 durable API factory 才会连接 PostgreSQL 或 Redis。M2c
+也同样隔离：只有带 `--live` 的 `m2c-*` operator command 才会连接既有 loopback tunnel；默认
+M0–M2b、M1f 与离线门禁不会加载 GPU 依赖、读取 tunnel 或连接模型服务。
 
 ## 已实现
 
@@ -94,6 +101,17 @@ CLI/API 仍使用 Rule Intent 且只读取本地快照。项目不连接网络�
 - 只展示已提交 ESCI artifact 的聚合指标和 provenance，不向浏览器提供 query、商品文本或逐条标签；
 - 页面不调用模型、Provider、Agent API、SSE 或外部资源，静态服务只绑定 `127.0.0.1`。
 
+### M2a 本机检索智能闭环
+
+- `opensearchproject/opensearch:2.17.0` 仅以 single-node、`127.0.0.1:9200` 运行；没有远程
+  endpoint、Dashboards、Postgres、Redis 或持久 Docker volume；
+- Product/Card 索引只取已经 hash-closed 的 M1d assets。OpenSearch 返回不透明 identity/rank，
+  商品、价格、Evidence 和 Card facts 均回读既有可信资产；
+- 当前 Query 的 BM25 + k-NN Hybrid Top-30 始终受保护；显式 Profile 只可补充至多 10 个
+  User ANN candidate，不能替换或修改当前 Required/Hard Gates；
+- `qwen3-rerank` 仅在 `m2a-profile set --live` 或 `m2a-agent-demo --live` 的显式入口使用。
+  默认测试、M0–M1f 命令、API、SSE 和 M1f Showcase 不会连接 OpenSearch 或读取云凭据。
+
 ## 环境与安装
 
 需要 Python `>=3.12,<3.13` 和 [uv](https://docs.astral.sh/uv/)。
@@ -141,6 +159,193 @@ uv run --locked python scripts/serve_m1f_showcase.py
 
 然后在浏览器打开 `http://127.0.0.1:8765/`。页面是本地录制回放，不执行真实 Agent，
 也不表示当前 marketplace 数据。
+
+### M2a OpenSearch、Profile 与 Rerank
+
+先由 Operator 手动启动/停止本机 OpenSearch；应用不会自动拉镜像或启动 Docker：
+
+```bash
+docker compose -f infra/m2a-opensearch.compose.yml up -d
+
+uv run --locked glodex m2a-index --action build --snapshot m1d-demo-v1
+uv run --locked glodex m2a-index --action verify --snapshot m1d-demo-v1
+```
+
+显式 profile 写入需要 DashScope embedding。它只写入 `profile_id/scope/kind/value` 的 typed
+soft preference；`list` 只返回 opaque entry ID，避免把 preference 正文写进终端记录：
+
+```bash
+export DASHSCOPE_API_KEY="..."
+
+uv run --locked glodex m2a-profile --action set --live \
+  --profile local-demo --scope soft --kind preference --value "轻薄、长续航"
+uv run --locked glodex m2a-profile --action list --profile local-demo
+```
+
+M2a Agent 是独立入口。它还需要既有的 DeepSeek selector 凭据；OpenSearch Query Hybrid 和
+DashScope embedding/rerank 均实际执行，最后仍通过 M1d 的 Canonical、价格、运费、Hard Gates
+和 Evidence closure：
+
+```bash
+export DEEPSEEK_API_KEY="..."
+
+uv run --locked glodex m2a-agent-demo --live --profile local-demo \
+  --query "在四个平台找手机，比较到手价" \
+  --locale zh-CN --currency CNY --top-k 3 --snapshot m1d-demo-v1
+```
+
+如果已在仓库外构建 M1e 的 ESCI artifact，可显式比较本地 coarse 与 `qwen3-rerank` 聚合指标。
+它先完成每个固定 candidate pool 的 rerank，之后才读取 labels；不把 ESCI 文本、labels 或结果
+写入 OpenSearch/Catalog/Agent：
+
+```bash
+uv run --locked glodex m2a-eval-esci --live \
+  --artifact-root data/benchmarks/esci-small-us-v1
+```
+
+离线回归不依赖 Docker 或 Provider；真实 smoke 需在 Docker/凭据可用时分别执行：
+
+```bash
+uv run --locked python scripts/verify_m2a.py
+uv run --locked python scripts/verify_m2a_opensearch.py
+uv run --locked python scripts/verify_m2a_dashscope.py
+
+docker compose -f infra/m2a-opensearch.compose.yml down
+```
+
+M2a 仍是 8 商品/8 Card 的学生本机 demo，不承诺商业质量、召回率、生产吞吐、账号同步或完整
+AG-UI；Redis/Postgres durable memory 已由 M2b 的显式本机 runtime 提供，固定私有 GPU BGE
+retrieval service 由 M2c 的显式路径提供。
+
+### M2b durable runtime 与长期记忆
+
+M2b 使用独立的本机服务；应用不会自动拉镜像、启动 Docker 或删除数据。PostgreSQL named
+volume 是 Run/Event/Checkpoint/Profile 的唯一持久真相；Redis 禁用 AOF/RDB，可随时丢失，最多只会
+造成 cache miss。不要把卷、`*.env`、Profile value/vector、request/checkpoint 或 `项目架构/` 的
+26 张 PNG 提交到仓库。
+
+```bash
+docker compose -f infra/m2b-durable.compose.yml up -d
+
+uv run --locked glodex m2b-migrate --live
+uv run --locked glodex m2b-verify --live
+```
+
+持久 Profile 只有 `soft/preference`，`list` 只输出 opaque entry ID 和 revision。写入 embedding
+仍需显式 DashScope 凭据；不要在终端记录真实偏好正文：
+
+```bash
+export DASHSCOPE_API_KEY="..."
+
+uv run --locked glodex m2b-profile --action set --live \
+  --profile local-durable --value "轻薄、长续航"
+uv run --locked glodex m2b-profile --action list --profile local-durable
+```
+
+运行真实 durable M2a Agent 前，先显式启动/构建 M2a OpenSearch index，并提供既有 DeepSeek 和
+DashScope 凭据。M2b 先从 PostgreSQL 冻结 Profile revision，再投影到 OpenSearch User ANN；Query
+Hybrid、rerank、Canonical、Evidence 和 Hard Gates 仍由既有 M2a/M1d 链路执行：
+
+```bash
+docker compose -f infra/m2a-opensearch.compose.yml up -d
+uv run --locked glodex m2a-index --action build --snapshot m1d-demo-v1
+
+export DEEPSEEK_API_KEY="..."
+uv run --locked glodex m2b-durable-agent-demo --live --profile local-durable \
+  --query "在四个平台找手机，比较到手价" --locale zh-CN --currency CNY --top-k 3
+```
+
+M2b 的核心本地 smoke 不调用 Provider：它使用 deterministic Agent 验证真实 PostgreSQL event
+持久化、终态与 SSE suffix replay。离线门禁和本机服务 smoke 分开执行：
+
+```bash
+uv run --locked python scripts/verify_m2b.py
+uv run --locked python scripts/verify_m2b_local.py
+```
+
+若要用 HTTP 访问已经验收的 durable Agent，而不是运行一次性 CLI，可在完成上述 migration、
+OpenSearch index 和显式凭据注入后启动固定 loopback API。它只监听 `127.0.0.1:8766`；8765
+仍是静态 Showcase，不是 durable API。服务不会自动迁移 schema 或自动读取 `.env`：
+
+```bash
+export DEEPSEEK_API_KEY="..."
+export DASHSCOPE_API_KEY="..."
+uv run --locked glodex m2b-serve --live
+```
+
+它只提供下列已冻结端点：`POST /api/v1/durable-agent-runs`、`GET
+/api/v1/durable-agent-runs/{run_id}`、`GET /api/v1/durable-agent-runs/{run_id}/events`、`POST
+/api/v1/durable-agent-runs/{run_id}/cancel`、`POST /api/v1/durable-agent-runs/{run_id}/resume`。
+按 `Ctrl-C` 会停止 API，但不会删除任何 PostgreSQL volume。
+
+停止服务不会删除 PostgreSQL named volume；需要清空 durable 数据时，只能由 Operator 明确执行
+`docker compose -f infra/m2b-durable.compose.yml down -v`。平常停止请使用不带 `-v` 的 `down`。
+当前恢复策略只允许没有进入外部 Agent 调用的已确认初始 checkpoint 重新执行；一旦整个 Agent
+外部执行 fence 已进入 `REMOTE_PENDING`，重启/恢复会安全地 `ABORTED`，不会猜测或重放外部调用。
+
+### M2c A100 BGE retrieval model service
+
+M2c 是受控 GPU 上的显式演示闭环，不会自动下载权重、创建 tunnel、拉起 Docker 或读取 `.env`。
+GPU operator 将 private manifest 和权重保留在仓库外，先安装 GPU-only 依赖并启动新仓库提供的
+service；应用侧只使用已经由 operator 建立的固定 loopback tunnel。不要把 manifest、权重、日志、
+向量、profile value、Docker volume 或 `项目架构/` 的 26 张 PNG 提交到 Git。
+
+```bash
+# 在受控 GPU 环境；<private-manifest> 位于仓库外
+uv sync --locked --group m2c-gpu
+uv run --locked --group m2c-gpu glodex m2c-gpu-service --manifest <private-manifest>
+
+# 在开发机；只核验固定 loopback service 的安全 identity summary
+uv run --locked glodex m2c-model-verify --live
+```
+
+health 成功后，operator 可用已经验证的 M1d assets 重建**独立** M2c BGE aliases。此过程不覆盖
+M2a aliases，也不会把 DashScope vector 或 M2b profile 转换为 BGE vector。OpenSearch 仍须由
+operator 显式启动；命令不会自行启动或停止它：
+
+```bash
+docker compose -f infra/m2a-opensearch.compose.yml up -d
+uv run --locked glodex m2c-index --action build --snapshot m1d-demo-v1 --live
+uv run --locked glodex m2c-index --action verify --snapshot m1d-demo-v1 --live
+
+# 只写入一条显式 typed soft preference；不要在终端历史中保存真实偏好正文
+uv run --locked glodex m2c-profile --action set --live \
+  --profile m2c-demo --value <soft-preference>
+uv run --locked glodex m2c-profile --action list --live --profile m2c-demo
+```
+
+`m2c-agent-demo --live` 保持 M1d 的九工具、Canonical、Evidence 与 Hard Gates；DeepSeek 只负责既有
+selector，BGE service 只负责 embedding/rerank。运行 Agent 前，operator 在当前 shell 提供既有的
+DeepSeek credential，不把其值写入 README、命令历史或 Git：
+
+```bash
+uv run --locked glodex m2c-agent-demo --live --profile m2c-demo \
+  --query "在四个平台找手机，比较到手价" \
+  --locale zh-CN --currency CNY --top-k 3 --snapshot m1d-demo-v1
+```
+
+M2c service 只接收受限长度的当前 query、显式 soft preference 和由可信 assets 回读的 item/Card
+文本；它不接收 credential、用户标识、持久 Run、最终商品事实或 OpenSearch document。它的 CLI
+只输出状态、count、safe code、aggregate metric 和 manifest digest 前缀。M1e 对比也必须显式走
+GPU cross-encoder；它先完成固定 candidate pool 的 rerank，之后才读取 labels，且只输出聚合指标：
+
+```bash
+uv run --locked glodex m2c-eval-esci --live \
+  --artifact-root data/benchmarks/esci-small-us-v1
+```
+
+默认验证绝不连接 GPU、tunnel、OpenSearch 或 Provider；它先执行 M2b baseline，再以 socket-blocked
+tests 验证 M2c fake contracts。无 GPU 或无受控 tunnel 时，只运行 M2a baseline，不将 M2c 标为可用：
+
+```bash
+uv run --locked python scripts/verify_m2c.py
+```
+
+停止 GPU service 使用该 service 前台进程的 `Ctrl-C`；tunnel 由建立它的 operator 在仓库外单独
+停止。不要运行带 volume 删除的 Docker 命令，M2c 也不会自动清理 M2a/M2b 数据。README 不记录 remote host、模型路径/hash、SSH command、credential 或 service response。
+
+M2d 的 AG-UI/React、多 worker 与生产 queue 仍未实现；M2c 不承诺训练、模型泛化、商业召回率、
+高可用或生产吞吐。
 
 ```bash
 # 校验本地快照
@@ -608,6 +813,7 @@ M1a 已交付最小 FastAPI + SSE 服务化切片，M1b 已交付单 Provider �
 - M1d：[全工具 AgentLoop 规格](./specs/004-glodex-m1d-agent-demo/spec.md) · [技术计划](./specs/004-glodex-m1d-agent-demo/plan.md) · [实施任务](./specs/004-glodex-m1d-agent-demo/tasks.md) · [验证记录](./specs/004-glodex-m1d-agent-demo/verification.md)
 - M1e：[ESCI 离线检索规格](./specs/005-glodex-m1e-esci-retrieval-benchmark/spec.md) · [技术计划](./specs/005-glodex-m1e-esci-retrieval-benchmark/plan.md) · [实施任务](./specs/005-glodex-m1e-esci-retrieval-benchmark/tasks.md)
 - M1f：[本地离线 Showcase 规格](./specs/006-glodex-m1f-local-showcase/spec.md) · [技术计划](./specs/006-glodex-m1f-local-showcase/plan.md) · [实施任务](./specs/006-glodex-m1f-local-showcase/tasks.md)
+- M2a：[检索智能闭环规格](./specs/007-glodex-m2a-opensearch-hybrid-retrieval/spec.md) · [技术计划](./specs/007-glodex-m2a-opensearch-hybrid-retrieval/plan.md) · [实施任务](./specs/007-glodex-m2a-opensearch-hybrid-retrieval/tasks.md)
 - [ADR-0001：确定性领域核心](./specs/000-glodex-mvp/adr/0001-deterministic-domain-core.md)
 - [ADR-0002：金额、汇率与舍入](./specs/000-glodex-mvp/adr/0002-money-fx-and-rounding.md)
 - [ADR-0003：硬门与排序降级](./specs/000-glodex-mvp/adr/0003-hard-gates-and-ranking-degradation.md)

@@ -139,6 +139,49 @@ class DemoItemSource:
         except Exception:
             raise ToolPortError(ToolFailureCode.ITEM_SOURCE_INVALID) from None
 
+    def materialize_record_keys(
+        self,
+        request: ItemSearchInput,
+        *,
+        record_keys: tuple[str, ...],
+    ) -> ItemSearchRuntimeResult:
+        """Rebuild candidates from a checked M2a key-only retrieval projection."""
+
+        if (
+            type(request) is not ItemSearchInput
+            or type(record_keys) is not tuple
+            or any(type(record_key) is not str for record_key in record_keys)
+            or not record_keys
+            or len(record_keys) != len(set(record_keys))
+            or len(record_keys) > request.top_k
+        ):
+            raise ToolPortError(ToolFailureCode.ITEM_SOURCE_INVALID)
+        try:
+            self._validate_index()
+            inventory = self._indexes.platform_inventory(request.platform)
+            if not set(record_keys).issubset(inventory.record_keys):
+                raise ValueError("M2a keys do not belong to the requested platform")
+            candidates = tuple(
+                _project_candidate(
+                    self._indexes.batch,
+                    platform=request.platform,
+                    record_key=record_key,
+                    allowed_providers=inventory.provider_ids,
+                )
+                for record_key in record_keys
+            )
+            return ItemSearchRuntimeResult(
+                platform=request.platform,
+                candidates=candidates,
+                platform_sub_batch=_sub_batch(self._indexes.batch, record_keys),
+                total_recall=len(inventory.record_keys),
+                truncated=len(inventory.record_keys) > len(candidates),
+            )
+        except ToolPortError:
+            raise
+        except Exception:
+            raise ToolPortError(ToolFailureCode.ITEM_SOURCE_INVALID) from None
+
     def manifest_records_for(
         self,
         result: ItemSearchRuntimeResult,
