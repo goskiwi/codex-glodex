@@ -194,6 +194,7 @@ _PHASE_A_STEPS = (
             "--ignore=tests/m1b",
             "--ignore=tests/m1c",
             "--ignore=tests/m1d",
+            "--ignore=tests/m1e",
         ),
     ),
 )

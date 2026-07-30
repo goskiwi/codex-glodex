@@ -56,6 +56,7 @@ def test_phase_a_profile_contains_every_approved_gate() -> None:
         "--ignore=tests/m1b",
         "--ignore=tests/m1c",
         "--ignore=tests/m1d",
+        "--ignore=tests/m1e",
     ) in commands
     assert all(isinstance(command, tuple) for command in commands)
 
@@ -73,6 +74,7 @@ def test_historical_profiles_exclude_later_milestones_from_whole_suite_collectio
         assert all("--ignore=tests/m1b" in command for command in whole_suite_commands)
         assert all("--ignore=tests/m1c" in command for command in whole_suite_commands)
         assert all("--ignore=tests/m1d" in command for command in whole_suite_commands)
+        assert all("--ignore=tests/m1e" in command for command in whole_suite_commands)
 
 
 def test_phase_b_profile_includes_phase_a_and_every_approved_phase_b_gate() -> None:
