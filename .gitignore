@@ -25,3 +25,11 @@ uploaded/
 
 # Local architecture references; keep them out of the published repository.
 项目架构/
+
+# The ESCI source checkout is operator-provided input.  Only the reviewed,
+# derived JSONL benchmark artifact may be committed.
+esci-data/
+shopping_queries_dataset/
+**/shopping_queries_dataset_examples.parquet
+**/shopping_queries_dataset_products.parquet
+**/shopping_queries_dataset_sources.csv

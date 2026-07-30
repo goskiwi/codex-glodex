@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import argparse
 import asyncio
+import json
 import re
 import sys
 from collections.abc import Awaitable, Callable, Sequence
@@ -29,6 +30,9 @@ from glodex.domain.catalog import aggregate_catalog_batch
 DEMO_QUERY = "推荐 800 美元以内、有库存、适合出差的轻薄本"
 _SNAPSHOT_VERSION = re.compile(r"[A-Za-z0-9][A-Za-z0-9._-]{0,63}\Z")
 _AGENT_DEMO_SNAPSHOT = "m1d-demo-v1"
+_DEFAULT_ESCI_ARTIFACT_ROOT = (
+    Path(__file__).resolve().parents[2] / "data" / "benchmarks" / "esci-small-us-v1"
+)
 
 type AgentServiceFactory = Callable[..., Awaitable[object]]
 
@@ -134,6 +138,17 @@ def _build_parser() -> argparse.ArgumentParser:
         type=Path,
         required=True,
         help="absolute external snapshot output root",
+    )
+
+    benchmark = subparsers.add_parser(
+        "benchmark-esci",
+        help="evaluate the fixed offline ESCI retrieval benchmark",
+    )
+    benchmark.add_argument(
+        "--artifact-root",
+        type=Path,
+        default=_DEFAULT_ESCI_ARTIFACT_ROOT,
+        help="versioned local ESCI benchmark artifact root",
     )
     return parser
 
@@ -328,6 +343,27 @@ def _capture_usage_rejected() -> int:
     return capture_exit_code_for(receipt)
 
 
+def _emit_esci_failure(*, code: str) -> None:
+    """Emit an aggregate-safe ESCI failure without echoing untrusted paths."""
+
+    sys.stdout.write(json.dumps({"code": code, "status": "FAILED"}, separators=(",", ":")) + "\n")
+
+
+def _run_esci_benchmark(namespace: argparse.Namespace) -> int:
+    """Evaluate the standalone local benchmark before any normal configuration loads."""
+
+    from glodex.esci_benchmark import BenchmarkArtifactError, benchmark_summary
+
+    try:
+        payload = benchmark_summary(namespace.artifact_root)
+    except BenchmarkArtifactError:
+        _emit_esci_failure(code="BENCHMARK_ARTIFACT_INVALID")
+        return 1
+    rendered = json.dumps(payload, ensure_ascii=True, sort_keys=True, separators=(",", ":"))
+    sys.stdout.write(rendered + "\n")
+    return 0
+
+
 async def _validate_snapshot(
     namespace: argparse.Namespace,
     config: GlodexConfig,
@@ -381,6 +417,9 @@ def main(
     except CliUsageError as error:
         if arguments and arguments[0] == "capture-provider":
             return _capture_usage_rejected()
+        if arguments and arguments[0] == "benchmark-esci":
+            _emit_esci_failure(code="BENCHMARK_USAGE")
+            return 2
         rejection = _rejected(
             field="cli",
             code="CLI_USAGE",
@@ -391,6 +430,9 @@ def main(
 
     if namespace.command == "capture-provider":
         return _run_capture(namespace)
+
+    if namespace.command == "benchmark-esci":
+        return _run_esci_benchmark(namespace)
 
     try:
         config = load_config(explicit_path=namespace.config)

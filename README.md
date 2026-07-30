@@ -1,17 +1,18 @@
 # Glodex
 
-Glodex 目前包含五个叠加的里程碑：
+Glodex 目前包含六个叠加的里程碑：
 
 - **M0** 是本地、离线、确定性的跨市场购物检索业务基线。它接收中文购物请求，从版本化快照中聚合同款商品和各市场报价，使用 `Decimal` 计算到手价，在排序前执行预算、品类、库存、商品本体和证据硬门，最后返回最多 3 个可核验结果。
 - **M1a** 在不改变 M0 业务合同与不变量的前提下，增加一个本地 FastAPI + SSE 服务化垂直切片。
 - **M1b** 增加一个 operator-only、显式 opt-in 的 eBay Buy Browse Capture 链路，把一个有界的真实结果页归一化为现有 manifest v1 snapshot；搜索、API 和 SSE 仍只读取本地快照。
 - **M1c** 增加一个 operator-only、显式 opt-in 的固定 DeepSeek Intent 适配器；模型只产生待校验 Intent，完整搜索仍复用既有本地快照、硬门、排序、Evidence、CLI、API 与 SSE。
 - **M1d** 增加一个 operator-only、显式 opt-in 的固定 DeepSeek AgentLoop，完整组装九个业务工具、`dispatch_tool`、最多四路子 Agent、Hybrid Category RAG、Tavily evidence 与 eBay live item search；最终商品仍必须通过既有 Canonical hard gates 与 Evidence closure。
+- **M1e** 增加一个独立、公开、可复现的 ESCI 历史检索/重排 benchmark；它只评测固定候选池，不进入 Catalog、搜索、Agent、API 或 SSE。
 
 M0 仍是可保留的业务与合同基线；M1a 是单进程 Demo，不是生产 Agent 平台。M1b
 Capture 与 M1c live Intent 都只能由 Operator 通过各自独立入口显式联网；默认
 CLI/API 仍使用 Rule Intent 且只读取本地快照。项目不连接网络数据库，也不保存长期
-用户画像。M1d 是独立 Agent 入口，不改变这些默认行为。
+用户画像。M1d 是独立 Agent 入口；M1e 是本地 benchmark 入口，二者都不改变这些默认行为。
 
 ## 已实现
 
@@ -76,6 +77,15 @@ CLI/API 仍使用 Rule Intent 且只读取本地快照。项目不连接网络�
 - 独立 Agent result、API 和 SSE 只暴露安全状态、工具名、fork 进度与 Canonical
   结果，不暴露 prompt、模型原文、工具正文或思维链。
 
+### M1e ESCI 离线检索基准
+
+- 只使用 Amazon Science Shopping Queries Dataset（ESCI）的固定、英文 US test-pool
+  小样本，运行确定性 BM25 重排及 `Exact@10`、`MRR@10`、`nDCG@10`；
+- 数据是 Apache-2.0 的历史离线 benchmark 证据，不是 Amazon live 搜索、当前商品价格、
+  库存、配送或购物推荐；
+- 原始 Parquet/CSV 必须保留在 checkout 外；派生 artifact 才可保留其 `LICENSE`、`NOTICE`
+  和 attribution。
+
 ## 环境与安装
 
 需要 Python `>=3.12,<3.13` 和 [uv](https://docs.astral.sh/uv/)。
@@ -90,6 +100,27 @@ uv run --locked glodex --help
 ## CLI
 
 所有子命令选项都写在子命令之后。`validate-snapshot` 的快照版本是位置参数。
+
+### M1e ESCI benchmark
+
+先从 [Amazon Science ESCI 官方仓库](https://github.com/amazon-science/esci-data) 获取数据，
+并将 checkout 放在仓库外。构建器只读取这个本地目录，不下载或联网；Apache-2.0 的
+`LICENSE`、`NOTICE` 与 attribution 会进入派生 artifact。
+
+```bash
+git clone https://github.com/amazon-science/esci-data.git /absolute/external/esci-data
+ESCI_REVISION="$(git -C /absolute/external/esci-data rev-parse HEAD)"
+
+uv run --group dev --locked python scripts/build_esci_benchmark.py \
+  --source-root /absolute/external/esci-data \
+  --source-revision "$ESCI_REVISION" \
+  --output-root data/benchmarks/esci-small-us-v1
+
+uv run --locked glodex benchmark-esci \
+  --artifact-root data/benchmarks/esci-small-us-v1
+```
+
+这份输出只包含聚合检索指标；它不证明 Amazon 的实时搜索、价格、库存、配送或推荐质量。
 
 ```bash
 # 校验本地快照

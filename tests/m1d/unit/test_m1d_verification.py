@@ -70,9 +70,10 @@ def test_m0_historical_phase_excludes_all_later_milestones() -> None:
         step for step in verify_m0.steps_for_phase("A") if step.name == "implemented test suite"
     )
 
-    assert implemented_suite.command[-4:] == (
+    assert implemented_suite.command[-5:] == (
         "--ignore=tests/m1a",
         "--ignore=tests/m1b",
         "--ignore=tests/m1c",
         "--ignore=tests/m1d",
+        "--ignore=tests/m1e",
     )

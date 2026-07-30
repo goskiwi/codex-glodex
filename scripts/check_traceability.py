@@ -21,25 +21,27 @@ M1A_SPEC_PATH = PROJECT_ROOT / "specs" / "001-glodex-m1-api" / "spec.md"
 M1B_SPEC_PATH = PROJECT_ROOT / "specs" / "002-glodex-m1b-provider" / "spec.md"
 M1C_SPEC_PATH = PROJECT_ROOT / "specs" / "003-glodex-m1c-llm-intent" / "spec.md"
 M1D_SPEC_PATH = PROJECT_ROOT / "specs" / "004-glodex-m1d-agent-demo" / "spec.md"
+M1E_SPEC_PATH = PROJECT_ROOT / "specs" / "005-glodex-m1e-esci-retrieval-benchmark" / "spec.md"
 DEFAULT_SPEC_PATH = M0_SPEC_PATH
 DEFAULT_TESTS_PATH = PROJECT_ROOT / "tests"
 DEFAULT_PYTEST_CONFIG = PROJECT_ROOT / "pyproject.toml"
 
 _P0_DEFINITION = re.compile(
-    r"^\|\s*`((?:GLO-P0|GLO-M1-P0|GLO-M1B-P0|GLO-M1C-P0|GLO-M1D-P0)-\d{3})`\s*\|",
+    r"^\|\s*`((?:GLO-P0|GLO-M1-P0|GLO-M1B-P0|GLO-M1C-P0|GLO-M1D-P0|GLO-M1E-P0)-\d{3})`\s*\|",
     re.MULTILINE,
 )
 _NFR_DEFINITION = re.compile(
-    r"^\|\s*`((?:GLO-NFR|GLO-M1-NFR|GLO-M1B-NFR|GLO-M1C-NFR|GLO-M1D-NFR)-\d{3})`\s*\|",
+    r"^\|\s*`((?:GLO-NFR|GLO-M1-NFR|GLO-M1B-NFR|GLO-M1C-NFR|GLO-M1D-NFR|GLO-M1E-NFR)-\d{3})`\s*\|",
     re.MULTILINE,
 )
 _AC_DEFINITION = re.compile(
-    r"^###\s+`((?:AC|M1-AC|M1B-AC|M1C-AC|M1D-AC)-\d{3})`(?:\s|$)",
+    r"^###\s+`((?:AC|M1-AC|M1B-AC|M1C-AC|M1D-AC|M1E-AC)-\d{3})`(?:\s|$)",
     re.MULTILINE,
 )
 _SPEC_ID_SHAPE = re.compile(
     r"(?:GLO-(?:P0|NFR)|GLO-M1-(?:P0|NFR)|GLO-M1B-(?:P0|NFR)|"
-    r"GLO-M1C-(?:P0|NFR)|GLO-M1D-(?:P0|NFR)|AC|M1-AC|M1B-AC|M1C-AC|M1D-AC)"
+    r"GLO-M1C-(?:P0|NFR)|GLO-M1D-(?:P0|NFR)|GLO-M1E-(?:P0|NFR)|"
+    r"AC|M1-AC|M1B-AC|M1C-AC|M1D-AC|M1E-AC)"
     r"-\d{3}\Z"
 )
 
@@ -95,6 +97,12 @@ _APPROVED_M1D_INVENTORY = SpecInventory(
     ac_ids=tuple(f"M1D-AC-{index:03d}" for index in range(1, 7)),
 )
 
+_APPROVED_M1E_INVENTORY = SpecInventory(
+    p0_ids=tuple(f"GLO-M1E-P0-{index:03d}" for index in range(1, 5)),
+    nfr_ids=tuple(f"GLO-M1E-NFR-{index:03d}" for index in range(1, 5)),
+    ac_ids=tuple(f"M1E-AC-{index:03d}" for index in range(1, 5)),
+)
+
 
 @dataclass(frozen=True, slots=True)
 class TraceabilityProfile:
@@ -146,6 +154,12 @@ _TRACEABILITY_PROFILES = {
         spec_path=M1D_SPEC_PATH,
         test_paths=(DEFAULT_TESTS_PATH / "m1d",),
         approved_inventory=_APPROVED_M1D_INVENTORY,
+    ),
+    "m1e": TraceabilityProfile(
+        label="M1e",
+        spec_path=M1E_SPEC_PATH,
+        test_paths=(DEFAULT_TESTS_PATH / "m1e",),
+        approved_inventory=_APPROVED_M1E_INVENTORY,
     ),
 }
 
