@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="color-scheme" content="dark">
+    <title>Glodex · 离线 Showcase</title>
+    <link rel="stylesheet" href="styles.css">
+    <script src="app.js" defer></script>
+  </head>
+  <body>
+    <main class="shell">
+      <header class="hero">
+        <p class="eyebrow">GLODEX · M1f ENGINEERING SHOWCASE</p>
+        <h1>把 Agent 过程和检索证据讲清楚</h1>
+        <p class="lede">本地录制回放，非实时 Agent 运行。</p>
+        <p class="disclaimer">
+          页面不会调用模型、市场 API 或现有 Agent API；所有指标来自已提交的离线 ESCI benchmark。
+        </p>
+      </header>
+
+      <section class="panel replay-panel" aria-labelledby="replay-title">
+        <div class="panel-heading">
+          <div>
+            <p class="section-kicker">M1d · SAFE EVENT REPLAY</p>
+            <h2 id="replay-title">Agent 事件回放</h2>
+          </div>
+          <output id="replay-status" class="status-pill" aria-live="polite">正在加载</output>
+        </div>
+        <p class="panel-copy">
+          只投影公开、安全的事件类型与工具名；不展示用户问题、提示词、模型推理、工具参数或商品事实。
+        </p>
+        <div class="replay-controls" aria-label="回放控制">
+          <button id="play-button" type="button">开始回放</button>
+          <button id="pause-button" type="button" class="secondary">暂停</button>
+          <button id="reset-button" type="button" class="secondary">重新播放</button>
+        </div>
+        <ol id="event-timeline" class="timeline" aria-label="录制事件时间线"></ol>
+      </section>
+
+      <section class="panel" aria-labelledby="tools-title">
+        <div class="panel-heading">
+          <div>
+            <p class="section-kicker">M1d · FIXED TOOL SURFACE</p>
+            <h2 id="tools-title">9 个业务工具 + 1 个元工具</h2>
+          </div>
+          <p class="tool-legend"><span class="dot executed"></span>本次已执行 <span class="dot"></span>本次未执行</p>
+        </div>
+        <p class="panel-copy">能力目录描述系统可用工具；时间线只描述这次录制实际执行的步骤。</p>
+        <ul id="tool-inventory" class="tool-grid" aria-label="工具能力目录"></ul>
+      </section>
+
+      <section class="panel benchmark-panel" aria-labelledby="benchmark-title">
+        <div class="panel-heading">
+          <div>
+            <p class="section-kicker">M1e · ESCI OFFLINE BENCHMARK</p>
+            <h2 id="benchmark-title">历史离线检索证据</h2>
+          </div>
+          <output id="benchmark-status" class="status-pill" aria-live="polite">正在加载</output>
+        </div>
+        <p class="panel-copy">
+          这是一份固定历史候选池的离线评测，不代表当前 Amazon 搜索、价格、库存或推荐效果。
+        </p>
+        <div id="metric-cards" class="metric-grid" aria-label="检索指标"></div>
+        <dl id="benchmark-provenance" class="provenance" aria-label="基准来源与样本信息"></dl>
+      </section>
+    </main>
+  </body>
+</html>

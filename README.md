@@ -1,6 +1,6 @@
 # Glodex
 
-Glodex 目前包含六个叠加的里程碑：
+Glodex 目前包含七个叠加的里程碑：
 
 - **M0** 是本地、离线、确定性的跨市场购物检索业务基线。它接收中文购物请求，从版本化快照中聚合同款商品和各市场报价，使用 `Decimal` 计算到手价，在排序前执行预算、品类、库存、商品本体和证据硬门，最后返回最多 3 个可核验结果。
 - **M1a** 在不改变 M0 业务合同与不变量的前提下，增加一个本地 FastAPI + SSE 服务化垂直切片。
@@ -8,11 +8,12 @@ Glodex 目前包含六个叠加的里程碑：
 - **M1c** 增加一个 operator-only、显式 opt-in 的固定 DeepSeek Intent 适配器；模型只产生待校验 Intent，完整搜索仍复用既有本地快照、硬门、排序、Evidence、CLI、API 与 SSE。
 - **M1d** 增加一个 operator-only、显式 opt-in 的固定 DeepSeek AgentLoop，完整组装九个业务工具、`dispatch_tool`、最多四路子 Agent、Hybrid Category RAG、Tavily evidence 与 eBay live item search；最终商品仍必须通过既有 Canonical hard gates 与 Evidence closure。
 - **M1e** 增加一个独立、公开、可复现的 ESCI 历史检索/重排 benchmark；它只评测固定候选池，不进入 Catalog、搜索、Agent、API 或 SSE。
+- **M1f** 增加一个零凭据、本地静态 Showcase：它回放安全的 M1d 公开事件投影，并展示 M1e 的聚合 benchmark 证据；它不是实时 Agent 或 marketplace UI。
 
 M0 仍是可保留的业务与合同基线；M1a 是单进程 Demo，不是生产 Agent 平台。M1b
 Capture 与 M1c live Intent 都只能由 Operator 通过各自独立入口显式联网；默认
 CLI/API 仍使用 Rule Intent 且只读取本地快照。项目不连接网络数据库，也不保存长期
-用户画像。M1d 是独立 Agent 入口；M1e 是本地 benchmark 入口，二者都不改变这些默认行为。
+用户画像。M1d 是独立 Agent 入口；M1e 是本地 benchmark 入口；M1f 是独立静态展示入口，三者都不改变这些默认行为。
 
 ## 已实现
 
@@ -86,6 +87,13 @@ CLI/API 仍使用 Rule Intent 且只读取本地快照。项目不连接网络�
 - 原始 Parquet/CSV 必须保留在 checkout 外；派生 artifact 才可保留其 `LICENSE`、`NOTICE`
   和 attribution。
 
+### M1f 本地离线 Showcase
+
+- 只从版本化本地 JSON 回放 M1d 的安全事件，明确标注“本地录制回放，非实时 Agent 运行”；
+- 固定展示九个业务工具和 `dispatch_tool` 元工具，并严格区分本次已执行与系统可用能力；
+- 只展示已提交 ESCI artifact 的聚合指标和 provenance，不向浏览器提供 query、商品文本或逐条标签；
+- 页面不调用模型、Provider、Agent API、SSE 或外部资源，静态服务只绑定 `127.0.0.1`。
+
 ## 环境与安装
 
 需要 Python `>=3.12,<3.13` 和 [uv](https://docs.astral.sh/uv/)。
@@ -121,6 +129,18 @@ uv run --locked glodex benchmark-esci \
 ```
 
 这份输出只包含聚合检索指标；它不证明 Amazon 的实时搜索、价格、库存、配送或推荐质量。
+
+### M1f 本地 Showcase
+
+先验证静态证据，再启动仅限本机的静态服务：
+
+```bash
+uv run --locked python scripts/validate_m1f_showcase.py
+uv run --locked python scripts/serve_m1f_showcase.py
+```
+
+然后在浏览器打开 `http://127.0.0.1:8765/`。页面是本地录制回放，不执行真实 Agent，
+也不表示当前 marketplace 数据。
 
 ```bash
 # 校验本地快照
@@ -473,6 +493,12 @@ uv run --locked python scripts/verify_m1c.py
 
 # 运行完整 M1d 离线门禁；它会先运行完整 M1c 门禁
 uv run --locked python scripts/verify_m1d.py
+
+# 运行完整 M1e 离线门禁；它会先运行完整 M1d 门禁
+uv run --locked python scripts/verify_m1e.py
+
+# 运行完整 M1f 门禁；它会先运行完整 M1e 门禁
+uv run --locked python scripts/verify_m1f.py
 ```
 
 `scripts/verify_m0.py` 依次检查锁文件、格式、lint、类型、离线/安全/架构、unit/contract/generated、全部 AC、Golden、20 进程确定性、traceability 和 20k/100 性能工作负载。任一步失败都会整体非零，门禁不会 skip/xfail 或自动更新 Golden。
@@ -490,6 +516,11 @@ Golden。
 architecture/NFR、unit/contract、acceptance 和 exact `6 P0 / 6 AC / 6 NFR`
 coverage。它同样清除全部 Provider 凭据与代理变量、保持禁网，不执行 live smoke，
 不更新 Golden，也不保存任何 live artifact。
+
+`scripts/verify_m1e.py` 先完整执行 M1d，再检查 ESCI artifact 的离线、安全、unit/contract、
+acceptance 和 exact `4 P0 / 4 AC / 4 NFR` coverage。`scripts/verify_m1f.py` 先完整执行
+M1e，再检查静态 Showcase 的隔离、资产、页面合同、acceptance 和相同规模的 coverage；二者都
+不读取凭据、不启动 live Agent 或 Provider。
 
 Golden 的 `--write` 只应在已批准的语义变更后人工执行，并先审阅 diff。
 
@@ -559,10 +590,10 @@ GLODEX_REFERENCE_CI=1 uv run --locked python scripts/verify_m0.py
 
 M1a 已交付最小 FastAPI + SSE 服务化切片，M1b 已交付单 Provider 的 capture-first
 切片，M1c 已交付固定 DeepSeek Intent 安全接入，M1d 已交付固定工具 AgentLoop 的
-完整验收；
+完整验收，M1e 已交付 ESCI 离线 benchmark，M1f 已交付本地静态 Showcase；
 以下能力仍明确延期：
 
-- **后续 M1**：eBay 之外的 live marketplace adapter、完整 AG-UI 与前端；
+- **后续 M1**：eBay 之外的 live marketplace adapter、完整 AG-UI 与实时前端；
 - **M2**：OpenSearch/三塔/cross-encoder、Postgres/checkpoint、Redis、长期记忆与
   个性化；
 - **范围外**：生产部署、实时/全量商品覆盖、Provider 可用性、价格时效、真实推荐
@@ -575,6 +606,8 @@ M1a 已交付最小 FastAPI + SSE 服务化切片，M1b 已交付单 Provider �
 - M1b：[Provider Capture 规格](./specs/002-glodex-m1b-provider/spec.md) · [技术计划](./specs/002-glodex-m1b-provider/plan.md) · [实施任务](./specs/002-glodex-m1b-provider/tasks.md) · [验证记录](./specs/002-glodex-m1b-provider/verification.md)
 - M1c：[DeepSeek Intent 规格](./specs/003-glodex-m1c-llm-intent/spec.md) · [技术计划](./specs/003-glodex-m1c-llm-intent/plan.md) · [实施任务](./specs/003-glodex-m1c-llm-intent/tasks.md) · [验证记录](./specs/003-glodex-m1c-llm-intent/verification.md)
 - M1d：[全工具 AgentLoop 规格](./specs/004-glodex-m1d-agent-demo/spec.md) · [技术计划](./specs/004-glodex-m1d-agent-demo/plan.md) · [实施任务](./specs/004-glodex-m1d-agent-demo/tasks.md) · [验证记录](./specs/004-glodex-m1d-agent-demo/verification.md)
+- M1e：[ESCI 离线检索规格](./specs/005-glodex-m1e-esci-retrieval-benchmark/spec.md) · [技术计划](./specs/005-glodex-m1e-esci-retrieval-benchmark/plan.md) · [实施任务](./specs/005-glodex-m1e-esci-retrieval-benchmark/tasks.md)
+- M1f：[本地离线 Showcase 规格](./specs/006-glodex-m1f-local-showcase/spec.md) · [技术计划](./specs/006-glodex-m1f-local-showcase/plan.md) · [实施任务](./specs/006-glodex-m1f-local-showcase/tasks.md)
 - [ADR-0001：确定性领域核心](./specs/000-glodex-mvp/adr/0001-deterministic-domain-core.md)
 - [ADR-0002：金额、汇率与舍入](./specs/000-glodex-mvp/adr/0002-money-fx-and-rounding.md)
 - [ADR-0003：硬门与排序降级](./specs/000-glodex-mvp/adr/0003-hard-gates-and-ranking-degradation.md)
