@@ -6,7 +6,7 @@ import argparse
 import asyncio
 import re
 import sys
-from collections.abc import Sequence
+from collections.abc import Awaitable, Callable, Sequence
 from pathlib import Path
 from typing import Never
 
@@ -22,11 +22,15 @@ from glodex.contracts import (
     RunStatus,
     SearchResponse,
     SnapshotValidationResponse,
+    validate_search_request,
 )
 from glodex.domain.catalog import aggregate_catalog_batch
 
 DEMO_QUERY = "推荐 800 美元以内、有库存、适合出差的轻薄本"
 _SNAPSHOT_VERSION = re.compile(r"[A-Za-z0-9][A-Za-z0-9._-]{0,63}\Z")
+_AGENT_DEMO_SNAPSHOT = "m1d-demo-v1"
+
+type AgentServiceFactory = Callable[..., Awaitable[object]]
 
 
 class CliUsageError(ValueError):
@@ -64,6 +68,33 @@ def _build_parser() -> argparse.ArgumentParser:
         "--live-intent",
         action="store_true",
         help="send the complete query to DeepSeek for live Intent interpretation",
+    )
+
+    agent_demo = subparsers.add_parser(
+        "agent-demo",
+        help="run the explicit fixed DeepSeek shopping Agent",
+    )
+    _add_common_options(agent_demo)
+    agent_demo.add_argument(
+        "--live",
+        action="store_true",
+        required=True,
+        help="explicitly enable DeepSeek and DashScope for this Agent run",
+    )
+    agent_demo.add_argument(
+        "--live-data",
+        action="store_true",
+        help="also enable fixed Tavily and eBay live-data capabilities",
+    )
+    agent_demo.add_argument(
+        "--query",
+        required=True,
+        help="shopping request text sent to the fixed Agent composition",
+    )
+    agent_demo.add_argument(
+        "--output-root",
+        type=Path,
+        help="absolute external 0700 output root required by --live-data",
     )
 
     validate = subparsers.add_parser(
@@ -133,6 +164,89 @@ def _payload(namespace: argparse.Namespace, config: GlodexConfig) -> dict[str, o
         "top_k": (namespace.top_k if namespace.top_k is not None else config.default_top_k),
         "snapshot_version": namespace.snapshot or config.default_snapshot,
     }
+
+
+def _agent_payload(namespace: argparse.Namespace) -> dict[str, object]:
+    return {
+        "query": namespace.query,
+        "locale": namespace.locale or "zh-CN",
+        "display_currency": namespace.currency or "CNY",
+        "top_k": namespace.top_k if namespace.top_k is not None else 3,
+        "snapshot_version": (
+            None if namespace.live_data else namespace.snapshot or _AGENT_DEMO_SNAPSHOT
+        ),
+    }
+
+
+def _agent_mode_rejection(namespace: argparse.Namespace) -> RequestRejected | None:
+    if namespace.live_data:
+        if namespace.snapshot is not None:
+            return _rejected(
+                field="snapshot",
+                code="AGENT_MODE_INVALID",
+                message="live-data mode does not accept a snapshot",
+            )
+        if namespace.output_root is None:
+            return _rejected(
+                field="output_root",
+                code="AGENT_OUTPUT_ROOT_REQUIRED",
+                message="live-data mode requires an external output root",
+            )
+        return None
+    if namespace.output_root is not None:
+        return _rejected(
+            field="output_root",
+            code="AGENT_MODE_INVALID",
+            message="output root is only accepted in live-data mode",
+        )
+    if namespace.snapshot not in (None, _AGENT_DEMO_SNAPSHOT):
+        return _rejected(
+            field="snapshot",
+            code="AGENT_SNAPSHOT_UNSUPPORTED",
+            message="Agent Demo supports only m1d-demo-v1",
+        )
+    return None
+
+
+async def _execute_agent(
+    *,
+    config: GlodexConfig,
+    request: object,
+    live_data: bool,
+    output_root: Path | None,
+    service_factory: AgentServiceFactory | None,
+) -> object:
+    from glodex.application.agent.contracts import AgentExecution
+    from glodex.contracts import SearchRequest
+
+    if type(request) is not SearchRequest:
+        raise TypeError("Agent CLI requires an exact SearchRequest")
+    if service_factory is None:
+        from glodex.agent_bootstrap import build_agent_service
+
+        service_factory = build_agent_service
+    service = await service_factory(
+        config,
+        live_data=live_data,
+        output_root=output_root,
+        preflight_query=request.query,
+    )
+    execute = getattr(service, "execute", None)
+    if not callable(execute):
+        raise TypeError("Agent composition must provide execute")
+    execution = await execute(request)
+    if type(execution) is not AgentExecution:
+        raise TypeError("Agent service must return exact AgentExecution")
+    return execution
+
+
+def _emit_agent_execution(execution: object) -> int:
+    from glodex.application.agent.contracts import AgentExecution
+
+    if type(execution) is not AgentExecution:
+        raise TypeError("Agent CLI requires exact AgentExecution")
+    sys.stdout.write(execution.response.model_dump_json() + "\n")
+    return 1 if execution.response.status is RunStatus.FAILED else 0
 
 
 CliOutcome = SearchResponse | RequestRejected | SnapshotValidationResponse
@@ -254,7 +368,11 @@ async def _validate_snapshot(
     )
 
 
-def main(argv: Sequence[str] | None = None) -> int:
+def main(
+    argv: Sequence[str] | None = None,
+    *,
+    agent_service_factory: AgentServiceFactory | None = None,
+) -> int:
     """Parse once, run the async application once, and emit one JSON document."""
 
     arguments = tuple(sys.argv[1:] if argv is None else argv)
@@ -307,6 +425,38 @@ def main(argv: Sequence[str] | None = None) -> int:
         snapshot_outcome = asyncio.run(_validate_snapshot(namespace, config))
         _emit(snapshot_outcome)
         return exit_code_for(snapshot_outcome)
+
+    if namespace.command == "agent-demo":
+        mode_rejection = _agent_mode_rejection(namespace)
+        if mode_rejection is not None:
+            _emit(mode_rejection)
+            return exit_code_for(mode_rejection)
+        request = validate_search_request(_agent_payload(namespace))
+        if isinstance(request, RequestRejected):
+            _emit(request)
+            return exit_code_for(request)
+        from glodex.agent_bootstrap import AgentPreflightError
+
+        try:
+            execution = asyncio.run(
+                _execute_agent(
+                    config=config,
+                    request=request,
+                    live_data=namespace.live_data,
+                    output_root=namespace.output_root,
+                    service_factory=agent_service_factory,
+                )
+            )
+        except AgentPreflightError as error:
+            message = str(error).partition(": ")[2] or "Agent live activation failed."
+            rejection = _rejected(
+                field="agent",
+                code=error.code,
+                message=message,
+            )
+            _emit(rejection)
+            return exit_code_for(rejection)
+        return _emit_agent_execution(execution)
 
     if namespace.command == "search" and namespace.live_intent:
         from glodex.adapters.deepseek_http import DeepSeekPreflightError

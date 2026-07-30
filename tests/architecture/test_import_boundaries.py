@@ -77,6 +77,7 @@ _DOMAIN_IO_ROOTS = frozenset(
 )
 _CAPTURE_HTTP_PATH = Path("capture/ebay_http.py")
 _DEEPSEEK_HTTP_PATH = Path("adapters/deepseek_http.py")
+_AGENT_LIVE_HTTP_PATH = Path("adapters/agent_live_http.py")
 
 
 def _matches_prefix(module: str, prefixes: tuple[str, ...]) -> bool:
@@ -135,11 +136,11 @@ def find_import_boundary_violations(package_root: Path) -> list[str]:
                     f"{relative_path}:{line_number}: framework import outside api ({module})"
                 )
             if _matches_prefix(module, _FORBIDDEN_EXTERNAL_PREFIXES):
-                approved_deepseek_httpx = (
-                    package_relative_path == _DEEPSEEK_HTTP_PATH
-                    and _matches_prefix(module, ("httpx",))
-                )
-                if not approved_deepseek_httpx:
+                approved_httpx_transport = package_relative_path in {
+                    _DEEPSEEK_HTTP_PATH,
+                    _AGENT_LIVE_HTTP_PATH,
+                } and _matches_prefix(module, ("httpx",))
+                if not approved_httpx_transport:
                     violations.add(
                         f"{relative_path}:{line_number}: external SDK/framework import ({module})"
                     )

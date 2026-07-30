@@ -42,6 +42,7 @@ _SENSITIVE_PREFIXES = (
     "AZURE_",
     "BEDROCK_",
     "COHERE_",
+    "DASHSCOPE_",
     "DATABASE_",
     "DB_",
     "DEEPSEEK_",
@@ -71,6 +72,7 @@ _SENSITIVE_PREFIXES = (
     "QDRANT_",
     "REDIS_",
     "SQLALCHEMY_",
+    "TAVILY_",
     "VERTEX_",
     "WANDB_",
     "WEAVIATE_",
@@ -191,6 +193,7 @@ _PHASE_A_STEPS = (
             "--ignore=tests/m1a",
             "--ignore=tests/m1b",
             "--ignore=tests/m1c",
+            "--ignore=tests/m1d",
         ),
     ),
 )

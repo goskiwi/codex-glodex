@@ -18,8 +18,10 @@ pytestmark = pytest.mark.architecture
 PROJECT_ROOT = Path(__file__).parents[3]
 PACKAGE_ROOT = PROJECT_ROOT / "src" / "glodex"
 DEEPSEEK_HTTP_PATH = Path("adapters/deepseek_http.py")
+AGENT_LIVE_HTTP_PATH = Path("adapters/agent_live_http.py")
 EBAY_HTTP_PATH = Path("capture/ebay_http.py")
 DEEPSEEK_HTTP_SOURCE = Path("src/glodex") / DEEPSEEK_HTTP_PATH
+AGENT_LIVE_HTTP_SOURCE = Path("src/glodex") / AGENT_LIVE_HTTP_PATH
 EBAY_HTTP_SOURCE = Path("src/glodex") / EBAY_HTTP_PATH
 
 
@@ -67,6 +69,7 @@ def test_deepseek_network_literals_stay_in_the_approved_transport() -> None:
             constructs_bearer_header = '"Authorization"' in text and "Bearer " in text
             if constructs_bearer_header and relative_path not in {
                 DEEPSEEK_HTTP_SOURCE,
+                AGENT_LIVE_HTTP_SOURCE,
                 EBAY_HTTP_SOURCE,
             }:
                 violations.append(f"{relative_path}: Bearer Authorization")

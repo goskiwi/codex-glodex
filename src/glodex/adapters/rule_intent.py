@@ -148,6 +148,13 @@ _CATEGORIES: Final[tuple[tuple[str, str], ...]] = (
     ("相机", "camera"),
     ("耳机", "headphones"),
 )
+_AGENT_CATEGORIES: Final[tuple[tuple[str, str], ...]] = (
+    *_CATEGORIES,
+    ("智能手机", "phone"),
+    ("手机", "phone"),
+    ("平板电脑", "tablet"),
+    ("平板", "tablet"),
+)
 _STOCK_PHRASES: Final[tuple[str, ...]] = ("有库存", "现货", "在售")
 _EXCLUSION_TERMS: Final[tuple[str, ...]] = (
     "替换件",
@@ -244,6 +251,9 @@ class RuleIntentInterpreter:
 
     parser_version = "rules-zh-cn-v1"
 
+    def _category_aliases(self) -> tuple[tuple[str, str], ...]:
+        return _CATEGORIES
+
     async def interpret(self, request: SearchRequest) -> InterpretedRequest:
         if not isinstance(request, SearchRequest):
             raise TypeError("RuleIntentInterpreter requires a SearchRequest")
@@ -264,7 +274,7 @@ class RuleIntentInterpreter:
                 )
             )
 
-        category = _parse_category(query)
+        category = _parse_category(query, aliases=self._category_aliases())
         if category is not None:
             required.append(category)
         required.extend(_parse_stock(query))
@@ -278,6 +288,15 @@ class RuleIntentInterpreter:
             preferred=tuple(preferred),
             parser_version=self.parser_version,
         )
+
+
+class AgentRuleIntentInterpreter(RuleIntentInterpreter):
+    """Add only the M1d Agent composition's approved category aliases."""
+
+    parser_version = "rules-zh-cn-agent-v1"
+
+    def _category_aliases(self) -> tuple[tuple[str, str], ...]:
+        return _AGENT_CATEGORIES
 
 
 def _parse_budget(query: str) -> _BudgetMatch | None:
@@ -366,10 +385,14 @@ def _to_budget_match(match: re.Match[str]) -> _BudgetMatch:
     )
 
 
-def _parse_category(query: str) -> TargetCategory | None:
+def _parse_category(
+    query: str,
+    *,
+    aliases: tuple[tuple[str, str], ...],
+) -> TargetCategory | None:
     matches: list[tuple[int, int, str, str]] = []
     occupied: list[tuple[int, int]] = []
-    for phrase, category in _CATEGORIES:
+    for phrase, category in aliases:
         for found in re.finditer(re.escape(phrase), query):
             span = (found.start(), found.end())
             if any(_overlaps(span, existing) for existing in occupied):
@@ -573,6 +596,7 @@ def _overlaps(first: tuple[int, int], second: tuple[int, int]) -> bool:
 
 
 __all__ = [
+    "AgentRuleIntentInterpreter",
     "IntentInterpretationCode",
     "IntentInterpretationError",
     "RuleIntentInterpreter",

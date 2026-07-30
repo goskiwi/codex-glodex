@@ -1,0 +1,1 @@
+{"base_currency":"CNY","rates":[{"base_per_unit":"1","currency":"CNY","evidence_id":"ev-m1d-fx-cny","minor_units":2},{"base_per_unit":"7.2","currency":"USD","evidence_id":"ev-m1d-fx-usd","minor_units":2}],"schema_version":"glodex.exchange-rates.v1","snapshot_version":"m1d-demo-v1"}

@@ -9,6 +9,7 @@ from dataclasses import dataclass
 
 from pydantic import TypeAdapter
 
+from glodex.application.eligibility_evaluator import evaluate_eligibility
 from glodex.application.issue_mapping import catalog_issue_to_public
 from glodex.application.journal import RunJournal, StageResult
 from glodex.application.ports import (
@@ -51,12 +52,7 @@ from glodex.domain.assembly import (
 )
 from glodex.domain.catalog import CatalogAggregationResult, CatalogBatch, aggregate_catalog_batch
 from glodex.domain.eligibility import (
-    EligibilityContext,
     EligibleOffer,
-    OfferPricingCandidate,
-    assemble_eligibility,
-    run_offer_gates,
-    run_product_gates,
     scorer_input,
 )
 from glodex.domain.eligibility import (
@@ -75,7 +71,6 @@ from glodex.domain.intent import (
     validate_interpreted_request,
 )
 from glodex.domain.issues import CatalogIssue, IssueStage
-from glodex.domain.pricing import calculate_landed_cost
 from glodex.domain.ranking import (
     degraded_rank,
     isolate_rank_candidates,
@@ -456,44 +451,14 @@ class SearchService:
             observer=observer,
         )
         try:
-            if batch.exchange_rates is None:
-                raise ValueError("catalog batch has no exchange-rate table")
-            required_currencies = {
-                request.display_currency,
-                *(() if budget_currency is None else (budget_currency,)),
-            }
-            if not required_currencies.issubset(batch.exchange_rates.supported_currencies):
-                raise ValueError("requested display or budget currency is unsupported")
-            context = EligibilityContext.from_interpreted_request(interpreted)
-            pricing = tuple(
-                OfferPricingCandidate(
-                    offer=offer,
-                    pricing=calculate_landed_cost(
-                        offer.cost_components,
-                        batch.exchange_rates,
-                        display_currency=request.display_currency,
-                        budget_max=None if budget is None else budget.amount,
-                        budget_currency=None if budget is None else budget.currency,
-                    ),
-                )
-                for offer in aggregation.offers
-            )
-            product_output = run_product_gates(
-                aggregation.products,
-                context,
-                batch.evidence,
-            )
-            offer_output = run_offer_gates(
-                product_output,
-                aggregation.offers,
-                pricing,
-                batch.evidence,
+            evaluation = evaluate_eligibility(
+                aggregation,
+                batch,
+                interpreted,
                 display_currency=request.display_currency,
             )
-            eligibility_output = assemble_eligibility(product_output, offer_output)
-            domain_filter_summary = eligibility_output.filter_summary
-            if domain_filter_summary is None:
-                raise TypeError("eligibility assembly returned no filter summary")
+            eligibility_output = evaluation.eligibility_output
+            domain_filter_summary = evaluation.filter_summary
         except Exception:
             issue = Issue(
                 code="eligibility.pipeline-failed",
