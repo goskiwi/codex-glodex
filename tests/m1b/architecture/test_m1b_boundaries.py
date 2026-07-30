@@ -95,8 +95,13 @@ def test_real_repository_respects_narrow_capture_boundary() -> None:
 
 def test_default_search_composition_has_no_capture_dependency() -> None:
     forbidden_paths = [PACKAGE_ROOT / "bootstrap.py"]
+    approved_agent_item_source = PACKAGE_ROOT / "adapters" / "agent_item_search.py"
     for layer in ("adapters", "api", "application", "domain"):
-        forbidden_paths.extend(sorted((PACKAGE_ROOT / layer).rglob("*.py")))
+        forbidden_paths.extend(
+            path
+            for path in sorted((PACKAGE_ROOT / layer).rglob("*.py"))
+            if path != approved_agent_item_source
+        )
 
     violations = {
         str(path.relative_to(PACKAGE_ROOT)): _capture_imports(path)

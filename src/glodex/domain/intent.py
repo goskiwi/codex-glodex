@@ -245,6 +245,12 @@ _CATEGORY_BY_TEXT = {
     "手机": "phone",
     "📱": "phone",
 }
+_AGENT_CATEGORY_BY_TEXT = {
+    **_CATEGORY_BY_TEXT,
+    "智能手机": "phone",
+    "平板电脑": "tablet",
+    "平板": "tablet",
+}
 _STOCK_TEXTS = frozenset({"有库存", "现货", "在售"})
 _EXCLUSION_TEXTS = {
     "lightweight": frozenset({"轻薄"}),
@@ -554,7 +560,18 @@ def _validate_interpreted_request(
         for index, required_criterion in enumerate(required):
             issues.extend(_validate_required(query, required_criterion, index))
         issues.extend(_validate_required_cardinality(required))
-        issues.extend(_validate_query_category_ambiguity(query))
+        issues.extend(
+            _validate_query_category_ambiguity(
+                query,
+                include_agent_categories=any(
+                    type(item) is TargetCategory
+                    and type(item.source_span) is SourceSpan
+                    and item.source_span.text in _AGENT_CATEGORY_BY_TEXT
+                    and item.source_span.text not in _CATEGORY_BY_TEXT
+                    for item in required
+                ),
+            )
+        )
 
     preferred = interpreted_request.preferred
     if type(preferred) is not tuple:
@@ -791,10 +808,13 @@ def _validate_partition_conflicts(
 
 def _validate_query_category_ambiguity(
     query: str,
+    *,
+    include_agent_categories: bool,
 ) -> tuple[IntentValidationIssue, ...]:
     occupied: list[tuple[int, int]] = []
     categories: set[str] = set()
-    for phrase, category in _CATEGORY_BY_TEXT.items():
+    categories_by_text = _AGENT_CATEGORY_BY_TEXT if include_agent_categories else _CATEGORY_BY_TEXT
+    for phrase, category in categories_by_text.items():
         for found in re.finditer(re.escape(phrase), query.strip()):
             span = (found.start(), found.end())
             if any(_overlaps(span, existing) for existing in occupied):
@@ -824,8 +844,13 @@ def _validate_category_span_binding(
 ) -> tuple[IntentValidationIssue, ...]:
     span = criterion.source_span
     trimmed_query = query.strip()
+    categories_by_text = (
+        _AGENT_CATEGORY_BY_TEXT
+        if span.text in _AGENT_CATEGORY_BY_TEXT and span.text not in _CATEGORY_BY_TEXT
+        else _CATEGORY_BY_TEXT
+    )
     covering: list[tuple[int, int, str]] = []
-    for phrase in _CATEGORY_BY_TEXT:
+    for phrase in categories_by_text:
         for found in re.finditer(re.escape(phrase), trimmed_query):
             if found.start() <= span.start and span.end <= found.end():
                 covering.append((found.start(), found.end(), phrase))
@@ -835,7 +860,7 @@ def _validate_category_span_binding(
         default=None,
     )
     if (
-        _CATEGORY_BY_TEXT.get(span.text) != criterion.category
+        categories_by_text.get(span.text) != criterion.category
         or maximal is None
         or (span.start, span.end, span.text) != maximal
         or _has_negative_scope(trimmed_query, maximal[0], end=maximal[1])

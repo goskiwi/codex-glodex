@@ -48,6 +48,7 @@ _EXTERNAL_ENVIRONMENT_PREFIXES = (
     "AWS_",
     "AZURE_",
     "COHERE_",
+    "DASHSCOPE_",
     "DATABASE_",
     "DB_",
     "DEEPSEEK_",
@@ -67,6 +68,7 @@ _EXTERNAL_ENVIRONMENT_PREFIXES = (
     "OPENAI_",
     "POSTGRES_",
     "REDIS_",
+    "TAVILY_",
 )
 
 
