@@ -129,7 +129,8 @@ embedding 或 rerank 是 `M2C_USER_EMBEDDING_DEGRADED` / `M2C_RERANK_DEGRADED`
   endpoint、SSE、Redis、terminal stdout 或 index；
 - 将 M2c Query/User/Item retrieval、product/Card rerank 接入一条独立 M2c Agent composition，
   复用 M1d AgentLoop、M2a conflict judge、Canonical/Evidence/Hard Gates 和安全 retrieval
-  trace；M2a DashScope Agent 入口与 M2b durable API 的当前 M2a backend 不变；
+  trace；M2a DashScope Agent 入口保持独立 baseline。已批准的 M2e 可在其 explicit live composition
+  中复用本规格的 M2c backend，但不改变 M2b public API；
 - fake transport contract、GPU-service local contract、mock M2c client、model manifest/
   reindex isolation tests、真实 `cuda` health + fixed non-sensitive embed/rerank smoke、以及
   仅输出聚合指标的 M1e M2c comparison。
@@ -158,8 +159,8 @@ embedding 或 rerank 是 `M2C_USER_EMBEDDING_DEGRADED` / `M2C_RERANK_DEGRADED`
 3. **GPU 不是业务真相。** BGE score 只能决定受限候选排序。当前 query、M2a Query Hybrid
    保护、conflict judge、Catalog ownership、Canonical、费用、库存、Evidence 和 Hard Gates
    仍在可信应用层裁定。
-4. **显式隔离。** M2c 仅由其 operator CLI/composition 触发；M2a/M2b 默认路径不会 import
-   M2c client、读取 tunnel、触发 health 或读取 model manifest。
+4. **显式隔离。** M2c 仅由其 operator CLI/composition 或已批准的 M2e `m2b-* --live` 触发；
+   M2a/M2b 默认和离线路径不会 import M2c client、读取 tunnel、触发 health 或读取 model manifest。
 5. **Profile 仍为 soft。** GPU embedding 不将偏好升级成 Required/事实/最终推荐依据；当前
    Required 与排除项永远优先。Profile vector/正文不出私有持久层和有限 GPU request。
 6. **可解释降级。** Query BGE path 不可用即 fail closed；可选 User/rerank 故障显式
@@ -215,7 +216,8 @@ product 保留 Query Hybrid 顺序并移除 User-only candidates，Card 不产�
 `m2c-agent-demo --live` 在实际 GPU + M2c OpenSearch 上完成一条 query；安全 trace 至少包含
 model digest prefix、Query/User candidate counts、rerank stage 和 safe codes，最终结果继续通过
 Canonical/Evidence/Hard Gates。断言同一 run 没有 DashScope embedding/rerank request；默认
-`m2a-agent-demo` 仍可使用 DashScope baseline，M2b durable API 仍保持现有 M2a backend。
+`m2a-agent-demo` 仍可使用 DashScope baseline；正式 M2b durable live backend 的 M2c 接入由
+[`GLO-SPEC-011`](../011-glodex-m2e-durable-bge-composition/spec.md) 定义。
 
 ### `M2C-AC-006` 隐私、边界与发布 hygiene
 
@@ -245,7 +247,7 @@ bounded/invalid response 分支；真实 smoke 日志只保存安全摘要。
       manifest health 的最小 service；
 - [x] 用户确认 Operator 可建立私有 loopback tunnel，且真实验收允许发送固定非敏感 probe、
       受控 item/Card text 和显式测试 profile 给该 GPU；
-- [x] 用户确认 M2c 不重训模型、不改 M2b durable API backend、不做 AG-UI/React、队列、
+- [x] 原始 M2c 切片不重训模型、不改 M2b durable API backend、不做 AG-UI/React、队列、
       多 worker、生产部署或用户可选模型；
 - [x] `7 P0 / 6 AC / 6 NFR` 均有 fake contract、离线 regression 或明确 GPU smoke 证据路径。
 
@@ -254,4 +256,5 @@ bounded/invalid response 分支；真实 smoke 日志只保存安全摘要。
 M2c 完成后只能宣称“固定私有 GPU BGE 模型服务与 M2c 检索闭环已验收”。它不能宣称模型
 训练、泛化质量、生产 A100 集群、在线实验、AG-UI 或项目整体完成。M2d 仍单独负责 AG-UI/
 React、浏览器体验、worker/queue 与生产运行面；若未来要替换模型、端口、服务协议、加入
-M2b durable M2c backend 或复用旧 profile，必须先更新本 Spec 并重新批准。
+M2b durable M2c backend 已由后续 [`GLO-SPEC-011`](../011-glodex-m2e-durable-bge-composition/spec.md)
+按独立 SDD 批准；旧 profile 仍不得复用，M2e 必须从 PostgreSQL value/revision 重新 BGE 编码。

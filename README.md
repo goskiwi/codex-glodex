@@ -1,6 +1,6 @@
 # Glodex
 
-Glodex 目前包含十个叠加的里程碑：
+Glodex 目前包含十一个叠加的里程碑：
 
 - **M0** 是本地、离线、确定性的跨市场购物检索业务基线。它接收中文购物请求，从版本化快照中聚合同款商品和各市场报价，使用 `Decimal` 计算到手价，在排序前执行预算、品类、库存、商品本体和证据硬门，最后返回最多 3 个可核验结果。
 - **M1a** 在不改变 M0 业务合同与不变量的前提下，增加一个本地 FastAPI + SSE 服务化垂直切片。
@@ -11,8 +11,9 @@ Glodex 目前包含十个叠加的里程碑：
 - **M1f** 增加一个零凭据、本地静态 Showcase：它回放安全的 M1d 公开事件投影，并展示 M1e 的聚合 benchmark 证据；它不是实时 Agent 或 marketplace UI。
 - **M2a** 增加一个 operator-only 的本机检索智能闭环：local OpenSearch Query Hybrid、显式 typed profile 的 User ANN 补充、固定 DashScope `qwen3-rerank` 与 Category Card rerank；它复用 M1d 的 AgentLoop 和最终 Hard Gates，但不改变默认 Agent/API/SSE。
 - **M2b** 增加一个 operator-only 的本机 durable runtime：PostgreSQL 保存 Run、安全 SSE event、checkpoint 与 typed Profile；Redis 只缓存可重建的 retrieval/context 投影，OpenSearch User ANN 只接收当前 Profile revision 的可丢弃投影。
-- **M2c** 增加一个 operator-only 的私有 GPU BGE retrieval model service：固定 loopback model verifier、独立 BGE Product/Card/Profile aliases 与 cross-encoder rerank；它复用 M1d 的可信发布 gates，但不改变 M2a DashScope 或 M2b durable backend。
+- **M2c** 增加一个 operator-only 的私有 GPU BGE retrieval model service：固定 loopback model verifier、独立 BGE Product/Card/Profile aliases 与 cross-encoder rerank；它复用 M1d 的可信发布 gates。
 - **M2d** 增加一个本机 AG-UI adapter 与 React Run Console：它只投影 M2b 已冻结的 public durable API，在 `127.0.0.1:8767` 提供同源交互、重连与受控 Cancel/Resume；它不读取 DB/Redis、不会把 M2c GPU 暴露给浏览器。
+- **M2e** 将正式 durable live composition 固定为 DeepSeek Agent + M2c 私有 A100 BGE；它保留 M2b 的 PostgreSQL/Redis 与 M2d 的 public contract，移除该路径对 DashScope 的依赖。
 
 M0 仍是可保留的业务与合同基线；M1a 是单进程 Demo，不是生产 Agent 平台。M1b
 Capture 与 M1c live Intent 都只能由 Operator 通过各自独立入口显式联网；默认
@@ -20,9 +21,9 @@ CLI/API 仍使用 Rule Intent 且只读取本地快照。M2a 的 profile 仅是 
 typed soft preference，不会保存聊天记录、隐式画像或跨设备用户数据。M1d 是独立 Agent 入口；
 M1e 是本地 benchmark 入口；M1f 是独立静态展示入口；M2a 也不改变这些默认行为。
 M2b 同样不会改变它们：只有 `m2b-*` 命令和独立 durable API factory 才会连接 PostgreSQL 或 Redis。M2c
-也同样隔离：只有带 `--live` 的 `m2c-*` operator command 才会连接既有 loopback tunnel；M2d 是唯一
-AG-UI/React 投影层，且固定只读取 M2b `8766` public routes。默认 M0–M2c、M1f 与 M2d 离线门禁
-不会加载 GPU 依赖、读取 tunnel 或连接模型服务。
+loopback tunnel 只由带 `--live` 的 `m2c-*` command 或已批准的 `m2b-*` M2e live composition 使用；M2d
+仍是唯一 AG-UI/React 投影层，且固定只读取 M2b `8766` public routes。默认 M0–M2e、M1f 与 M2d
+离线门禁不会加载 GPU 依赖、读取 tunnel 或连接模型服务。
 
 ## 已实现
 
@@ -234,23 +235,23 @@ uv run --locked glodex m2b-verify --live
 ```
 
 持久 Profile 只有 `soft/preference`，`list` 只输出 opaque entry ID 和 revision。写入 embedding
-仍需显式 DashScope 凭据；不要在终端记录真实偏好正文：
+使用固定 M2c BGE loopback；不要在终端记录真实偏好正文：
 
 ```bash
-export DASHSCOPE_API_KEY="..."
-
 uv run --locked glodex m2b-profile --action set --live \
   --profile local-durable --value "轻薄、长续航"
 uv run --locked glodex m2b-profile --action list --profile local-durable
 ```
 
-运行真实 durable M2a Agent 前，先显式启动/构建 M2a OpenSearch index，并提供既有 DeepSeek 和
-DashScope 凭据。M2b 先从 PostgreSQL 冻结 Profile revision，再投影到 OpenSearch User ANN；Query
-Hybrid、rerank、Canonical、Evidence 和 Hard Gates 仍由既有 M2a/M1d 链路执行：
+运行真实 durable M2e Agent 前，先验证 M2c BGE service 并构建其独立 OpenSearch aliases，再提供
+DeepSeek 凭据。M2b 从 PostgreSQL 冻结 Profile revision，并只用其 typed value 由当前 BGE manifest
+重新编码为 User ANN；旧 DashScope vector 不复用。Query Hybrid、BGE rerank、Canonical、Evidence 和
+Hard Gates 仍由既有可信链执行：
 
 ```bash
 docker compose -f infra/m2a-opensearch.compose.yml up -d
-uv run --locked glodex m2a-index --action build --snapshot m1d-demo-v1
+uv run --locked glodex m2c-model-verify --live
+uv run --locked glodex m2c-index --action verify --snapshot m1d-demo-v1 --live
 
 export DEEPSEEK_API_KEY="..."
 uv run --locked glodex m2b-durable-agent-demo --live --profile local-durable \
@@ -265,13 +266,12 @@ uv run --locked python scripts/verify_m2b.py
 uv run --locked python scripts/verify_m2b_local.py
 ```
 
-若要用 HTTP 访问已经验收的 durable Agent，而不是运行一次性 CLI，可在完成上述 migration、
-OpenSearch index 和显式凭据注入后启动固定 loopback API。它只监听 `127.0.0.1:8766`；8765
+若要用 HTTP 访问已经验收的 durable M2e Agent，而不是运行一次性 CLI，可在完成上述 migration、
+M2c index 和显式 DeepSeek 凭据注入后启动固定 loopback API。它只监听 `127.0.0.1:8766`；8765
 仍是静态 Showcase，不是 durable API。服务不会自动迁移 schema 或自动读取 `.env`：
 
 ```bash
 export DEEPSEEK_API_KEY="..."
-export DASHSCOPE_API_KEY="..."
 uv run --locked glodex m2b-serve --live
 ```
 
@@ -283,7 +283,8 @@ uv run --locked glodex m2b-serve --live
 停止服务不会删除 PostgreSQL named volume；需要清空 durable 数据时，只能由 Operator 明确执行
 `docker compose -f infra/m2b-durable.compose.yml down -v`。平常停止请使用不带 `-v` 的 `down`。
 当前恢复策略只允许没有进入外部 Agent 调用的已确认初始 checkpoint 重新执行；一旦整个 Agent
-外部执行 fence 已进入 `REMOTE_PENDING`，重启/恢复会安全地 `ABORTED`，不会猜测或重放外部调用。
+外部执行 fence 已进入 `REMOTE_PENDING`，或 M2e manifest/backend/config identity 已漂移，重启/恢复
+会安全地 `ABORTED`，不会猜测或重放外部调用。
 
 ### M2d AG-UI / React Run Console
 
@@ -306,8 +307,9 @@ loopback `8766` 的 M2b public create/status/events/cancel/resume routes 工作�
 打开，但提交会诚实显示 `M2D_UPSTREAM_UNAVAILABLE`。M2d 不启动 Docker、不读取 `.env`、不直接访问
 PostgreSQL/Redis/OpenSearch/Provider，也不访问 `18000` GPU service。
 
-要进行真实 durable browser 验收，先按上一节准备并启动既有 M2b `m2b-serve --live`（包括它所需的
-PostgreSQL、Redis、OpenSearch 和显式 credential 前提），再启动 M2d。页面只在内存保存当前表单；
+要进行真实 durable browser 验收，先按上一节准备并启动 M2e `m2b-serve --live`（包括 PostgreSQL、
+Redis、OpenSearch、已验证的 M2c BGE service/index 和显式 DeepSeek credential），再启动 M2d。页面
+只在内存保存当前表单；
 `Reconnect` 从 durable cursor 重放，`Cancel`/`Resume` 只代理 M2b public operation，`New run` 只清
 浏览器视图，不删除任何 durable 数据。页面不会展示或持久化 query history、profile、tool 参数/输出、
 推理、Provider body、DB/Redis 数据、vector/score 或 GPU 信息。
@@ -339,8 +341,9 @@ uv run --locked glodex m2c-model-verify --live
 ```
 
 health 成功后，operator 可用已经验证的 M1d assets 重建**独立** M2c BGE aliases。此过程不覆盖
-M2a aliases，也不会把 DashScope vector 或 M2b profile 转换为 BGE vector。OpenSearch 仍须由
-operator 显式启动；命令不会自行启动或停止它：
+M2a aliases，也不会把 DashScope vector 转换为 BGE vector。M2e 对 durable Profile 保留 PostgreSQL
+value/revision，并在实际 run 中重新 BGE 编码。OpenSearch 仍须由 operator 显式启动；命令不会自行
+启动或停止它：
 
 ```bash
 docker compose -f infra/m2a-opensearch.compose.yml up -d
@@ -856,6 +859,7 @@ AG-UI/React durable interaction layer；
 - M1f：[本地离线 Showcase 规格](./specs/006-glodex-m1f-local-showcase/spec.md) · [技术计划](./specs/006-glodex-m1f-local-showcase/plan.md) · [实施任务](./specs/006-glodex-m1f-local-showcase/tasks.md)
 - M2a：[检索智能闭环规格](./specs/007-glodex-m2a-opensearch-hybrid-retrieval/spec.md) · [技术计划](./specs/007-glodex-m2a-opensearch-hybrid-retrieval/plan.md) · [实施任务](./specs/007-glodex-m2a-opensearch-hybrid-retrieval/tasks.md)
 - M2d：[AG-UI / React Run Console 规格](./specs/010-glodex-m2d-agui-react-operations/spec.md) · [技术计划](./specs/010-glodex-m2d-agui-react-operations/plan.md) · [实施任务](./specs/010-glodex-m2d-agui-react-operations/tasks.md)
+- M2e：[Durable DeepSeek + A100 BGE 规格](./specs/011-glodex-m2e-durable-bge-composition/spec.md) · [技术计划](./specs/011-glodex-m2e-durable-bge-composition/plan.md) · [实施任务](./specs/011-glodex-m2e-durable-bge-composition/tasks.md)
 - [ADR-0001：确定性领域核心](./specs/000-glodex-mvp/adr/0001-deterministic-domain-core.md)
 - [ADR-0002：金额、汇率与舍入](./specs/000-glodex-mvp/adr/0002-money-fx-and-rounding.md)
 - [ADR-0003：硬门与排序降级](./specs/000-glodex-mvp/adr/0003-hard-gates-and-ranking-degradation.md)

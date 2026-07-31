@@ -19,10 +19,6 @@ from glodex.adapters.agent_item_search import (
     LiveEbayPreflightError,
     build_live_ebay_item_source,
 )
-from glodex.adapters.agent_live_http import (
-    build_dashscope_embedding,
-    build_tavily_web_search,
-)
 from glodex.adapters.deepseek_agent import DeepSeekActionSelector
 from glodex.adapters.deepseek_http import (
     DeepSeekPreflightError,
@@ -216,6 +212,20 @@ class M2cPerRunAgentExecutor:
     async def execute(self, request: SearchRequest) -> AgentExecution:
         return (await self.execute_with_trace(request)).execution
 
+    async def execute_run(
+        self,
+        request: SearchRequest,
+        *,
+        run_id: str,
+        observer: AgentEventObserver | None = None,
+    ) -> AgentExecution:
+        """Run the M2c composition with a durable caller-owned root ID."""
+
+        if type(request) is not SearchRequest or type(run_id) is not str or not run_id:
+            raise TypeError("M2c durable execution inputs are invalid")
+        service, _item_source, _category_source = self._service_factory(request)
+        return await service.execute_run(request, run_id=run_id, observer=observer)
+
     async def execute_with_trace(self, request: SearchRequest) -> M2cAgentExecution:
         if type(request) is not SearchRequest:
             raise TypeError("M2c Agent executor requires an exact SearchRequest")
@@ -257,6 +267,11 @@ async def build_agent_service(
     clock: Clock | None = None,
 ) -> PerRunAgentExecutor:
     """Preflight the fixed composition and return a reusable per-Run executor."""
+
+    from glodex.adapters.agent_live_http import (
+        build_dashscope_embedding,
+        build_tavily_web_search,
+    )
 
     _validate_composition_inputs(
         config=config,
@@ -380,6 +395,7 @@ async def build_m2a_agent_service(
 ) -> M2aPerRunAgentExecutor:
     """Build the explicit M2a Agent composition without changing the M1d factory."""
 
+    from glodex.adapters.agent_live_http import build_dashscope_embedding
     from glodex.adapters.dashscope_rerank import M2aRerankError, build_dashscope_reranker
     from glodex.adapters.m2a_indexes import M2aIndexError, verify_indexes
     from glodex.adapters.m2a_opensearch import M2aOpenSearch
@@ -568,8 +584,14 @@ async def build_m2c_agent_service(
     try:
         identity = await gpu.health()
         await verify_indexes(client=client, indexes=indexes, identity=identity)
+        entries: tuple[M2cProfileEntry, ...] = ()
         if profile_entries is not None:
-            entries = profile_entries
+            if any(
+                entry.model_manifest_digest != identity.manifest_digest for entry in profile_entries
+            ):
+                profile_safe_codes = (ToolFailureCode.M2C_PROFILE_MODEL_MISMATCH,)
+            else:
+                entries = profile_entries
         elif profile_id is None:
             entries = ()
         else:
