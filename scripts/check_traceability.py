@@ -27,26 +27,27 @@ M2A_SPEC_PATH = PROJECT_ROOT / "specs" / "007-glodex-m2a-opensearch-hybrid-retri
 M2B_SPEC_PATH = PROJECT_ROOT / "specs" / "008-glodex-m2b-durable-agent-runtime" / "spec.md"
 M2C_SPEC_PATH = PROJECT_ROOT / "specs" / "009-glodex-m2c-retrieval-model-service" / "spec.md"
 M2D_SPEC_PATH = PROJECT_ROOT / "specs" / "010-glodex-m2d-agui-react-operations" / "spec.md"
+M2E_SPEC_PATH = PROJECT_ROOT / "specs" / "011-glodex-m2e-durable-bge-composition" / "spec.md"
 DEFAULT_SPEC_PATH = M0_SPEC_PATH
 DEFAULT_TESTS_PATH = PROJECT_ROOT / "tests"
 DEFAULT_PYTEST_CONFIG = PROJECT_ROOT / "pyproject.toml"
 
 _P0_DEFINITION = re.compile(
-    r"^\|\s*`((?:GLO-P0|GLO-M1-P0|GLO-M1B-P0|GLO-M1C-P0|GLO-M1D-P0|GLO-M1E-P0|GLO-M1F-P0|GLO-M2A-P0|GLO-M2B-P0|GLO-M2C-P0|GLO-M2D-P0)-\d{3})`\s*\|",
+    r"^\|\s*`((?:GLO-P0|GLO-M1-P0|GLO-M1B-P0|GLO-M1C-P0|GLO-M1D-P0|GLO-M1E-P0|GLO-M1F-P0|GLO-M2A-P0|GLO-M2B-P0|GLO-M2C-P0|GLO-M2D-P0|GLO-M2E-P0)-\d{3})`\s*\|",
     re.MULTILINE,
 )
 _NFR_DEFINITION = re.compile(
-    r"^\|\s*`((?:GLO-NFR|GLO-M1-NFR|GLO-M1B-NFR|GLO-M1C-NFR|GLO-M1D-NFR|GLO-M1E-NFR|GLO-M1F-NFR|GLO-M2A-NFR|GLO-M2B-NFR|GLO-M2C-NFR|GLO-M2D-NFR)-\d{3})`\s*\|",
+    r"^\|\s*`((?:GLO-NFR|GLO-M1-NFR|GLO-M1B-NFR|GLO-M1C-NFR|GLO-M1D-NFR|GLO-M1E-NFR|GLO-M1F-NFR|GLO-M2A-NFR|GLO-M2B-NFR|GLO-M2C-NFR|GLO-M2D-NFR|GLO-M2E-NFR)-\d{3})`\s*\|",
     re.MULTILINE,
 )
 _AC_DEFINITION = re.compile(
-    r"^###\s+`((?:AC|M1-AC|M1B-AC|M1C-AC|M1D-AC|M1E-AC|M1F-AC|M2A-AC|M2B-AC|M2C-AC|M2D-AC)-\d{3})`(?:\s|$)",
+    r"^###\s+`((?:AC|M1-AC|M1B-AC|M1C-AC|M1D-AC|M1E-AC|M1F-AC|M2A-AC|M2B-AC|M2C-AC|M2D-AC|M2E-AC)-\d{3})`(?:\s|$)",
     re.MULTILINE,
 )
 _SPEC_ID_SHAPE = re.compile(
     r"(?:GLO-(?:P0|NFR)|GLO-M1-(?:P0|NFR)|GLO-M1B-(?:P0|NFR)|"
     r"GLO-M1C-(?:P0|NFR)|GLO-M1D-(?:P0|NFR)|GLO-M1E-(?:P0|NFR)|"
-    r"GLO-M1F-(?:P0|NFR)|GLO-M2A-(?:P0|NFR)|GLO-M2B-(?:P0|NFR)|GLO-M2C-(?:P0|NFR)|GLO-M2D-(?:P0|NFR)|AC|M1-AC|M1B-AC|M1C-AC|M1D-AC|M1E-AC|M1F-AC|M2A-AC|M2B-AC|M2C-AC|M2D-AC)"
+    r"GLO-M1F-(?:P0|NFR)|GLO-M2A-(?:P0|NFR)|GLO-M2B-(?:P0|NFR)|GLO-M2C-(?:P0|NFR)|GLO-M2D-(?:P0|NFR)|GLO-M2E-(?:P0|NFR)|AC|M1-AC|M1B-AC|M1C-AC|M1D-AC|M1E-AC|M1F-AC|M2A-AC|M2B-AC|M2C-AC|M2D-AC|M2E-AC)"
     r"-\d{3}\Z"
 )
 
@@ -138,6 +139,12 @@ _APPROVED_M2D_INVENTORY = SpecInventory(
     ac_ids=tuple(f"M2D-AC-{index:03d}" for index in range(1, 7)),
 )
 
+_APPROVED_M2E_INVENTORY = SpecInventory(
+    p0_ids=tuple(f"GLO-M2E-P0-{index:03d}" for index in range(1, 7)),
+    nfr_ids=tuple(f"GLO-M2E-NFR-{index:03d}" for index in range(1, 5)),
+    ac_ids=tuple(f"M2E-AC-{index:03d}" for index in range(1, 4)),
+)
+
 
 @dataclass(frozen=True, slots=True)
 class TraceabilityProfile:
@@ -225,6 +232,12 @@ _TRACEABILITY_PROFILES = {
         spec_path=M2D_SPEC_PATH,
         test_paths=(DEFAULT_TESTS_PATH / "m2d",),
         approved_inventory=_APPROVED_M2D_INVENTORY,
+    ),
+    "m2e": TraceabilityProfile(
+        label="M2e",
+        spec_path=M2E_SPEC_PATH,
+        test_paths=(DEFAULT_TESTS_PATH / "m2e",),
+        approved_inventory=_APPROVED_M2E_INVENTORY,
     ),
 }
 

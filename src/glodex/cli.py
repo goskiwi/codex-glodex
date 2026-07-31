@@ -284,7 +284,7 @@ def _build_parser() -> argparse.ArgumentParser:
 
     m2b_agent = subparsers.add_parser(
         "m2b-durable-agent-demo",
-        help="run the explicit PostgreSQL-backed M2a durable Agent composition",
+        help="run the explicit PostgreSQL-backed M2e DeepSeek/BGE durable Agent composition",
     )
     _add_common_options(m2b_agent)
     m2b_agent.add_argument("--live", action="store_true", required=True)
@@ -624,11 +624,8 @@ async def _run_m2b_migrate(namespace: argparse.Namespace) -> int:
 
 
 async def _run_m2b_profile(namespace: argparse.Namespace) -> int:
-    from glodex.adapters.agent_indexes import EMBEDDING_MODEL
-    from glodex.adapters.agent_live_http import build_dashscope_embedding
     from glodex.adapters.m2b_postgres import M2bPostgresStore
-    from glodex.application.agent.contracts import EmbeddingBatch
-    from glodex.application.agent.ports import ToolPortError
+    from glodex.adapters.m2c_model_service import M2cModelServiceClient, M2cModelServiceError
     from glodex.application.durable.contracts import DurableStoreError
     from glodex.application.m2a_profile import profile_entry_from_operator
 
@@ -641,17 +638,18 @@ async def _run_m2b_profile(namespace: argparse.Namespace) -> int:
     store = M2bPostgresStore()
     try:
         if namespace.action == "set":
-            embedding_port = build_dashscope_embedding()
-            embedding = await embedding_port.embed(EmbeddingBatch(texts=(namespace.value,)))
+            gpu = M2cModelServiceClient()
+            identity = await gpu.health()
+            embedding = await gpu.embed_texts(texts=(namespace.value,), identity=identity)
             entry = profile_entry_from_operator(
                 profile_id=namespace.profile,
                 entry_id=namespace.entry_id,
                 value=namespace.value,
-                vector=embedding.vectors[0],
+                vector=embedding[0],
             )
             snapshot = await store.set_profile_entry(
                 entry=entry,
-                embedding_model=EMBEDDING_MODEL,
+                embedding_model=identity.embedding_model,
             )
             _emit_m2b(
                 status="OK",
@@ -683,7 +681,7 @@ async def _run_m2b_profile(namespace: argparse.Namespace) -> int:
             revision=snapshot.revision,
         )
         return 0
-    except (DurableStoreError, ToolPortError, ValueError):
+    except (DurableStoreError, M2cModelServiceError, ValueError):
         _emit_m2b(status="FAILED", code="M2B_PROFILE_UNAVAILABLE")
         return 1
     finally:
@@ -724,9 +722,10 @@ async def _run_m2b_verify(namespace: argparse.Namespace) -> int:
 def _run_m2b_serve(*, config: GlodexConfig) -> int:
     """Run the one explicit, fixed-loopback M2b API composition."""
 
-    from glodex.adapters.m2b_m2a_executor import M2bM2aExecutor
+    from glodex.adapters.m2b_m2c_executor import M2bM2cExecutor
     from glodex.adapters.m2b_postgres import M2bPostgresStore
     from glodex.adapters.m2b_redis import M2bRedisCache
+    from glodex.adapters.m2c_model_service import M2cModelServiceError
     from glodex.api.agent_events import AgentEventProjector
     from glodex.api.durable_agent_app import create_durable_agent_app
     from glodex.bootstrap import SystemClock
@@ -736,13 +735,18 @@ def _run_m2b_serve(*, config: GlodexConfig) -> int:
     except ImportError:
         _emit_m2b(status="FAILED", code="M2B_SERVER_UNAVAILABLE")
         return 1
+    try:
+        asset_version = asyncio.run(_m2e_asset_version())
+    except M2cModelServiceError:
+        _emit_m2b(status="FAILED", code="M2C_MODEL_UNAVAILABLE")
+        return 1
     store = M2bPostgresStore()
     cache = M2bRedisCache()
     app = create_durable_agent_app(
-        executor=M2bM2aExecutor(config=config, store=store, cache=cache),
+        executor=M2bM2cExecutor(config=config, store=store, cache=cache),
         store=store,
         projector=AgentEventProjector(clock=SystemClock()),
-        asset_version="m2b-m2a-agent-v1",
+        asset_version=asset_version,
         config_fingerprint=config.fingerprint,
         context_cache=cache,
         shutdown_callback=cache.close,
@@ -789,6 +793,15 @@ async def _run_m2c_model_verify(namespace: argparse.Namespace) -> int:
     return 0
 
 
+async def _m2e_asset_version() -> str:
+    """Bind one durable M2e runtime to the current verified BGE manifest."""
+
+    from glodex.adapters.m2c_model_service import M2cModelServiceClient
+
+    identity = await M2cModelServiceClient().health()
+    return f"m2b-m2c-agent-{identity.manifest_digest[:16]}"
+
+
 def _run_m2c_gpu_service(namespace: argparse.Namespace) -> int:
     from glodex.m2c_gpu_service import serve_private_gpu_service
 
@@ -801,9 +814,10 @@ async def _run_m2b_durable_agent(
     request: object,
     profile_id: str | None,
 ) -> int:
-    from glodex.adapters.m2b_m2a_executor import M2bM2aExecutor
+    from glodex.adapters.m2b_m2c_executor import M2bM2cExecutor
     from glodex.adapters.m2b_postgres import M2bPostgresStore
     from glodex.adapters.m2b_redis import M2bRedisCache
+    from glodex.adapters.m2c_model_service import M2cModelServiceError
     from glodex.api.agent_events import AgentEventProjector
     from glodex.application.durable.contracts import DurableRunState, DurableStoreError
     from glodex.application.durable.runtime import DurableAgentCoordinator
@@ -815,11 +829,16 @@ async def _run_m2b_durable_agent(
     store = M2bPostgresStore()
     cache = M2bRedisCache()
     clock = SystemClock()
+    try:
+        asset_version = await _m2e_asset_version()
+    except M2cModelServiceError:
+        _emit_m2b(status="FAILED", code="M2C_MODEL_UNAVAILABLE")
+        return 1
     coordinator = DurableAgentCoordinator(
         store=store,
-        executor=M2bM2aExecutor(config=config, store=store, cache=cache),
+        executor=M2bM2cExecutor(config=config, store=store, cache=cache),
         projector=AgentEventProjector(clock=clock),
-        asset_version="m2b-m2a-agent-v1",
+        asset_version=asset_version,
         config_fingerprint=config.fingerprint,
         context_cache=cache,
     )

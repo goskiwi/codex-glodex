@@ -6,7 +6,7 @@
 | 版本 | `0.1.0` |
 | 状态 | Approved |
 | 里程碑 | M2d：AG-UI adapter、React 实时运行面与受控运营视图 |
-| 父规格 | [`GLO-SPEC-007`](../007-glodex-m2a-opensearch-hybrid-retrieval/spec.md)、[`GLO-SPEC-008`](../008-glodex-m2b-durable-agent-runtime/spec.md)、[`GLO-SPEC-009`](../009-glodex-m2c-retrieval-model-service/spec.md) |
+| 父规格 | [`GLO-SPEC-007`](../007-glodex-m2a-opensearch-hybrid-retrieval/spec.md)、[`GLO-SPEC-008`](../008-glodex-m2b-durable-agent-runtime/spec.md)、[`GLO-SPEC-009`](../009-glodex-m2c-retrieval-model-service/spec.md)、[`GLO-SPEC-011`](../011-glodex-m2e-durable-bge-composition/spec.md) |
 | 创建日期 | 2026-07-31 |
 | 最后更新 | 2026-07-31 |
 | 批准日期 | 2026-07-31 |
@@ -32,7 +32,7 @@ flowchart LR
 
 这里的完成不是“页面能打开”或“把旧 SSE 改一个名字”，而是：
 
-1. 标准 AG-UI HTTP `POST` 能启动 M2b durable M2a run，并收到结构和顺序正确的 AG-UI SSE；
+1. 标准 AG-UI HTTP `POST` 能启动 M2b durable M2e run，并收到结构和顺序正确的 AG-UI SSE；
 2. React 用该公开 adapter 展示运行中和 terminal state，且刷新/断线后可从 M2b durable events
    恢复相同安全状态；
 3. 取消、可恢复 run 的 resume、relay 故障和无结果均诚实可见；
@@ -312,7 +312,7 @@ public event fixtures；
 
 ### `M2D-AC-003` React 实时展示
 
-**Given** 已构建 React 页面与一条真实运行中的 M2b durable M2a run；
+**Given** 已构建 React 页面与一条真实运行中的 M2b durable M2e run；
 
 **When** 用户在 `127.0.0.1:8767` 提交固定 demo shopping request；
 
@@ -366,7 +366,7 @@ CoT、args/output、credential、vector/score、GPU/tunnel/path/host、DB/Redis 
 - [x] 用户批准本 Spec，并将状态改为 `Approved`；
 - [ ] 用户确认交付是本机 React + AG-UI **固定子集** + M2b durable replay/controls，不是静态 Demo 或完整 AG-UI 平台；
 - [ ] 用户确认不实现生产 queue、多 worker、WebSocket、账号/认证/多租户或远程部署；
-- [ ] 用户确认 M2c BGE/A100 保持 operator-only，不暴露 GPU endpoint，也不替换 M2b 的 M2a durable backend；
+- [x] 后续 M2e 已确认 M2c BGE/A100 保持 operator-only，不暴露 GPU endpoint，并仅替换 M2b 的 explicit live backend；
 - [ ] 用户确认 browser 可显示安全 terminal answer/结果卡，但不显示 CoT、tool args/output、profile、raw query history、Provider/GPU/DB/Redis 私有数据；
 - [ ] `6 P0 / 6 AC / 6 NFR` 均有 fake/contract/React/明确 M2b live smoke 验收路径。
 
@@ -376,6 +376,6 @@ M2d 完成后只能宣称：“Glodex 已有基于 M2b durable truth 的本机 A
 交互闭环。”它不宣称完整 AG-UI、生产 agent 平台、worker queue、账号体系、实时 marketplace、
 生产监控，或 browser 端可访问 A100/GPU。
 
-未来如需 WebSocket、M2b durable M2c backend、多个并行 worker、账户/持久聊天、frontend tool、
+未来如需 WebSocket、多个并行 worker、账户/持久聊天、frontend tool、
 AG-UI state delta/reasoning/handoff、多模态、远程部署，或改变第 4 节 event/request profile，必须
 作为新 Spec，重新评估安全投影、durability、权限和验收；不能在 M2d implementation 中顺手加入。

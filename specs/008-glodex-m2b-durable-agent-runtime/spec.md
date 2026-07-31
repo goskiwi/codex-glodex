@@ -6,7 +6,7 @@
 | 版本 | `0.1.0` |
 | 状态 | Approved |
 | 里程碑 | M2b：PostgreSQL durable Run/Event/Checkpoint/Profile 与 Redis fail-open cache |
-| 父规格 | [`GLO-SPEC-004`](../004-glodex-m1d-agent-demo/spec.md)、[`GLO-SPEC-007`](../007-glodex-m2a-opensearch-hybrid-retrieval/spec.md) |
+| 父规格 | [`GLO-SPEC-004`](../004-glodex-m1d-agent-demo/spec.md)、[`GLO-SPEC-007`](../007-glodex-m2a-opensearch-hybrid-retrieval/spec.md)、[`GLO-SPEC-011`](../011-glodex-m2e-durable-bge-composition/spec.md) |
 | 创建日期 | 2026-07-30 |
 | 最后更新 | 2026-07-30 |
 | 批准日期 | 2026-07-30 |
@@ -225,7 +225,7 @@ M2b 提供独立 `create_durable_agent_app`/operator CLI。既有 `/api/v1/agent
 | `GLO-M2B-P0-002` | **Durable Run/Event store。** 新入口持久化 run、thread active lease、严格 sequence public events、terminal response/error 与时间；重启后的 GET/SSE 必须从 PostgreSQL replay，并保持 M1d public event contract。 |
 | `GLO-M2B-P0-003` | **Checkpoint 与确定恢复。** Agent 在第 3.3 节安全 boundary 生成 hash-verified checkpoint；完整 checkpoint 可在同 run ID 下显式 resume；任何 pending remote step 或 version/hash/sequence mismatch 必须只提交安全 ABORTED。 |
 | `GLO-M2B-P0-004` | **持久取消。** operator 可取消 ACCEPTED/RUNNING/RECOVERABLE run；race、重复请求、worker restart 均只产生一个 `RUN_CANCELLED` terminal，不可再 resume，不影响其他 thread。 |
-| `GLO-M2B-P0-005` | **Durable typed Profile。** Postgres 替代 M2a OpenSearch Profile 作为 source of truth，支持 scoped typed CRUD/revision；每个 M2a run 固定 profile snapshot/revision，并真实驱动 User ANN retrieval projection。 |
+| `GLO-M2B-P0-005` | **Durable typed Profile。** Postgres 替代 M2a OpenSearch Profile 作为 source of truth，支持 scoped typed CRUD/revision；每个正式 M2e run 固定 profile snapshot/revision，并真实驱动 User ANN retrieval projection。 |
 | `GLO-M2B-P0-006` | **Redis fail-open cache。** 实现第 3.5 节两个固定 namespace、TTL、250 ms/32 KiB 上限、版本 key 和 hit validation。Redis unavailable、bad value 或 eviction 必须 cache miss，不得影响安全结果。 |
 | `GLO-M2B-P0-007` | **确定性 context digest。** 在 checkpoint/recovery 使用受限安全 digest，输出确定、bounded、可从 durable state 重建，且不向 LLM/Redis/event 写入 raw request、prompt、profile 或 tool body。 |
 | `GLO-M2B-P0-008` | **可操作、可验证。** README 交付 start → migrate → profile → durable run → SSE reconnect → controlled restart/resume → cancel → Redis outage → stop/clear 流程；包含 local real smoke 与不依赖 Docker/credential 的离线 regression。 |
@@ -236,7 +236,7 @@ M2b 提供独立 `create_durable_agent_app`/operator CLI。既有 `/api/v1/agent
 
 **Given** 空 PostgreSQL volume、空 Redis、已启动的 M2a OpenSearch 和固定 demo assets
 
-**When** Operator 启动 M2b compose、执行 migration、创建 profile，提交一个 durable M2a
+**When** Operator 启动 M2b compose、执行 migration、创建 profile，提交一个 durable M2e
 Agent run 并读取 status/SSE
 
 **Then** PostgreSQL 有完整 schema/version、Profile revision、单一 run/terminal、连续 public

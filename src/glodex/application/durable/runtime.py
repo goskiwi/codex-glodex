@@ -118,6 +118,12 @@ class DurableAgentCoordinator:
         run = await self.store.load_run(run_id=run_id)
         if run.state in TERMINAL_RUN_STATES:
             return run
+        if (
+            run.asset_version != self.asset_version
+            or run.config_fingerprint != self.config_fingerprint
+        ):
+            await self._abort(run=run, code="DURABLE_RUNTIME_IDENTITY_MISMATCH")
+            return await self.store.load_run(run_id=run_id)
         if run.cancel_requested:
             await self._abort(run=run, code="RUN_CANCELLED")
             return await self.store.load_run(run_id=run_id)
