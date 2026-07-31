@@ -4,9 +4,12 @@ version = "0.1.0"
 description = "Evidence-grounded global commerce search"
 requires-python = ">=3.12,<3.13"
 dependencies = [
+    "asyncpg>=0.30,<1",
     "fastapi>=0.135,<1",
     "httpx>=0.28,<1",
+    "opensearch-py[async]>=2.8,<3",
     "pydantic>=2.12,<3",
+    "redis>=5.2,<6",
 ]
 
 [project.scripts]
@@ -27,6 +30,9 @@ dev = [
     "pytest-socket>=0.7,<1",
     "ruff>=0.14,<1",
     "uvicorn>=0.35,<1",
+]
+m2c-gpu = [
+    "sentence-transformers>=5.6,<6",
 ]
 
 [tool.pytest.ini_options]

@@ -61,6 +61,24 @@ _PRIVACY_IDENTIFIER_FRAGMENTS = (
 )
 _PRIVATE_DATA_IDENTIFIERS = frozenset({"profile", "query", "request"})
 _PERSISTENCE_IMPORTS = ("dbm", "pickle", "shelve", "sqlite3")
+_OPT_IN_PROFILE_IDENTIFIERS = frozenset(
+    {
+        "M2aProfileStore",
+        "m2a_profile_store",
+        "M2cProfileStore",
+        "m2c_profile_store",
+        "profile_store",
+    }
+)
+_OPT_IN_PROFILE_OWNER_PATHS = frozenset(
+    {
+        Path("adapters/m2a_profile_store.py"),
+        Path("adapters/m2b_profile_projection.py"),
+        Path("adapters/m2c_profile_store.py"),
+        Path("agent_bootstrap.py"),
+        Path("cli.py"),
+    }
+)
 
 
 def _secret_violations(surfaces: dict[str, str]) -> list[str]:
@@ -199,6 +217,8 @@ def _privacy_violations(package_root: Path) -> list[str]:
 
         for name in names:
             normalized = _normalized_identifier(name)
+            if relative in _OPT_IN_PROFILE_OWNER_PATHS and name in _OPT_IN_PROFILE_IDENTIFIERS:
+                continue
             if any(fragment in normalized for fragment in _PRIVACY_IDENTIFIER_FRAGMENTS):
                 violations.add(f"{relative}: privacy adapter identifier ({name})")
     return sorted(violations)

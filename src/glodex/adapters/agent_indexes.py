@@ -366,6 +366,79 @@ class AgentIndexes:
         except StopIteration:
             raise ToolPortError(ToolFailureCode.INDEX_INVALID) from None
 
+    def item_vector(self, record_key: str) -> tuple[float, ...]:
+        """Expose one already-validated Item projection for an opt-in index builder."""
+
+        if type(record_key) is not str:
+            raise ToolPortError(ToolFailureCode.INDEX_INVALID)
+        try:
+            return next(item.vector for item in self._item_vectors if item.record_key == record_key)
+        except StopIteration:
+            raise ToolPortError(ToolFailureCode.INDEX_INVALID) from None
+
+    def card_vector(self, card_id: str) -> tuple[float, ...]:
+        """Expose one already-validated Card projection for an opt-in index builder."""
+
+        if type(card_id) is not str:
+            raise ToolPortError(ToolFailureCode.INDEX_INVALID)
+        try:
+            return next(item.vector for item in self._card_vectors if item.card_id == card_id)
+        except StopIteration:
+            raise ToolPortError(ToolFailureCode.INDEX_INVALID) from None
+
+    def reduce_card_ids(
+        self,
+        *,
+        category: str,
+        card_ids: tuple[str, ...],
+        depth: InsightDepth,
+    ) -> CategoryInsightOutput:
+        """Reduce only validated, category-scoped Card IDs from an external ranker."""
+
+        if (
+            type(category) is not str
+            or type(card_ids) is not tuple
+            or any(type(card_id) is not str for card_id in card_ids)
+            or len(card_ids) != len(set(card_ids))
+            or type(depth) is not InsightDepth
+        ):
+            raise ToolPortError(ToolFailureCode.INDEX_INVALID)
+        try:
+            by_id = {card.card_id: card for card in self.cards if card.category == category}
+            if not card_ids:
+                return CategoryInsightOutput(status=InsightStatus.NO_INSIGHT)
+            if not set(card_ids).issubset(by_id):
+                raise ValueError("external Card IDs are not trusted for this category")
+            ranked = tuple(
+                _RankedCard(
+                    card=by_id[card_id],
+                    contribution=Decimal(1) / Decimal(60 + rank),
+                )
+                for rank, card_id in enumerate(card_ids, start=1)
+            )
+            limits = (3, 3, 5, 3) if depth is InsightDepth.QUICK else (8, 5, 12, 5)
+            confidence_weight = sum((item.contribution for item in ranked), start=Decimal(0))
+            confidence = (
+                sum(
+                    (item.card.source_confidence * item.contribution for item in ranked),
+                    start=Decimal(0),
+                )
+                / confidence_weight
+            ).quantize(Decimal("0.001"), rounding=ROUND_HALF_UP)
+            return CategoryInsightOutput(
+                status=InsightStatus.FOUND,
+                components=_reduce_facts(ranked, "components", limits[0]),
+                bestsellers=_reduce_facts(ranked, "bestsellers", limits[1]),
+                attributes=_reduce_facts(ranked, "attributes", limits[2]),
+                price_tiers=_reduce_facts(ranked, "price_tiers", limits[3]),
+                confidence=confidence,
+                card_ids=card_ids,
+            )
+        except ToolPortError:
+            raise
+        except Exception:
+            raise ToolPortError(ToolFailureCode.INDEX_INVALID) from None
+
 
 async def load_agent_indexes(
     *,

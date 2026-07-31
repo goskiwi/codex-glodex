@@ -78,6 +78,12 @@ _DOMAIN_IO_ROOTS = frozenset(
 _CAPTURE_HTTP_PATH = Path("capture/ebay_http.py")
 _DEEPSEEK_HTTP_PATH = Path("adapters/deepseek_http.py")
 _AGENT_LIVE_HTTP_PATH = Path("adapters/agent_live_http.py")
+_M2A_RERANK_PATH = Path("adapters/dashscope_rerank.py")
+_M2B_POSTGRES_PATH = Path("adapters/m2b_postgres.py")
+_M2B_REDIS_PATH = Path("adapters/m2b_redis.py")
+_M2C_MODEL_SERVICE_PATH = Path("adapters/m2c_model_service.py")
+_M2C_GPU_SERVICE_PATH = Path("m2c_gpu_service.py")
+_M2D_DURABLE_CLIENT_PATH = Path("api/m2d_durable_client.py")
 
 
 def _matches_prefix(module: str, prefixes: tuple[str, ...]) -> bool:
@@ -131,7 +137,12 @@ def find_import_boundary_violations(package_root: Path) -> list[str]:
         layer = relative_parts[0] if len(relative_parts) > 1 else None
 
         for module, line_number in _imports(path, package_root):
-            if layer != "api" and _matches_prefix(module, _API_ONLY_FRAMEWORK_PREFIXES):
+            approved_m2c_gpu_framework = package_relative_path == _M2C_GPU_SERVICE_PATH
+            if (
+                layer != "api"
+                and not approved_m2c_gpu_framework
+                and _matches_prefix(module, _API_ONLY_FRAMEWORK_PREFIXES)
+            ):
                 violations.add(
                     f"{relative_path}:{line_number}: framework import outside api ({module})"
                 )
@@ -139,8 +150,17 @@ def find_import_boundary_violations(package_root: Path) -> list[str]:
                 approved_httpx_transport = package_relative_path in {
                     _DEEPSEEK_HTTP_PATH,
                     _AGENT_LIVE_HTTP_PATH,
+                    _M2A_RERANK_PATH,
+                    _M2C_MODEL_SERVICE_PATH,
+                    _M2D_DURABLE_CLIENT_PATH,
                 } and _matches_prefix(module, ("httpx",))
-                if not approved_httpx_transport:
+                approved_m2b_driver = (
+                    package_relative_path == _M2B_POSTGRES_PATH
+                    and _matches_prefix(module, ("asyncpg",))
+                ) or (
+                    package_relative_path == _M2B_REDIS_PATH and _matches_prefix(module, ("redis",))
+                )
+                if not approved_httpx_transport and not approved_m2b_driver:
                     violations.add(
                         f"{relative_path}:{line_number}: external SDK/framework import ({module})"
                     )

@@ -16,7 +16,9 @@ pytestmark = [
 
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
 PYPROJECT_PATH = PROJECT_ROOT / "pyproject.toml"
-ALLOWED_RUNTIME_DEPENDENCIES = frozenset({"fastapi", "httpx", "pydantic"})
+ALLOWED_RUNTIME_DEPENDENCIES = frozenset(
+    {"asyncpg", "fastapi", "httpx", "opensearch-py", "pydantic", "redis"}
+)
 
 _DISTRIBUTION_NAME = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._-]*")
 

@@ -123,8 +123,12 @@ def test_esci_runtime_module_is_local_standard_library_only() -> None:
 
 
 @pytest.mark.spec("GLO-M1E-P0-004", "GLO-M1E-NFR-001", "GLO-M1E-NFR-004")
-def test_esci_benchmark_can_only_be_imported_by_the_explicit_cli() -> None:
-    assert _source_paths_importing_esci_benchmark() == ("cli.py",)
+def test_esci_benchmark_can_only_be_imported_by_explicit_cli_owned_paths() -> None:
+    assert _source_paths_importing_esci_benchmark() == (
+        "cli.py",
+        "m2a_esci_eval.py",
+        "m2c_esci_eval.py",
+    )
 
 
 @pytest.mark.spec("GLO-M1E-P0-001", "GLO-M1E-P0-004", "GLO-M1E-NFR-001")
