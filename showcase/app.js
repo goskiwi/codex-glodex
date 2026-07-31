@@ -1,414 +1,521 @@
 "use strict";
 
-const BUSINESS_TOOLS = [
-  ["planner", "规划器"],
-  ["chat_fallback", "聊天兜底"],
-  ["web_search", "网页证据检索"],
-  ["category_insight", "品类洞察"],
-  ["item_search", "商品检索"],
-  ["item_picker", "候选选择"],
-  ["price_compare", "价格比较"],
-  ["shipping_calc", "运费估算"],
-  ["shopping_summary", "购物摘要"],
+/* ===================================================================
+   Glodex M1f Showcase — Application Logic
+   Pure vanilla JS, zero dependencies, offline-only
+   =================================================================== */
+
+/* --- Fixed tool surface (9 business tools + 1 meta tool) --- */
+const TOOLS = [
+  { name: "planner", desc: "拆解需求，规划执行路径", meta: false },
+  { name: "chat_fallback", desc: "无法调用工具时的对话兜底", meta: false },
+  { name: "web_search", desc: "基于离线快照的网络检索", meta: false },
+  { name: "category_insight", desc: "品类趋势与竞争分析", meta: false },
+  { name: "item_search", desc: "在候选池中检索商品", meta: false },
+  { name: "item_picker", desc: "从候选中筛选最佳商品", meta: false },
+  { name: "price_compare", desc: "多来源价格信息对比", meta: false },
+  { name: "shipping_calc", desc: "配送费用与时效估算", meta: false },
+  { name: "shopping_summary", desc: "汇总决策结果与建议", meta: false },
+  { name: "dispatch_tool", desc: "元工具 · 创建子 Agent 执行子任务", meta: true },
 ];
-const META_TOOL = ["dispatch_tool", "dispatch_tool（子 Agent 元工具）"];
-const EVENT_LABELS = {
-  AGENT_STARTED: "Agent 回放开始",
-  MODEL_STARTED: "模型选择下一步",
-  MODEL_FINISHED: "模型选择工具",
-  TOOL_STARTED: "工具开始执行",
-  TOOL_FINISHED: "工具完成",
-  FORK_STARTED: "子 Agent 分支开始",
-  FORK_FINISHED: "子 Agent 分支完成",
-  AGENT_RESULT: "Agent 回放完成",
-  AGENT_ERROR: "Agent 回放安全终止",
+
+/* --- Event type metadata --- */
+const EVENT_META = {
+  AGENT_STARTED:  { label: "Agent 启动",       tone: "agent"    },
+  MODEL_STARTED:  { label: "模型推理开始",     tone: "model"    },
+  MODEL_FINISHED: { label: "模型推理完成",     tone: "model"    },
+  TOOL_STARTED:   { label: "工具调用开始",     tone: "tool"     },
+  TOOL_FINISHED:  { label: "工具调用完成",     tone: "tool"     },
+  FORK_STARTED:   { label: "子 Agent 创建",    tone: "fork"     },
+  FORK_FINISHED:  { label: "子 Agent 完成",    tone: "fork"     },
+  AGENT_RESULT:   { label: "Agent 结果",      tone: "terminal" },
+  AGENT_ERROR:    { label: "Agent 安全终止",   tone: "error"    },
 };
+
+/* --- Benchmark metric display order --- */
 const METRICS = [
-  ["exact_at_10", "Exact@10"],
-  ["mrr_at_10", "MRR@10"],
-  ["ndcg_at_10", "nDCG@10"],
+  { key: "ndcg_at_10", label: "nDCG@10"  },
+  { key: "mrr_at_10",  label: "MRR@10"   },
+  { key: "exact_at_10", label: "Exact@10" },
 ];
-const BASE_STEP_DELAY_MS = 650;
+
+/* --- Replay config --- */
+const STEP_DELAY_MS = 600;
 const SKELETON_COUNT = 4;
-const SVG_NS = ["http:", "", "www.w3.org", "2000", "svg"].join("/");
 
-const $ = (selector) => document.querySelector(selector);
+/* --- Data source paths (relative, offline) --- */
+const REPLAY_URL  = "./assets/m1d-replay.v1.json";
+const SUMMARY_URL = "./assets/m1e-summary.v1.json";
 
-const elements = {
-  benchmarkStatus: $("#benchmark-status"),
-  benchmarkProvenance: $("#benchmark-provenance"),
-  eventTimeline: $("#event-timeline"),
-  metricCards: $("#metric-cards"),
-  pause: $("#pause-button"),
-  play: $("#play-button"),
-  progressBar: $("#replay-progress-bar"),
-  progressContainer: $(".replay-progress"),
-  replayStatus: $("#replay-status"),
-  reset: $("#reset-button"),
-  toolInventory: $("#tool-inventory"),
+/* --- DOM references --- */
+const $ = (sel) => document.querySelector(sel);
+const $$ = (sel) => document.querySelectorAll(sel);
+
+const el = {
+  timeline:       $("#event-timeline"),
+  tools:          $("#tool-inventory"),
+  metrics:        $("#metric-cards"),
+  provenance:     $("#benchmark-provenance"),
+  replayStatus:   $("#replay-status"),
+  benchmarkStatus:$("#benchmark-status"),
+  play:           $("#play-button"),
+  pause:          $("#pause-button"),
+  reset:          $("#reset-button"),
+  progressFill:   $("#progress-fill"),
+  progressTrack:  $(".progress-track"),
+  playLabel:      $("#play-button .btn-text"),
 };
 
-const replay = {
-  cursor: 0,
-  events: [],
-  renderedCount: 0,
+/* --- Replay state machine --- */
+const state = {
   status: "idle",
-  timer: null,
+  events: [],
+  cursor: 0,
+  renderedCount: 0,
   speed: 1,
+  timer: null,
 };
 
-/* ---------- Utilities ---------- */
+/* ===================================================================
+   Utilities
+   =================================================================== */
 
 function formatTimestamp(ms) {
+  if (ms === undefined || ms === null) return "";
   if (ms < 1000) return `${ms}ms`;
-  const seconds = ms / 1000;
-  if (seconds < 60) return `${seconds.toFixed(1)}s`;
-  const mins = Math.floor(seconds / 60);
-  const secs = Math.floor(seconds % 60);
-  return `${mins}:${String(secs).padStart(2, "0")}`;
+  const s = ms / 1000;
+  if (s < 60) return `${s.toFixed(1)}s`;
+  const m = Math.floor(s / 60);
+  const r = Math.floor(s % 60);
+  return `${m}:${String(r).padStart(2, "0")}`;
 }
 
-function svgIcon(id) {
-  const svg = document.createElementNS(SVG_NS, "svg");
-  svg.setAttribute("aria-hidden", "true");
-  svg.setAttribute("class", "icon");
-  const use = document.createElementNS(SVG_NS, "use");
-  use.setAttribute("href", `#${id}`);
-  svg.append(use);
-  return svg;
-}
-
-function setStatus(element, text, tone = "") {
+function setPill(element, text, tone) {
   element.textContent = text;
-  element.dataset.tone = tone;
+  element.dataset.tone = tone || "";
 }
 
-/* ---------- Progress bar ---------- */
+/* ===================================================================
+   Progress Bar
+   =================================================================== */
 
 function updateProgress() {
-  const total = replay.events.length;
-  const percent = total === 0 ? 0 : Math.round((replay.cursor / total) * 100);
-  elements.progressBar.style.width = `${percent}%`;
-  elements.progressContainer.setAttribute("aria-valuenow", String(percent));
-  const text = total === 0 ? "等待数据" : `${replay.cursor}/${total} 事件`;
-  elements.progressContainer.setAttribute("aria-valuetext", `${percent}% — ${text}`);
+  const total = state.events.length;
+  const percent = total === 0 ? 0 : Math.round((state.cursor / total) * 100);
+  el.progressFill.style.width = `${percent}%`;
+  el.progressTrack.setAttribute("aria-valuenow", String(percent));
+  const label = total === 0 ? "等待数据" : `${state.cursor}/${total}`;
+  el.progressTrack.setAttribute("aria-valuetext", `${percent}% — ${label}`);
 }
 
-/* ---------- Tool inventory ---------- */
+/* ===================================================================
+   Tool Inventory
+   =================================================================== */
 
 function renderTools(events) {
-  const executed = new Set(events.map((event) => event.toolName).filter(Boolean));
-  const tools = [...BUSINESS_TOOLS, META_TOOL];
-  const fragment = document.createDocumentFragment();
-  tools.forEach(([name, label], index) => {
-    const item = document.createElement("li");
-    const isExecuted = executed.has(name);
-    const isMeta = index === tools.length - 1;
-    item.className = "tool-card";
-    item.dataset.executed = String(isExecuted);
-    item.dataset.meta = String(isMeta);
-
-    const nameWrap = document.createElement("span");
-    nameWrap.className = "tool-name";
-
-    const badge = document.createElement("span");
-    badge.className = "tool-badge";
-    badge.append(svgIcon(isMeta ? "i-branch" : "i-zap"));
-
-    const nameText = document.createElement("span");
-    nameText.textContent = label;
-
-    nameWrap.append(badge, nameText);
-
-    const state = document.createElement("span");
-    state.className = "tool-status";
-    state.dataset.executed = String(isExecuted);
-    state.textContent = isExecuted ? "本次已执行" : "本次未执行";
-
-    item.append(nameWrap, state);
-    fragment.append(item);
+  const executed = new Set();
+  events.forEach((e) => {
+    if (e.toolName) executed.add(e.toolName);
   });
-  elements.toolInventory.replaceChildren(fragment);
+
+  const frag = document.createDocumentFragment();
+
+  TOOLS.forEach((tool) => {
+    const isExecuted = executed.has(tool.name);
+    const li = document.createElement("li");
+    li.className = "tool-card";
+    li.dataset.executed = String(isExecuted);
+    li.dataset.meta = String(tool.meta);
+
+    /* Tool head: name + status dot */
+    const head = document.createElement("div");
+    head.className = "tool-head";
+
+    const name = document.createElement("span");
+    name.className = "tool-name";
+    name.textContent = tool.name;
+
+    const dot = document.createElement("span");
+    dot.className = "tool-dot";
+
+    head.append(name, dot);
+
+    /* Description */
+    const desc = document.createElement("p");
+    desc.className = "tool-desc";
+    desc.textContent = tool.desc;
+
+    /* Execution state label */
+    const stateLabel = document.createElement("span");
+    stateLabel.className = "tool-state";
+    stateLabel.textContent = isExecuted ? "本次已执行" : "本次未执行";
+
+    li.append(head, desc, stateLabel);
+    frag.append(li);
+  });
+
+  el.tools.replaceChildren(frag);
 }
 
-/* ---------- Timeline (incremental render) ---------- */
+/* ===================================================================
+   Timeline — Incremental Rendering
+   =================================================================== */
 
-function createTimelineItem(event) {
-  const item = document.createElement("li");
-  item.className = "timeline-item";
-  item.dataset.type = event.type;
-  if (event.scope === "child") item.dataset.scope = "child";
+function createEventItem(event) {
+  const meta = EVENT_META[event.type] || { label: "安全事件", tone: "agent" };
+  const li = document.createElement("li");
+  li.className = "event-item";
+  if (event.scope === "child") li.classList.add("event-child");
+  li.dataset.tone = meta.tone;
+  li.dataset.scope = event.scope || "root";
 
-  const sequence = document.createElement("span");
-  sequence.className = "sequence";
-  sequence.textContent = String(event.sequence);
+  /* Sequence badge */
+  const seq = document.createElement("span");
+  seq.className = "event-seq";
+  seq.textContent = String(event.sequence);
 
-  const copy = document.createElement("div");
+  /* Event body */
+  const body = document.createElement("div");
+  body.className = "event-body";
 
-  const header = document.createElement("div");
-  header.className = "event-header";
+  /* Header row: label + tool/branch + timestamp */
+  const head = document.createElement("div");
+  head.className = "event-head";
 
-  const title = document.createElement("span");
-  title.className = "event-title";
-  title.textContent = EVENT_LABELS[event.type] || "安全事件";
-  header.append(title);
+  const label = document.createElement("span");
+  label.className = "event-label";
+  label.textContent = meta.label;
+  head.append(label);
 
-  if (event.timestamp !== undefined) {
-    const time = document.createElement("span");
-    time.className = "event-time";
-    time.textContent = formatTimestamp(event.timestamp);
-    header.append(time);
+  if (event.toolName) {
+    const tool = document.createElement("span");
+    tool.className = "event-tool";
+    tool.textContent = event.toolName;
+    head.append(tool);
   }
 
   if (event.childId) {
     const branch = document.createElement("span");
-    branch.className = "event-time";
-    branch.style.borderColor = "var(--warning)";
-    branch.style.color = "var(--warning)";
-    branch.textContent = `分支 ${event.childId}`;
-    header.append(branch);
+    branch.className = "event-branch";
+    branch.textContent = event.childId;
+    head.append(branch);
   }
 
-  const meta = document.createElement("p");
-  meta.className = "event-meta";
-  const details = [];
-  if (event.toolName) details.push(`工具：${event.toolName}`);
-  if (event.round) details.push(`轮次：${event.round}`);
-  if (event.status) details.push(`状态：${event.status}`);
-  if (event.safeCode) details.push(`安全码：${event.safeCode}`);
-  meta.textContent = details.join(" · ") || "公开安全事件";
+  if (event.timestamp !== undefined) {
+    const ts = document.createElement("span");
+    ts.className = "event-ts";
+    ts.textContent = formatTimestamp(event.timestamp);
+    head.append(ts);
+  }
 
-  copy.append(header, meta);
-  item.append(sequence, copy);
-  return item;
+  body.append(head);
+
+  /* Meta line: round, safe code */
+  const details = [];
+  if (event.round) details.push(`轮次 ${event.round}`);
+  if (event.safeCode) details.push(`安全码 ${event.safeCode}`);
+
+  if (details.length > 0) {
+    const metaP = document.createElement("p");
+    metaP.className = "event-meta";
+    metaP.textContent = details.join(" · ");
+    body.append(metaP);
+  }
+
+  li.append(seq, body);
+  return li;
 }
 
-function renderTimeline() {
-  if (replay.cursor < replay.renderedCount) {
-    // Reset or rewind — clear all
-    elements.eventTimeline.replaceChildren();
-    replay.renderedCount = 0;
+function renderNewEvents() {
+  /* Reset case: cursor went backward */
+  if (state.cursor < state.renderedCount) {
+    el.timeline.replaceChildren();
+    state.renderedCount = 0;
   }
 
-  if (replay.cursor === replay.renderedCount) return;
+  if (state.cursor === state.renderedCount) return;
 
-  const fragment = document.createDocumentFragment();
-  for (let i = replay.renderedCount; i < replay.cursor; i++) {
-    fragment.append(createTimelineItem(replay.events[i]));
+  /* Incremental append — only new events */
+  const frag = document.createDocumentFragment();
+  for (let i = state.renderedCount; i < state.cursor; i++) {
+    frag.append(createEventItem(state.events[i]));
   }
-  elements.eventTimeline.append(fragment);
-  replay.renderedCount = replay.cursor;
+  el.timeline.append(frag);
+  state.renderedCount = state.cursor;
 
-  // Auto-scroll to latest item during playback
-  if (replay.status === "running" && replay.cursor > 0) {
-    const lastItem = elements.eventTimeline.lastElementChild;
-    if (lastItem) {
-      lastItem.scrollIntoView({ behavior: "smooth", block: "nearest" });
+  /* Auto-scroll to latest item during playback */
+  if (state.status === "running" && state.cursor > 0) {
+    const last = el.timeline.lastElementChild;
+    if (last) {
+      last.scrollIntoView({ behavior: "smooth", block: "nearest" });
     }
   }
 }
 
-/* ---------- Replay controls ---------- */
+/* ===================================================================
+   Replay Controls
+   =================================================================== */
 
-function updateReplayControls() {
-  const isComplete = replay.cursor === replay.events.length && replay.events.length > 0;
-  elements.play.disabled = replay.status === "running" || replay.events.length === 0;
-  elements.pause.disabled = replay.status !== "running";
-  elements.reset.disabled = replay.events.length === 0;
+function updateControls() {
+  const isComplete =
+    state.cursor >= state.events.length && state.events.length > 0;
 
-  const playLabel = elements.play.querySelector("span");
+  el.play.disabled = state.status === "running" || state.events.length === 0;
+  el.pause.disabled = state.status !== "running";
+  el.reset.disabled = state.events.length === 0;
 
-  if (replay.status === "running") {
-    playLabel.textContent = "正在回放";
-    setStatus(elements.replayStatus, `回放中 · ${replay.cursor}/${replay.events.length}`, "active");
-  } else if (replay.status === "paused") {
-    playLabel.textContent = "继续回放";
-    setStatus(elements.replayStatus, `已暂停 · ${replay.cursor}/${replay.events.length}`);
+  if (state.status === "running") {
+    el.playLabel.textContent = "回放中";
+    setPill(el.replayStatus, `${state.cursor}/${state.events.length} 回放中`, "active");
+  } else if (state.status === "paused") {
+    el.playLabel.textContent = "继续回放";
+    setPill(el.replayStatus, `已暂停 · ${state.cursor}/${state.events.length}`, "");
   } else if (isComplete) {
-    playLabel.textContent = "从头回放";
-    setStatus(elements.replayStatus, `已完成 · ${replay.events.length}/${replay.events.length}`, "active");
+    el.playLabel.textContent = "重新播放";
+    setPill(el.replayStatus, "回放完成", "active");
   } else {
-    playLabel.textContent = "开始回放";
-    setStatus(elements.replayStatus, `等待开始 · ${replay.cursor}/${replay.events.length}`);
+    el.playLabel.textContent = "开始回放";
+    setPill(
+      el.replayStatus,
+      state.events.length > 0
+        ? `就绪 · ${state.events.length} 事件`
+        : "等待加载",
+      ""
+    );
   }
 
   updateProgress();
 }
 
-function stopTimer() {
-  if (replay.timer !== null) {
-    window.clearTimeout(replay.timer);
-    replay.timer = null;
+function clearTimer() {
+  if (state.timer !== null) {
+    clearTimeout(state.timer);
+    state.timer = null;
   }
 }
 
-function advanceReplay() {
-  if (replay.status !== "running") return;
-  replay.cursor += 1;
-  renderTimeline();
-  if (replay.cursor >= replay.events.length) {
-    replay.status = "completed";
-    replay.timer = null;
-    updateReplayControls();
+function advance() {
+  if (state.status !== "running") return;
+
+  state.cursor += 1;
+  renderNewEvents();
+
+  if (state.cursor >= state.events.length) {
+    state.status = "completed";
+    state.timer = null;
+    updateControls();
     return;
   }
-  updateReplayControls();
-  const delay = BASE_STEP_DELAY_MS / replay.speed;
-  replay.timer = window.setTimeout(advanceReplay, delay);
+
+  updateControls();
+  const delay = STEP_DELAY_MS / state.speed;
+  state.timer = setTimeout(advance, delay);
 }
 
-function startOrContinueReplay() {
-  stopTimer();
-  if (replay.status === "completed") {
-    replay.cursor = 0;
-    replay.renderedCount = 0;
-    elements.eventTimeline.replaceChildren();
+function startReplay() {
+  clearTimer();
+
+  /* Restart from beginning if already completed */
+  if (state.status === "completed") {
+    state.cursor = 0;
+    state.renderedCount = 0;
+    el.timeline.replaceChildren();
   }
-  replay.status = "running";
-  advanceReplay();
+
+  state.status = "running";
+  advance();
 }
 
 function pauseReplay() {
-  if (replay.status !== "running") return;
-  stopTimer();
-  replay.status = "paused";
-  updateReplayControls();
+  if (state.status !== "running") return;
+  clearTimer();
+  state.status = "paused";
+  updateControls();
 }
 
 function resetReplay() {
-  stopTimer();
-  replay.cursor = 0;
-  replay.renderedCount = 0;
-  replay.status = "idle";
-  elements.eventTimeline.replaceChildren();
-  updateReplayControls();
+  clearTimer();
+  state.cursor = 0;
+  state.renderedCount = 0;
+  state.status = "idle";
+  el.timeline.replaceChildren();
+  updateControls();
 }
 
-/* ---------- Speed control ---------- */
+/* ===================================================================
+   Speed Control
+   =================================================================== */
 
 function setSpeed(speed) {
-  replay.speed = speed;
-  document.querySelectorAll(".speed-btn").forEach((btn) => {
-    const isActive = Number(btn.dataset.speed) === speed;
-    btn.classList.toggle("active", isActive);
-    btn.setAttribute("aria-pressed", String(isActive));
+  state.speed = speed;
+  $$(".speed-btn").forEach((btn) => {
+    const active = Number(btn.dataset.speed) === speed;
+    btn.classList.toggle("active", active);
+    btn.setAttribute("aria-pressed", String(active));
   });
 }
 
-/* ---------- Benchmark ---------- */
+/* ===================================================================
+   Benchmark Metrics & Provenance
+   =================================================================== */
 
 function renderBenchmark(summary) {
-  const metricFragment = document.createDocumentFragment();
-  METRICS.forEach(([key, label]) => {
-    const metric = summary.metrics[key];
+  /* Metric cards */
+  const frag = document.createDocumentFragment();
+
+  METRICS.forEach((m) => {
+    const metric = summary.metrics[m.key];
     const card = document.createElement("article");
     card.className = "metric-card";
-    const metricLabel = document.createElement("span");
-    metricLabel.className = "metric-label";
-    metricLabel.textContent = label;
+
+    const label = document.createElement("span");
+    label.className = "metric-label";
+    label.textContent = m.label;
+
     const value = document.createElement("strong");
     value.className = "metric-value";
-    value.textContent = Number(metric.value).toFixed(3);
+    value.textContent = Number(metric.value).toFixed(4);
+
     const detail = document.createElement("span");
     detail.className = "metric-detail";
     detail.textContent = `分母 ${metric.denominator} · 排除 ${metric.excluded}`;
-    card.append(metricLabel, value, detail);
-    metricFragment.append(card);
-  });
-  elements.metricCards.replaceChildren(metricFragment);
 
-  const provenance = [
+    card.append(label, value, detail);
+    frag.append(card);
+  });
+
+  el.metrics.replaceChildren(frag);
+
+  /* Provenance */
+  const items = [
     ["Benchmark", summary.benchmark_id],
     ["Scorer", summary.scorer_version],
-    ["样本", `${summary.counts.queries} queries · ${summary.counts.products} products`],
-    ["标签", `Exact ${summary.label_distribution.Exact} · Substitute ${summary.label_distribution.Substitute}`],
-    ["Source revision", summary.source.revision],
+    ["样本量", `${summary.counts.queries} queries / ${summary.counts.products} products / ${summary.counts.judgements} judgements`],
+    ["标签分布", `Exact ${summary.label_distribution.Exact} / Substitute ${summary.label_distribution.Substitute} / Complement ${summary.label_distribution.Complement} / Irrelevant ${summary.label_distribution.Irrelevant}`],
+    ["Revision", summary.source.revision],
     ["Manifest", summary.artifact_manifest_sha256],
   ];
-  const provFragment = document.createDocumentFragment();
-  provenance.forEach(([term, value]) => {
-    const group = document.createElement("div");
-    const title = document.createElement("dt");
-    title.textContent = term;
-    const detail = document.createElement("dd");
-    detail.textContent = value;
-    group.append(title, detail);
-    provFragment.append(group);
+
+  const provFrag = document.createDocumentFragment();
+
+  items.forEach(([term, val]) => {
+    const div = document.createElement("div");
+    div.className = "prov-item";
+
+    const dt = document.createElement("dt");
+    dt.className = "prov-term";
+    dt.textContent = term;
+
+    const dd = document.createElement("dd");
+    dd.className = "prov-value";
+    dd.textContent = val;
+
+    div.append(dt, dd);
+    provFrag.append(div);
   });
-  elements.benchmarkProvenance.replaceChildren(provFragment);
-  setStatus(elements.benchmarkStatus, "已验证的离线摘要", "active");
+
+  el.provenance.replaceChildren(provFrag);
+  setPill(el.benchmarkStatus, "已验证", "active");
 }
 
-/* ---------- Skeleton loading ---------- */
+/* ===================================================================
+   Skeleton Loading
+   =================================================================== */
 
 function showSkeletons() {
-  const fragment = document.createDocumentFragment();
+  const frag = document.createDocumentFragment();
+
   for (let i = 0; i < SKELETON_COUNT; i++) {
-    const item = document.createElement("li");
-    item.className = "skeleton-item";
-    const circle = document.createElement("div");
-    circle.className = "skeleton-circle";
-    const lines = document.createElement("div");
+    const li = document.createElement("li");
+    li.className = "event-item skeleton-item";
+
+    const seq = document.createElement("span");
+    seq.className = "skeleton-seq";
+
+    const body = document.createElement("div");
+    body.className = "skeleton-body";
+
     const line1 = document.createElement("div");
-    line1.className = "skeleton-line mid";
+    line1.className = "skeleton-line skeleton-line-wide";
+
     const line2 = document.createElement("div");
-    line2.className = "skeleton-line short";
-    lines.append(line1, line2);
-    item.append(circle, lines);
-    fragment.append(item);
+    line2.className = "skeleton-line skeleton-line-narrow";
+
+    body.append(line1, line2);
+    li.append(seq, body);
+    frag.append(li);
   }
-  elements.eventTimeline.replaceChildren(fragment);
+
+  el.timeline.replaceChildren(frag);
 }
 
-/* ---------- Data loading ---------- */
+/* ===================================================================
+   Data Loading
+   =================================================================== */
 
-async function loadShowcase() {
+async function init() {
   showSkeletons();
+
   try {
-    const [replayResponse, summaryResponse] = await Promise.all([
-      fetch("./assets/m1d-replay.v1.json"),
-      fetch("./assets/m1e-summary.v1.json"),
+    const [replayRes, summaryRes] = await Promise.all([
+      fetch(REPLAY_URL),
+      fetch(SUMMARY_URL),
     ]);
-    if (!replayResponse.ok || !summaryResponse.ok) throw new Error("asset load failed");
-    const [replayAsset, summaryAsset] = await Promise.all([
-      replayResponse.json(),
-      summaryResponse.json(),
+
+    if (!replayRes.ok || !summaryRes.ok) {
+      throw new Error("asset load failed");
+    }
+
+    const [replayData, summaryData] = await Promise.all([
+      replayRes.json(),
+      summaryRes.json(),
     ]);
-    replay.events = replayAsset.events;
-    elements.eventTimeline.replaceChildren();
-    replay.renderedCount = 0;
-    renderTools(replay.events);
-    renderTimeline();
-    updateReplayControls();
-    renderBenchmark(summaryAsset);
-  } catch (_error) {
-    elements.eventTimeline.replaceChildren();
-    setStatus(elements.replayStatus, "展示资产加载失败", "error");
-    setStatus(elements.benchmarkStatus, "展示资产加载失败", "error");
+
+    state.events = replayData.events;
+    el.timeline.replaceChildren();
+    state.renderedCount = 0;
+
+    renderTools(state.events);
+    renderNewEvents();
+    updateControls();
+    renderBenchmark(summaryData);
+  } catch (_err) {
+    el.timeline.replaceChildren();
+    setPill(el.replayStatus, "加载失败", "error");
+    setPill(el.benchmarkStatus, "加载失败", "error");
   }
 }
 
-/* ---------- Event listeners ---------- */
+/* ===================================================================
+   Event Listeners
+   =================================================================== */
 
-elements.play.addEventListener("click", startOrContinueReplay);
-elements.pause.addEventListener("click", pauseReplay);
-elements.reset.addEventListener("click", resetReplay);
+el.play.addEventListener("click", startReplay);
+el.pause.addEventListener("click", pauseReplay);
+el.reset.addEventListener("click", resetReplay);
 
-document.querySelectorAll(".speed-btn").forEach((btn) => {
+$$(".speed-btn").forEach((btn) => {
   btn.addEventListener("click", () => setSpeed(Number(btn.dataset.speed)));
 });
 
-// Keyboard shortcuts (Space = play/pause, R = reset)
+/* Keyboard shortcuts: Space = play/pause, R = reset */
 document.addEventListener("keydown", (e) => {
   if (e.target.tagName === "BUTTON" || e.target.tagName === "INPUT") return;
+
   if (e.code === "Space") {
     e.preventDefault();
-    if (replay.status === "running") pauseReplay();
-    else if (!elements.play.disabled) startOrContinueReplay();
+    if (state.status === "running") {
+      pauseReplay();
+    } else if (!el.play.disabled) {
+      startReplay();
+    }
   } else if (e.code === "KeyR") {
     e.preventDefault();
-    if (!elements.reset.disabled) resetReplay();
+    if (!el.reset.disabled) {
+      resetReplay();
+    }
   }
 });
 
-void loadShowcase();
+/* --- Boot --- */
+init();
