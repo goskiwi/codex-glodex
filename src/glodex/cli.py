@@ -264,6 +264,12 @@ def _build_parser() -> argparse.ArgumentParser:
     m2b_serve.add_argument("--config", type=Path, help="path to glodex.toml")
     m2b_serve.add_argument("--live", action="store_true", required=True)
 
+    m2d_serve = subparsers.add_parser(
+        "m2d-serve",
+        help="serve the loopback-only M2d AG-UI adapter and React console",
+    )
+    m2d_serve.add_argument("--live", action="store_true", required=True)
+
     m2c_model_verify = subparsers.add_parser(
         "m2c-model-verify",
         help="verify the fixed loopback M2c GPU model service",
@@ -587,6 +593,16 @@ def _emit_m2c(*, status: str, code: str | None = None, **values: object) -> None
     sys.stdout.write(rendered + "\n")
 
 
+def _emit_m2d(*, status: str, code: str | None = None, **values: object) -> None:
+    """Emit only loopback M2d operator facts without request or event content."""
+
+    payload: dict[str, object] = {"status": status, **values}
+    if code is not None:
+        payload["code"] = code
+    rendered = json.dumps(payload, ensure_ascii=True, sort_keys=True, separators=(",", ":"))
+    sys.stdout.write(rendered + "\n")
+
+
 async def _run_m2b_migrate(namespace: argparse.Namespace) -> int:
     from glodex.adapters.m2b_postgres import M2bPostgresStore
     from glodex.application.durable.contracts import DurableStoreError
@@ -733,6 +749,23 @@ def _run_m2b_serve(*, config: GlodexConfig) -> int:
     )
     _emit_m2b(status="STARTING", host="127.0.0.1", port=8766)
     uvicorn.run(app, host="127.0.0.1", port=8766, access_log=False, log_config=None)
+    return 0
+
+
+def _run_m2d_serve() -> int:
+    """Run the fixed-loopback M2d adapter without contacting M2b at startup."""
+
+    from glodex.api.m2d_app import create_m2d_app
+
+    try:
+        import uvicorn
+    except ImportError:
+        _emit_m2d(status="FAILED", code="M2D_SERVER_UNAVAILABLE")
+        return 1
+    static_root = Path(__file__).resolve().parents[2] / "frontend" / "dist"
+    app = create_m2d_app(static_root=static_root)
+    _emit_m2d(status="STARTING", host="127.0.0.1", port=8767)
+    uvicorn.run(app, host="127.0.0.1", port=8767, access_log=False, log_config=None)
     return 0
 
 
@@ -1273,6 +1306,9 @@ def main(
 
     if namespace.command == "m2c-gpu-service":
         return _run_m2c_gpu_service(namespace)
+
+    if namespace.command == "m2d-serve":
+        return _run_m2d_serve()
 
     if namespace.command in {"m2c-index", "m2c-profile", "m2c-agent-demo"} and not namespace.live:
         _emit_m2c(status="FAILED", code="M2C_LIVE_REQUIRED")

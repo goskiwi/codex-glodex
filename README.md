@@ -1,6 +1,6 @@
 # Glodex
 
-Glodex 目前包含九个叠加的里程碑：
+Glodex 目前包含十个叠加的里程碑：
 
 - **M0** 是本地、离线、确定性的跨市场购物检索业务基线。它接收中文购物请求，从版本化快照中聚合同款商品和各市场报价，使用 `Decimal` 计算到手价，在排序前执行预算、品类、库存、商品本体和证据硬门，最后返回最多 3 个可核验结果。
 - **M1a** 在不改变 M0 业务合同与不变量的前提下，增加一个本地 FastAPI + SSE 服务化垂直切片。
@@ -12,6 +12,7 @@ Glodex 目前包含九个叠加的里程碑：
 - **M2a** 增加一个 operator-only 的本机检索智能闭环：local OpenSearch Query Hybrid、显式 typed profile 的 User ANN 补充、固定 DashScope `qwen3-rerank` 与 Category Card rerank；它复用 M1d 的 AgentLoop 和最终 Hard Gates，但不改变默认 Agent/API/SSE。
 - **M2b** 增加一个 operator-only 的本机 durable runtime：PostgreSQL 保存 Run、安全 SSE event、checkpoint 与 typed Profile；Redis 只缓存可重建的 retrieval/context 投影，OpenSearch User ANN 只接收当前 Profile revision 的可丢弃投影。
 - **M2c** 增加一个 operator-only 的私有 GPU BGE retrieval model service：固定 loopback model verifier、独立 BGE Product/Card/Profile aliases 与 cross-encoder rerank；它复用 M1d 的可信发布 gates，但不改变 M2a DashScope 或 M2b durable backend。
+- **M2d** 增加一个本机 AG-UI adapter 与 React Run Console：它只投影 M2b 已冻结的 public durable API，在 `127.0.0.1:8767` 提供同源交互、重连与受控 Cancel/Resume；它不读取 DB/Redis、不会把 M2c GPU 暴露给浏览器。
 
 M0 仍是可保留的业务与合同基线；M1a 是单进程 Demo，不是生产 Agent 平台。M1b
 Capture 与 M1c live Intent 都只能由 Operator 通过各自独立入口显式联网；默认
@@ -19,8 +20,9 @@ CLI/API 仍使用 Rule Intent 且只读取本地快照。M2a 的 profile 仅是 
 typed soft preference，不会保存聊天记录、隐式画像或跨设备用户数据。M1d 是独立 Agent 入口；
 M1e 是本地 benchmark 入口；M1f 是独立静态展示入口；M2a 也不改变这些默认行为。
 M2b 同样不会改变它们：只有 `m2b-*` 命令和独立 durable API factory 才会连接 PostgreSQL 或 Redis。M2c
-也同样隔离：只有带 `--live` 的 `m2c-*` operator command 才会连接既有 loopback tunnel；默认
-M0–M2b、M1f 与离线门禁不会加载 GPU 依赖、读取 tunnel 或连接模型服务。
+也同样隔离：只有带 `--live` 的 `m2c-*` operator command 才会连接既有 loopback tunnel；M2d 是唯一
+AG-UI/React 投影层，且固定只读取 M2b `8766` public routes。默认 M0–M2c、M1f 与 M2d 离线门禁
+不会加载 GPU 依赖、读取 tunnel 或连接模型服务。
 
 ## 已实现
 
@@ -283,6 +285,43 @@ uv run --locked glodex m2b-serve --live
 当前恢复策略只允许没有进入外部 Agent 调用的已确认初始 checkpoint 重新执行；一旦整个 Agent
 外部执行 fence 已进入 `REMOTE_PENDING`，重启/恢复会安全地 `ABORTED`，不会猜测或重放外部调用。
 
+### M2d AG-UI / React Run Console
+
+M2d 是实时交互面，不替代 M1f。三个本机入口的职责固定如下：`127.0.0.1:8765` 是静态录制
+Showcase；`127.0.0.1:8766` 是 M2b durable public API；`127.0.0.1:8767` 才是 M2d 的 React
+Console 与受限 AG-UI HTTP/SSE adapter。
+
+首次准备前端依赖后，构建并启动 M2d。构建产物不提交；若产物缺失，8767 根页面只会安全提示构建
+前提，而不会连接 M2b 或其他服务。
+
+```bash
+npm --prefix frontend ci
+npm --prefix frontend run build
+
+uv run --locked glodex m2d-serve --live
+```
+
+浏览器访问 `http://127.0.0.1:8767`。页面提交时只向同源 `/api/v1/m2d` 发请求；M2d 再通过固定
+loopback `8766` 的 M2b public create/status/events/cancel/resume routes 工作。M2b 尚未启动时页面仍能
+打开，但提交会诚实显示 `M2D_UPSTREAM_UNAVAILABLE`。M2d 不启动 Docker、不读取 `.env`、不直接访问
+PostgreSQL/Redis/OpenSearch/Provider，也不访问 `18000` GPU service。
+
+要进行真实 durable browser 验收，先按上一节准备并启动既有 M2b `m2b-serve --live`（包括它所需的
+PostgreSQL、Redis、OpenSearch 和显式 credential 前提），再启动 M2d。页面只在内存保存当前表单；
+`Reconnect` 从 durable cursor 重放，`Cancel`/`Resume` 只代理 M2b public operation，`New run` 只清
+浏览器视图，不删除任何 durable 数据。页面不会展示或持久化 query history、profile、tool 参数/输出、
+推理、Provider body、DB/Redis 数据、vector/score 或 GPU 信息。
+
+默认门禁不启动服务、不连接网络或 GPU，并将 M2b browser smoke 与离线证据分开：
+
+```bash
+uv run --locked python scripts/verify_m2d.py
+```
+
+该门禁要求已有 npm cache，因为 frontend install 使用 `npm ci --offline`；首次依赖获取应在单独的
+显式 `npm --prefix frontend ci` 中完成。M2d 仅兼容冻结的 AG-UI HTTP/SSE event subset，不宣称完整
+AG-UI、WebSocket、worker queue、多用户/账号或生产监控能力。
+
 ### M2c A100 BGE retrieval model service
 
 M2c 是受控 GPU 上的显式演示闭环，不会自动下载权重、创建 tunnel、拉起 Docker 或读取 `.env`。
@@ -344,8 +383,8 @@ uv run --locked python scripts/verify_m2c.py
 停止 GPU service 使用该 service 前台进程的 `Ctrl-C`；tunnel 由建立它的 operator 在仓库外单独
 停止。不要运行带 volume 删除的 Docker 命令，M2c 也不会自动清理 M2a/M2b 数据。README 不记录 remote host、模型路径/hash、SSH command、credential 或 service response。
 
-M2d 的 AG-UI/React、多 worker 与生产 queue 仍未实现；M2c 不承诺训练、模型泛化、商业召回率、
-高可用或生产吞吐。
+M2d 已交付受限 AG-UI/React interaction layer；多 worker、生产 queue、完整 AG-UI 与远程部署仍未
+实现。M2c 不承诺训练、模型泛化、商业召回率、高可用或生产吞吐。
 
 ```bash
 # 校验本地快照
@@ -568,7 +607,8 @@ library factory 的宿主必须自行完成凭据 preflight 和固定 compositio
 Agent SSE 只投影 model/tool/fork 的开始、结束、安全结果 code 和业务终态。它保留
 202 后启动、同 Thread 单活动 Run、连续 event ID、晚连接重放、断线不取消和
 timeout/shutdown `ABORTED` 等本地 Demo 行为，但不是完整 AG-UI 协议，也不提供
-AG-UI SDK、WebSocket、前端、持久事件或跨进程恢复。
+AG-UI SDK、WebSocket、自己的前端、持久事件或跨进程恢复；这些是独立 M2d/M2b interaction
+composition 的职责，不能反向归因给这个旧 endpoint。
 
 ## 配置
 
@@ -787,18 +827,19 @@ GLODEX_REFERENCE_CI=1 uv run --locked python scripts/verify_m0.py
   gates、Evidence closure 和最终 `SearchResponse` 继续 fail closed；
 - 没有 retry、fallback model、长期记忆、checkpoint、数据库、Redis、任意网页抓取、
   外部向量库、认证、租户隔离或生产 SLA；
-- Agent API/SSE 是单进程内存 Demo，`glodex.agent.event.v1` 不是完整 AG-UI；
-  没有 AG-UI SDK、WebSocket 或 React UI；
+- Agent API/SSE 是单进程内存 Demo，`glodex.agent.event.v1` 不是 AG-UI；其自身没有
+  AG-UI SDK、WebSocket 或 React UI。M2d 是独立的 M2b durable projection，而非对该 endpoint 的改写；
 - `ESTIMATE`/`UNKNOWN` 会如实保留，不能被解释为精确费用、零费用或平台报价保证。
 
 ## 后续范围
 
 M1a 已交付最小 FastAPI + SSE 服务化切片，M1b 已交付单 Provider 的 capture-first
 切片，M1c 已交付固定 DeepSeek Intent 安全接入，M1d 已交付固定工具 AgentLoop 的
-完整验收，M1e 已交付 ESCI 离线 benchmark，M1f 已交付本地静态 Showcase；
+完整验收，M1e 已交付 ESCI 离线 benchmark，M1f 已交付本地静态 Showcase，M2d 已交付本机
+AG-UI/React durable interaction layer；
 以下能力仍明确延期：
 
-- **后续 M1**：eBay 之外的 live marketplace adapter、完整 AG-UI 与实时前端；
+- **后续 M1/M2**：eBay 之外的 live marketplace adapter、完整 AG-UI 与实时前端扩展；
 - **M2**：OpenSearch/三塔/cross-encoder、Postgres/checkpoint、Redis、长期记忆与
   个性化；
 - **范围外**：生产部署、实时/全量商品覆盖、Provider 可用性、价格时效、真实推荐
@@ -814,6 +855,7 @@ M1a 已交付最小 FastAPI + SSE 服务化切片，M1b 已交付单 Provider �
 - M1e：[ESCI 离线检索规格](./specs/005-glodex-m1e-esci-retrieval-benchmark/spec.md) · [技术计划](./specs/005-glodex-m1e-esci-retrieval-benchmark/plan.md) · [实施任务](./specs/005-glodex-m1e-esci-retrieval-benchmark/tasks.md)
 - M1f：[本地离线 Showcase 规格](./specs/006-glodex-m1f-local-showcase/spec.md) · [技术计划](./specs/006-glodex-m1f-local-showcase/plan.md) · [实施任务](./specs/006-glodex-m1f-local-showcase/tasks.md)
 - M2a：[检索智能闭环规格](./specs/007-glodex-m2a-opensearch-hybrid-retrieval/spec.md) · [技术计划](./specs/007-glodex-m2a-opensearch-hybrid-retrieval/plan.md) · [实施任务](./specs/007-glodex-m2a-opensearch-hybrid-retrieval/tasks.md)
+- M2d：[AG-UI / React Run Console 规格](./specs/010-glodex-m2d-agui-react-operations/spec.md) · [技术计划](./specs/010-glodex-m2d-agui-react-operations/plan.md) · [实施任务](./specs/010-glodex-m2d-agui-react-operations/tasks.md)
 - [ADR-0001：确定性领域核心](./specs/000-glodex-mvp/adr/0001-deterministic-domain-core.md)
 - [ADR-0002：金额、汇率与舍入](./specs/000-glodex-mvp/adr/0002-money-fx-and-rounding.md)
 - [ADR-0003：硬门与排序降级](./specs/000-glodex-mvp/adr/0003-hard-gates-and-ranking-degradation.md)

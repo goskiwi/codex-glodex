@@ -220,6 +220,7 @@ def test_repository_keeps_http_clients_and_web_frameworks_in_approved_roots() ->
                     Path("src/glodex/adapters/agent_live_http.py"),
                     Path("src/glodex/adapters/dashscope_rerank.py"),
                     Path("src/glodex/adapters/m2c_model_service.py"),
+                    Path("src/glodex/api/m2d_durable_client.py"),
                 }
                 if (module == "httpx" or module.startswith("httpx.")) and not approved_httpx_path:
                     violations.append(f"{relative_path}: httpx import outside tests")

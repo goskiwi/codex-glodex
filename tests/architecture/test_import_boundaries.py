@@ -83,6 +83,7 @@ _M2B_POSTGRES_PATH = Path("adapters/m2b_postgres.py")
 _M2B_REDIS_PATH = Path("adapters/m2b_redis.py")
 _M2C_MODEL_SERVICE_PATH = Path("adapters/m2c_model_service.py")
 _M2C_GPU_SERVICE_PATH = Path("m2c_gpu_service.py")
+_M2D_DURABLE_CLIENT_PATH = Path("api/m2d_durable_client.py")
 
 
 def _matches_prefix(module: str, prefixes: tuple[str, ...]) -> bool:
@@ -151,6 +152,7 @@ def find_import_boundary_violations(package_root: Path) -> list[str]:
                     _AGENT_LIVE_HTTP_PATH,
                     _M2A_RERANK_PATH,
                     _M2C_MODEL_SERVICE_PATH,
+                    _M2D_DURABLE_CLIENT_PATH,
                 } and _matches_prefix(module, ("httpx",))
                 approved_m2b_driver = (
                     package_relative_path == _M2B_POSTGRES_PATH
