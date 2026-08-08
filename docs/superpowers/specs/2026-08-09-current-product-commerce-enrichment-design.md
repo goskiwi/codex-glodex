@@ -76,7 +76,7 @@ One Card represents one price- and fulfillment-coherent leaf category. Cards for
 }
 ```
 
-The first committed taxonomy contains exactly 128 leaf Cards under a bounded parent taxonomy. It includes distinct primary-product, accessory, replacement-part, bundle, and decorative categories where their price distributions differ materially. The taxonomy manifest records the exact Card count and logical SHA-256.
+The first committed taxonomy contains exactly 128 leaf Cards under a bounded parent taxonomy. It includes distinct primary-product, accessory, replacement-part, bundle, and decorative categories where their price distributions differ materially. Every parent declares one leaf `fallback_leaf_id`; indexed documents always receive a leaf Card ID. The taxonomy manifest records the exact Card count and logical SHA-256.
 
 ## Classification
 
@@ -85,7 +85,7 @@ Classification runs once during index construction:
 1. Normalize an existing source category and match exact aliases.
 2. Score positive and negative title/search-text/attribute terms.
 3. For unresolved documents, compare the existing Item vector against precomputed Card prototype vectors from the same embedding model.
-4. Accept a leaf Card only when its minimum score and winning margin pass. Otherwise fall back to its best accepted parent Card.
+4. Accept a leaf Card only when its minimum score and winning margin pass. Otherwise use the best accepted parent's declared `fallback_leaf_id`, recording `PARENT_FALLBACK` as the assignment method.
 5. Reject the build if any document has no accepted Card or if primary/accessory/part exclusion fixtures regress.
 
 The classification artifact is bound to the Card manifest and Item-vector manifest. Re-running it with the same inputs must produce identical Card IDs and report hashes.
@@ -109,7 +109,7 @@ The v3 mapping adds exact fields for:
 - stable evidence IDs for product core fields, inventory, currency, and every cost component;
 - `commerce_ruleset_version`, `category_card_manifest_sha256`, and fixed `captured_at`.
 
-The vector and `search_text` remain excluded from returned `_source`; commerce fields remain in `_source`. The gateway accepts only `query`, `top_k`, and one enum `platform`, applies the platform filter, and validates every returned commerce field.
+The vector and `search_text` remain excluded from returned `_source`; commerce fields remain in `_source`. The gateway accepts only `query`, `top_k`, one enum `platform`, and one validated leaf `category_card_id`, applies fixed term filters, and validates every returned commerce field.
 
 ## Agent Adapter
 
