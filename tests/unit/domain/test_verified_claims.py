@@ -270,7 +270,10 @@ def _fixture(*, budget: bool = True, second_offer: bool = False) -> _Fixture:
         *(
             (
                 BudgetMax(
-                    amount=Decimal("2000"),
+                    mode="maximum",
+                    target_amount=Decimal("2000"),
+                    lower_bound=None,
+                    upper_bound=Decimal("2000"),
                     currency="CNY",
                     source_span=SourceSpan(start=4, end=13, text="预算2000元"),
                 ),
@@ -293,7 +296,10 @@ def _fixture(*, budget: bool = True, second_offer: bool = False) -> _Fixture:
                 offer.cost_components,
                 rates,
                 display_currency="GBP",
-                budget_max=Decimal("2000") if budget else None,
+                budget_mode="maximum" if budget else None,
+                budget_target_amount=Decimal("2000") if budget else None,
+                budget_lower_bound=None,
+                budget_upper_bound=Decimal("2000") if budget else None,
                 budget_currency="CNY" if budget else None,
             ),
         )
@@ -357,7 +363,7 @@ def test_builder_mints_sealed_evidence_complete_claims_in_fixed_order() -> None:
     assert category.evidence_ids == ("ev-product-category",)
     assert attribute.value == "weight=1.2kg"
     assert attribute.evidence_ids == ("ev-product-weight",)
-    assert inventory.value == "provider-a/US"
+    assert inventory.value == "US"
     assert inventory.provider_id == "provider-a"
     assert inventory.offer_id == "offer-1"
     assert inventory.evidence_ids == (
@@ -377,8 +383,7 @@ def test_builder_mints_sealed_evidence_complete_claims_in_fixed_order() -> None:
         "ev-rate-cny",
     )
     assert landed.evidence_ids == expected_derived_evidence
-    exact_budget = fixture.candidate.selected_offer.landed_cost.budget_exact_json
-    assert budget.value == f"{exact_budget} CNY ≤ 2000 CNY"
+    assert budget.value == "到手价 985.71 CNY ≤ 2000 CNY"
     assert budget.evidence_ids == expected_derived_evidence
     assert budget.algorithm_version == PRICING_ALGORITHM_VERSION
     assert category.algorithm_version is None
@@ -812,7 +817,10 @@ def test_request_budget_must_match_exact_landed_cost_budget_contract() -> None:
         required=(
             fixture.interpreted.required[0],
             BudgetMax(
-                amount=Decimal("1999"),
+                mode="maximum",
+                target_amount=Decimal("1999"),
+                lower_bound=None,
+                upper_bound=Decimal("1999"),
                 currency="CNY",
                 source_span=SourceSpan(start=4, end=13, text="预算1999元"),
             ),
@@ -830,12 +838,13 @@ def test_request_budget_must_match_exact_landed_cost_budget_contract() -> None:
         )
 
 
-def test_budget_claim_uses_exact_unquantized_value() -> None:
+def test_budget_claim_uses_currency_minor_units_for_visible_price() -> None:
     fixture = _fixture()
     bundle = _build(fixture)
     budget = bundle.claims[-1]
     landed = fixture.candidate.eligible_offers[0].landed_cost
 
     assert budget.claim_type is VerifiedClaimType.WITHIN_BUDGET
-    assert budget.value.startswith(canonical_exact_amount(landed.budget_exact))
+    assert budget.value.startswith("到手价 985.71 CNY")
+    assert canonical_exact_amount(landed.budget_exact) not in budget.value
     assert canonical_exact_amount(landed.budget_exact) != landed.display_json

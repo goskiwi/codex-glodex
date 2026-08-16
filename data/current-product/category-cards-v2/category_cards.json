@@ -1,0 +1,4269 @@
+{
+  "cards": [
+    {
+      "card_id": "electronics.laptop",
+      "category_aliases": [
+        "electronics / laptop",
+        "\u7b14\u8bb0\u672c\u7535\u8111",
+        "\u8f7b\u8584\u672c",
+        "\u6e38\u620f\u672c"
+      ],
+      "entity_kind": "PRIMARY_PRODUCT",
+      "inventory": {
+        "in_stock_probability": "0.98",
+        "out_of_stock_probability": "0.02"
+      },
+      "name": "Laptop",
+      "negative_keywords": [
+        "case",
+        "sleeve",
+        "charger"
+      ],
+      "parent_id": "electronics",
+      "positive_keywords": [
+        "laptop",
+        "notebook",
+        "macbook"
+      ],
+      "pricing": {
+        "hard_max": "35000",
+        "hard_min": "1500",
+        "p50": "5500"
+      },
+      "prototype_text": "electronics laptop",
+      "shipping": {
+        "delivery_days_max": 10,
+        "delivery_days_min": 2,
+        "free_probability": "0.45",
+        "maximum": "300",
+        "maximum_price_ratio": "0.50",
+        "minimum": "0"
+      }
+    },
+    {
+      "card_id": "electronics.desktop",
+      "category_aliases": [
+        "electronics / desktop",
+        "\u53f0\u5f0f\u7535\u8111",
+        "\u53f0\u5f0f\u673a",
+        "\u7535\u8111\u4e3b\u673a"
+      ],
+      "entity_kind": "PRIMARY_PRODUCT",
+      "inventory": {
+        "in_stock_probability": "0.98",
+        "out_of_stock_probability": "0.02"
+      },
+      "name": "Desktop",
+      "negative_keywords": [],
+      "parent_id": "electronics",
+      "positive_keywords": [
+        "desktop"
+      ],
+      "pricing": {
+        "hard_max": "50000",
+        "hard_min": "1200",
+        "p50": "4800"
+      },
+      "prototype_text": "electronics desktop",
+      "shipping": {
+        "delivery_days_max": 10,
+        "delivery_days_min": 2,
+        "free_probability": "0.45",
+        "maximum": "300",
+        "maximum_price_ratio": "0.50",
+        "minimum": "0"
+      }
+    },
+    {
+      "card_id": "electronics.tablet",
+      "category_aliases": [
+        "electronics / tablet",
+        "\u5e73\u677f\u7535\u8111",
+        "\u5e73\u677f"
+      ],
+      "entity_kind": "PRIMARY_PRODUCT",
+      "inventory": {
+        "in_stock_probability": "0.98",
+        "out_of_stock_probability": "0.02"
+      },
+      "name": "Tablet",
+      "negative_keywords": [],
+      "parent_id": "electronics",
+      "positive_keywords": [
+        "tablet"
+      ],
+      "pricing": {
+        "hard_max": "16000",
+        "hard_min": "500",
+        "p50": "2600"
+      },
+      "prototype_text": "electronics tablet",
+      "shipping": {
+        "delivery_days_max": 10,
+        "delivery_days_min": 2,
+        "free_probability": "0.45",
+        "maximum": "300",
+        "maximum_price_ratio": "0.50",
+        "minimum": "0"
+      }
+    },
+    {
+      "card_id": "electronics.phone",
+      "category_aliases": [
+        "electronics / phone",
+        "\u624b\u673a",
+        "\u667a\u80fd\u624b\u673a"
+      ],
+      "entity_kind": "PRIMARY_PRODUCT",
+      "inventory": {
+        "in_stock_probability": "0.98",
+        "out_of_stock_probability": "0.02"
+      },
+      "name": "Phone",
+      "negative_keywords": [
+        "case",
+        "cover"
+      ],
+      "parent_id": "electronics",
+      "positive_keywords": [
+        "smartphone",
+        "mobile phone",
+        "iphone"
+      ],
+      "pricing": {
+        "hard_max": "18000",
+        "hard_min": "300",
+        "p50": "3200"
+      },
+      "prototype_text": "smartphone mobile phone handset iPhone Android phone complete device including gaming models; exclude cases covers stands and replacement parts",
+      "shipping": {
+        "delivery_days_max": 10,
+        "delivery_days_min": 2,
+        "free_probability": "0.45",
+        "maximum": "300",
+        "maximum_price_ratio": "0.50",
+        "minimum": "0"
+      }
+    },
+    {
+      "card_id": "electronics.monitor",
+      "category_aliases": [
+        "electronics / monitor",
+        "\u663e\u793a\u5668",
+        "\u7535\u8111\u5c4f\u5e55"
+      ],
+      "entity_kind": "PRIMARY_PRODUCT",
+      "inventory": {
+        "in_stock_probability": "0.98",
+        "out_of_stock_probability": "0.02"
+      },
+      "name": "Monitor",
+      "negative_keywords": [],
+      "parent_id": "electronics",
+      "positive_keywords": [
+        "monitor"
+      ],
+      "pricing": {
+        "hard_max": "18000",
+        "hard_min": "300",
+        "p50": "1800"
+      },
+      "prototype_text": "electronics monitor",
+      "shipping": {
+        "delivery_days_max": 10,
+        "delivery_days_min": 2,
+        "free_probability": "0.45",
+        "maximum": "300",
+        "maximum_price_ratio": "0.50",
+        "minimum": "0"
+      }
+    },
+    {
+      "card_id": "electronics.television",
+      "category_aliases": [
+        "electronics / television",
+        "\u7535\u89c6\u673a",
+        "\u667a\u80fd\u7535\u89c6"
+      ],
+      "entity_kind": "PRIMARY_PRODUCT",
+      "inventory": {
+        "in_stock_probability": "0.98",
+        "out_of_stock_probability": "0.02"
+      },
+      "name": "Television",
+      "negative_keywords": [],
+      "parent_id": "electronics",
+      "positive_keywords": [
+        "television"
+      ],
+      "pricing": {
+        "hard_max": "60000",
+        "hard_min": "500",
+        "p50": "3200"
+      },
+      "prototype_text": "electronics television",
+      "shipping": {
+        "delivery_days_max": 10,
+        "delivery_days_min": 2,
+        "free_probability": "0.45",
+        "maximum": "300",
+        "maximum_price_ratio": "0.50",
+        "minimum": "0"
+      }
+    },
+    {
+      "card_id": "electronics.camera",
+      "category_aliases": [
+        "electronics / camera",
+        "\u76f8\u673a",
+        "\u6570\u7801\u76f8\u673a",
+        "\u5fae\u5355\u76f8\u673a"
+      ],
+      "entity_kind": "PRIMARY_PRODUCT",
+      "inventory": {
+        "in_stock_probability": "0.98",
+        "out_of_stock_probability": "0.02"
+      },
+      "name": "Camera",
+      "negative_keywords": [],
+      "parent_id": "electronics",
+      "positive_keywords": [
+        "camera"
+      ],
+      "pricing": {
+        "hard_max": "80000",
+        "hard_min": "500",
+        "p50": "5000"
+      },
+      "prototype_text": "electronics camera",
+      "shipping": {
+        "delivery_days_max": 10,
+        "delivery_days_min": 2,
+        "free_probability": "0.45",
+        "maximum": "300",
+        "maximum_price_ratio": "0.50",
+        "minimum": "0"
+      }
+    },
+    {
+      "card_id": "electronics.headphone",
+      "category_aliases": [
+        "electronics / headphone",
+        "\u8033\u673a",
+        "\u5934\u6234\u5f0f\u8033\u673a"
+      ],
+      "entity_kind": "PRIMARY_PRODUCT",
+      "inventory": {
+        "in_stock_probability": "0.98",
+        "out_of_stock_probability": "0.02"
+      },
+      "name": "Headphone",
+      "negative_keywords": [],
+      "parent_id": "electronics",
+      "positive_keywords": [
+        "headphone"
+      ],
+      "pricing": {
+        "hard_max": "8000",
+        "hard_min": "20",
+        "p50": "500"
+      },
+      "prototype_text": "electronics headphone",
+      "shipping": {
+        "delivery_days_max": 10,
+        "delivery_days_min": 2,
+        "free_probability": "0.45",
+        "maximum": "266",
+        "maximum_price_ratio": "0.50",
+        "minimum": "0"
+      }
+    },
+    {
+      "card_id": "electronics.speaker",
+      "category_aliases": [
+        "electronics / speaker",
+        "\u97f3\u7bb1",
+        "\u84dd\u7259\u97f3\u7bb1"
+      ],
+      "entity_kind": "PRIMARY_PRODUCT",
+      "inventory": {
+        "in_stock_probability": "0.98",
+        "out_of_stock_probability": "0.02"
+      },
+      "name": "Speaker",
+      "negative_keywords": [],
+      "parent_id": "electronics",
+      "positive_keywords": [
+        "speaker"
+      ],
+      "pricing": {
+        "hard_max": "30000",
+        "hard_min": "30",
+        "p50": "800"
+      },
+      "prototype_text": "electronics speaker",
+      "shipping": {
+        "delivery_days_max": 10,
+        "delivery_days_min": 2,
+        "free_probability": "0.45",
+        "maximum": "300",
+        "maximum_price_ratio": "0.50",
+        "minimum": "0"
+      }
+    },
+    {
+      "card_id": "electronics.keyboard",
+      "category_aliases": [
+        "electronics / keyboard",
+        "\u952e\u76d8",
+        "\u673a\u68b0\u952e\u76d8"
+      ],
+      "entity_kind": "PRIMARY_PRODUCT",
+      "inventory": {
+        "in_stock_probability": "0.98",
+        "out_of_stock_probability": "0.02"
+      },
+      "name": "Keyboard",
+      "negative_keywords": [],
+      "parent_id": "electronics",
+      "positive_keywords": [
+        "keyboard"
+      ],
+      "pricing": {
+        "hard_max": "4000",
+        "hard_min": "20",
+        "p50": "300"
+      },
+      "prototype_text": "electronics keyboard",
+      "shipping": {
+        "delivery_days_max": 10,
+        "delivery_days_min": 2,
+        "free_probability": "0.45",
+        "maximum": "133",
+        "maximum_price_ratio": "0.50",
+        "minimum": "0"
+      }
+    },
+    {
+      "card_id": "electronics.mouse",
+      "category_aliases": [
+        "electronics / mouse",
+        "\u9f20\u6807",
+        "\u65e0\u7ebf\u9f20\u6807"
+      ],
+      "entity_kind": "PRIMARY_PRODUCT",
+      "inventory": {
+        "in_stock_probability": "0.98",
+        "out_of_stock_probability": "0.02"
+      },
+      "name": "Mouse",
+      "negative_keywords": [],
+      "parent_id": "electronics",
+      "positive_keywords": [
+        "mouse"
+      ],
+      "pricing": {
+        "hard_max": "2500",
+        "hard_min": "10",
+        "p50": "180"
+      },
+      "prototype_text": "electronics mouse",
+      "shipping": {
+        "delivery_days_max": 10,
+        "delivery_days_min": 2,
+        "free_probability": "0.45",
+        "maximum": "83",
+        "maximum_price_ratio": "0.50",
+        "minimum": "0"
+      }
+    },
+    {
+      "card_id": "electronics.printer",
+      "category_aliases": [
+        "electronics / printer",
+        "\u6253\u5370\u673a"
+      ],
+      "entity_kind": "PRIMARY_PRODUCT",
+      "inventory": {
+        "in_stock_probability": "0.98",
+        "out_of_stock_probability": "0.02"
+      },
+      "name": "Printer",
+      "negative_keywords": [],
+      "parent_id": "electronics",
+      "positive_keywords": [
+        "printer"
+      ],
+      "pricing": {
+        "hard_max": "30000",
+        "hard_min": "300",
+        "p50": "1600"
+      },
+      "prototype_text": "electronics printer",
+      "shipping": {
+        "delivery_days_max": 10,
+        "delivery_days_min": 2,
+        "free_probability": "0.45",
+        "maximum": "300",
+        "maximum_price_ratio": "0.50",
+        "minimum": "0"
+      }
+    },
+    {
+      "card_id": "electronics.storage",
+      "category_aliases": [
+        "electronics / storage",
+        "\u5b58\u50a8\u8bbe\u5907",
+        "\u79fb\u52a8\u786c\u76d8"
+      ],
+      "entity_kind": "PRIMARY_PRODUCT",
+      "inventory": {
+        "in_stock_probability": "0.98",
+        "out_of_stock_probability": "0.02"
+      },
+      "name": "Storage",
+      "negative_keywords": [],
+      "parent_id": "electronics",
+      "positive_keywords": [
+        "storage"
+      ],
+      "pricing": {
+        "hard_max": "12000",
+        "hard_min": "30",
+        "p50": "500"
+      },
+      "prototype_text": "electronics storage",
+      "shipping": {
+        "delivery_days_max": 10,
+        "delivery_days_min": 2,
+        "free_probability": "0.45",
+        "maximum": "300",
+        "maximum_price_ratio": "0.50",
+        "minimum": "0"
+      }
+    },
+    {
+      "card_id": "electronics.networking",
+      "category_aliases": [
+        "electronics / networking",
+        "\u7f51\u7edc\u8bbe\u5907",
+        "\u8def\u7531\u5668"
+      ],
+      "entity_kind": "PRIMARY_PRODUCT",
+      "inventory": {
+        "in_stock_probability": "0.98",
+        "out_of_stock_probability": "0.02"
+      },
+      "name": "Networking",
+      "negative_keywords": [],
+      "parent_id": "electronics",
+      "positive_keywords": [
+        "networking"
+      ],
+      "pricing": {
+        "hard_max": "15000",
+        "hard_min": "30",
+        "p50": "500"
+      },
+      "prototype_text": "electronics networking",
+      "shipping": {
+        "delivery_days_max": 10,
+        "delivery_days_min": 2,
+        "free_probability": "0.45",
+        "maximum": "300",
+        "maximum_price_ratio": "0.50",
+        "minimum": "0"
+      }
+    },
+    {
+      "card_id": "electronics.wearable",
+      "category_aliases": [
+        "electronics / wearable",
+        "\u667a\u80fd\u7a7f\u6234",
+        "\u667a\u80fd\u624b\u8868"
+      ],
+      "entity_kind": "PRIMARY_PRODUCT",
+      "inventory": {
+        "in_stock_probability": "0.98",
+        "out_of_stock_probability": "0.02"
+      },
+      "name": "Wearable",
+      "negative_keywords": [],
+      "parent_id": "electronics",
+      "positive_keywords": [
+        "wearable"
+      ],
+      "pricing": {
+        "hard_max": "10000",
+        "hard_min": "80",
+        "p50": "800"
+      },
+      "prototype_text": "electronics wearable",
+      "shipping": {
+        "delivery_days_max": 10,
+        "delivery_days_min": 2,
+        "free_probability": "0.45",
+        "maximum": "300",
+        "maximum_price_ratio": "0.50",
+        "minimum": "0"
+      }
+    },
+    {
+      "card_id": "electronics.gaming-console",
+      "category_aliases": [
+        "electronics / gaming console",
+        "\u6e38\u620f\u673a",
+        "\u6e38\u620f\u4e3b\u673a"
+      ],
+      "entity_kind": "PRIMARY_PRODUCT",
+      "inventory": {
+        "in_stock_probability": "0.98",
+        "out_of_stock_probability": "0.02"
+      },
+      "name": "Gaming Console",
+      "negative_keywords": [],
+      "parent_id": "electronics",
+      "positive_keywords": [
+        "gaming",
+        "console"
+      ],
+      "pricing": {
+        "hard_max": "10000",
+        "hard_min": "500",
+        "p50": "2800"
+      },
+      "prototype_text": "electronics gaming console",
+      "shipping": {
+        "delivery_days_max": 10,
+        "delivery_days_min": 2,
+        "free_probability": "0.45",
+        "maximum": "300",
+        "maximum_price_ratio": "0.50",
+        "minimum": "0"
+      }
+    },
+    {
+      "card_id": "electronics.laptop-accessory",
+      "category_aliases": [
+        "electronics / laptop accessory",
+        "\u7b14\u8bb0\u672c\u914d\u4ef6",
+        "\u7535\u8111\u5305"
+      ],
+      "entity_kind": "ACCESSORY",
+      "inventory": {
+        "in_stock_probability": "0.98",
+        "out_of_stock_probability": "0.02"
+      },
+      "name": "Laptop Accessory",
+      "negative_keywords": [],
+      "parent_id": "electronics",
+      "positive_keywords": [
+        "laptop case",
+        "laptop sleeve",
+        "laptop charger"
+      ],
+      "pricing": {
+        "hard_max": "2000",
+        "hard_min": "10",
+        "p50": "180"
+      },
+      "prototype_text": "electronics laptop accessory",
+      "shipping": {
+        "delivery_days_max": 10,
+        "delivery_days_min": 2,
+        "free_probability": "0.45",
+        "maximum": "66",
+        "maximum_price_ratio": "0.50",
+        "minimum": "0"
+      }
+    },
+    {
+      "card_id": "electronics.laptop-part",
+      "category_aliases": [
+        "electronics / laptop part",
+        "\u7b14\u8bb0\u672c\u96f6\u4ef6",
+        "\u7535\u8111\u7ef4\u4fee\u914d\u4ef6"
+      ],
+      "entity_kind": "REPLACEMENT_PART",
+      "inventory": {
+        "in_stock_probability": "0.98",
+        "out_of_stock_probability": "0.02"
+      },
+      "name": "Laptop Part",
+      "negative_keywords": [
+        "case"
+      ],
+      "parent_id": "electronics",
+      "positive_keywords": [
+        "laptop ram",
+        "laptop battery",
+        "laptop replacement"
+      ],
+      "pricing": {
+        "hard_max": "8000",
+        "hard_min": "20",
+        "p50": "500"
+      },
+      "prototype_text": "electronics laptop part",
+      "shipping": {
+        "delivery_days_max": 10,
+        "delivery_days_min": 2,
+        "free_probability": "0.45",
+        "maximum": "266",
+        "maximum_price_ratio": "0.50",
+        "minimum": "0"
+      }
+    },
+    {
+      "card_id": "home.drinkware.cup",
+      "category_aliases": [
+        "home / drinkware / cup",
+        "\u676f\u5b50",
+        "\u5496\u5561\u676f",
+        "\u9a6c\u514b\u676f"
+      ],
+      "entity_kind": "PRIMARY_PRODUCT",
+      "inventory": {
+        "in_stock_probability": "0.98",
+        "out_of_stock_probability": "0.02"
+      },
+      "name": "Drinkware Cup",
+      "negative_keywords": [
+        "holder",
+        "sticker"
+      ],
+      "parent_id": "home",
+      "positive_keywords": [
+        "cup",
+        "mug",
+        "tumbler"
+      ],
+      "pricing": {
+        "hard_max": "800",
+        "hard_min": "5",
+        "p50": "60"
+      },
+      "prototype_text": "home drinkware cup",
+      "shipping": {
+        "delivery_days_max": 10,
+        "delivery_days_min": 2,
+        "free_probability": "0.45",
+        "maximum": "26",
+        "maximum_price_ratio": "0.50",
+        "minimum": "0"
+      }
+    },
+    {
+      "card_id": "home.drinkware.bottle",
+      "category_aliases": [
+        "home / drinkware / bottle",
+        "\u6c34\u676f",
+        "\u6c34\u74f6",
+        "\u4fdd\u6e29\u676f"
+      ],
+      "entity_kind": "PRIMARY_PRODUCT",
+      "inventory": {
+        "in_stock_probability": "0.98",
+        "out_of_stock_probability": "0.02"
+      },
+      "name": "Drinkware Bottle",
+      "negative_keywords": [],
+      "parent_id": "home",
+      "positive_keywords": [
+        "drinkware",
+        "bottle"
+      ],
+      "pricing": {
+        "hard_max": "1000",
+        "hard_min": "8",
+        "p50": "90"
+      },
+      "prototype_text": "home drinkware bottle",
+      "shipping": {
+        "delivery_days_max": 10,
+        "delivery_days_min": 2,
+        "free_probability": "0.45",
+        "maximum": "33",
+        "maximum_price_ratio": "0.50",
+        "minimum": "0"
+      }
+    },
+    {
+      "card_id": "kitchen.cookware",
+      "category_aliases": [
+        "kitchen / cookware",
+        "\u708a\u5177",
+        "\u9505\u5177"
+      ],
+      "entity_kind": "PRIMARY_PRODUCT",
+      "inventory": {
+        "in_stock_probability": "0.98",
+        "out_of_stock_probability": "0.02"
+      },
+      "name": "Cookware",
+      "negative_keywords": [],
+      "parent_id": "kitchen",
+      "positive_keywords": [
+        "cookware"
+      ],
+      "pricing": {
+        "hard_max": "5000",
+        "hard_min": "20",
+        "p50": "300"
+      },
+      "prototype_text": "kitchen cookware",
+      "shipping": {
+        "delivery_days_max": 10,
+        "delivery_days_min": 2,
+        "free_probability": "0.45",
+        "maximum": "166",
+        "maximum_price_ratio": "0.50",
+        "minimum": "0"
+      }
+    },
+    {
+      "card_id": "kitchen.bakeware",
+      "category_aliases": [
+        "kitchen / bakeware",
+        "\u70d8\u7119\u6a21\u5177",
+        "\u70e4\u76d8"
+      ],
+      "entity_kind": "PRIMARY_PRODUCT",
+      "inventory": {
+        "in_stock_probability": "0.98",
+        "out_of_stock_probability": "0.02"
+      },
+      "name": "Bakeware",
+      "negative_keywords": [],
+      "parent_id": "kitchen",
+      "positive_keywords": [
+        "bakeware"
+      ],
+      "pricing": {
+        "hard_max": "2500",
+        "hard_min": "10",
+        "p50": "150"
+      },
+      "prototype_text": "kitchen bakeware",
+      "shipping": {
+        "delivery_days_max": 10,
+        "delivery_days_min": 2,
+        "free_probability": "0.45",
+        "maximum": "83",
+        "maximum_price_ratio": "0.50",
+        "minimum": "0"
+      }
+    },
+    {
+      "card_id": "kitchen.tableware",
+      "category_aliases": [
+        "kitchen / tableware",
+        "\u9910\u5177",
+        "\u7897\u789f"
+      ],
+      "entity_kind": "PRIMARY_PRODUCT",
+      "inventory": {
+        "in_stock_probability": "0.98",
+        "out_of_stock_probability": "0.02"
+      },
+      "name": "Tableware",
+      "negative_keywords": [],
+      "parent_id": "kitchen",
+      "positive_keywords": [
+        "tableware"
+      ],
+      "pricing": {
+        "hard_max": "3000",
+        "hard_min": "5",
+        "p50": "120"
+      },
+      "prototype_text": "kitchen tableware",
+      "shipping": {
+        "delivery_days_max": 10,
+        "delivery_days_min": 2,
+        "free_probability": "0.45",
+        "maximum": "100",
+        "maximum_price_ratio": "0.50",
+        "minimum": "0"
+      }
+    },
+    {
+      "card_id": "kitchen.utensil",
+      "category_aliases": [
+        "kitchen / utensil",
+        "\u53a8\u5177",
+        "\u53a8\u623f\u7528\u5177"
+      ],
+      "entity_kind": "PRIMARY_PRODUCT",
+      "inventory": {
+        "in_stock_probability": "0.98",
+        "out_of_stock_probability": "0.02"
+      },
+      "name": "Utensil",
+      "negative_keywords": [],
+      "parent_id": "kitchen",
+      "positive_keywords": [
+        "utensil"
+      ],
+      "pricing": {
+        "hard_max": "1200",
+        "hard_min": "3",
+        "p50": "60"
+      },
+      "prototype_text": "kitchen utensil",
+      "shipping": {
+        "delivery_days_max": 10,
+        "delivery_days_min": 2,
+        "free_probability": "0.45",
+        "maximum": "40",
+        "maximum_price_ratio": "0.50",
+        "minimum": "0"
+      }
+    },
+    {
+      "card_id": "kitchen.food-storage",
+      "category_aliases": [
+        "kitchen / food storage",
+        "\u98df\u54c1\u6536\u7eb3",
+        "\u4fdd\u9c9c\u76d2"
+      ],
+      "entity_kind": "PRIMARY_PRODUCT",
+      "inventory": {
+        "in_stock_probability": "0.98",
+        "out_of_stock_probability": "0.02"
+      },
+      "name": "Food Storage",
+      "negative_keywords": [],
+      "parent_id": "kitchen",
+      "positive_keywords": [
+        "food",
+        "storage"
+      ],
+      "pricing": {
+        "hard_max": "1800",
+        "hard_min": "5",
+        "p50": "100"
+      },
+      "prototype_text": "kitchen food storage",
+      "shipping": {
+        "delivery_days_max": 10,
+        "delivery_days_min": 2,
+        "free_probability": "0.45",
+        "maximum": "60",
+        "maximum_price_ratio": "0.50",
+        "minimum": "0"
+      }
+    },
+    {
+      "card_id": "kitchen.small-appliance",
+      "category_aliases": [
+        "kitchen / small appliance",
+        "\u53a8\u623f\u5c0f\u5bb6\u7535"
+      ],
+      "entity_kind": "PRIMARY_PRODUCT",
+      "inventory": {
+        "in_stock_probability": "0.98",
+        "out_of_stock_probability": "0.02"
+      },
+      "name": "Small Appliance",
+      "negative_keywords": [],
+      "parent_id": "kitchen",
+      "positive_keywords": [
+        "small",
+        "appliance"
+      ],
+      "pricing": {
+        "hard_max": "8000",
+        "hard_min": "50",
+        "p50": "500"
+      },
+      "prototype_text": "kitchen small appliance",
+      "shipping": {
+        "delivery_days_max": 10,
+        "delivery_days_min": 2,
+        "free_probability": "0.45",
+        "maximum": "266",
+        "maximum_price_ratio": "0.50",
+        "minimum": "0"
+      }
+    },
+    {
+      "card_id": "appliances.major-appliance",
+      "category_aliases": [
+        "appliances / major appliance",
+        "\u5927\u5bb6\u7535",
+        "\u5927\u578b\u5bb6\u7535"
+      ],
+      "entity_kind": "PRIMARY_PRODUCT",
+      "inventory": {
+        "in_stock_probability": "0.98",
+        "out_of_stock_probability": "0.02"
+      },
+      "name": "Major Appliance",
+      "negative_keywords": [],
+      "parent_id": "appliances",
+      "positive_keywords": [
+        "major",
+        "appliance"
+      ],
+      "pricing": {
+        "hard_max": "30000",
+        "hard_min": "500",
+        "p50": "3500"
+      },
+      "prototype_text": "appliances major appliance",
+      "shipping": {
+        "delivery_days_max": 15,
+        "delivery_days_min": 2,
+        "free_probability": "0.45",
+        "maximum": "1200",
+        "maximum_price_ratio": "0.50",
+        "minimum": "0"
+      }
+    },
+    {
+      "card_id": "home.bedding",
+      "category_aliases": [
+        "home / bedding",
+        "\u5e8a\u4e0a\u7528\u54c1",
+        "\u5bdd\u5177"
+      ],
+      "entity_kind": "PRIMARY_PRODUCT",
+      "inventory": {
+        "in_stock_probability": "0.98",
+        "out_of_stock_probability": "0.02"
+      },
+      "name": "Bedding",
+      "negative_keywords": [],
+      "parent_id": "home",
+      "positive_keywords": [
+        "bedding"
+      ],
+      "pricing": {
+        "hard_max": "8000",
+        "hard_min": "20",
+        "p50": "300"
+      },
+      "prototype_text": "home bedding",
+      "shipping": {
+        "delivery_days_max": 10,
+        "delivery_days_min": 2,
+        "free_probability": "0.45",
+        "maximum": "266",
+        "maximum_price_ratio": "0.50",
+        "minimum": "0"
+      }
+    },
+    {
+      "card_id": "home.bath",
+      "category_aliases": [
+        "home / bath",
+        "\u536b\u6d74\u7528\u54c1",
+        "\u6d74\u5ba4\u7528\u54c1"
+      ],
+      "entity_kind": "PRIMARY_PRODUCT",
+      "inventory": {
+        "in_stock_probability": "0.98",
+        "out_of_stock_probability": "0.02"
+      },
+      "name": "Bath",
+      "negative_keywords": [],
+      "parent_id": "home",
+      "positive_keywords": [
+        "bath"
+      ],
+      "pricing": {
+        "hard_max": "3000",
+        "hard_min": "5",
+        "p50": "120"
+      },
+      "prototype_text": "home bath",
+      "shipping": {
+        "delivery_days_max": 10,
+        "delivery_days_min": 2,
+        "free_probability": "0.45",
+        "maximum": "100",
+        "maximum_price_ratio": "0.50",
+        "minimum": "0"
+      }
+    },
+    {
+      "card_id": "home.decor",
+      "category_aliases": [
+        "home / decor",
+        "\u5bb6\u5c45\u88c5\u9970",
+        "\u5bb6\u88c5\u6446\u4ef6"
+      ],
+      "entity_kind": "DECORATION",
+      "inventory": {
+        "in_stock_probability": "0.98",
+        "out_of_stock_probability": "0.02"
+      },
+      "name": "Decor",
+      "negative_keywords": [],
+      "parent_id": "home",
+      "positive_keywords": [
+        "decor"
+      ],
+      "pricing": {
+        "hard_max": "10000",
+        "hard_min": "5",
+        "p50": "180"
+      },
+      "prototype_text": "home decor",
+      "shipping": {
+        "delivery_days_max": 10,
+        "delivery_days_min": 2,
+        "free_probability": "0.45",
+        "maximum": "300",
+        "maximum_price_ratio": "0.50",
+        "minimum": "0"
+      }
+    },
+    {
+      "card_id": "home.lighting",
+      "category_aliases": [
+        "home / lighting",
+        "\u706f\u5177",
+        "\u5bb6\u5c45\u7167\u660e"
+      ],
+      "entity_kind": "PRIMARY_PRODUCT",
+      "inventory": {
+        "in_stock_probability": "0.98",
+        "out_of_stock_probability": "0.02"
+      },
+      "name": "Lighting",
+      "negative_keywords": [],
+      "parent_id": "home",
+      "positive_keywords": [
+        "lighting"
+      ],
+      "pricing": {
+        "hard_max": "12000",
+        "hard_min": "10",
+        "p50": "250"
+      },
+      "prototype_text": "home lighting",
+      "shipping": {
+        "delivery_days_max": 10,
+        "delivery_days_min": 2,
+        "free_probability": "0.45",
+        "maximum": "300",
+        "maximum_price_ratio": "0.50",
+        "minimum": "0"
+      }
+    },
+    {
+      "card_id": "home.cleaning",
+      "category_aliases": [
+        "home / cleaning",
+        "\u6e05\u6d01\u7528\u54c1"
+      ],
+      "entity_kind": "PRIMARY_PRODUCT",
+      "inventory": {
+        "in_stock_probability": "0.98",
+        "out_of_stock_probability": "0.02"
+      },
+      "name": "Cleaning",
+      "negative_keywords": [],
+      "parent_id": "home",
+      "positive_keywords": [
+        "cleaning"
+      ],
+      "pricing": {
+        "hard_max": "5000",
+        "hard_min": "5",
+        "p50": "100"
+      },
+      "prototype_text": "home cleaning",
+      "shipping": {
+        "delivery_days_max": 10,
+        "delivery_days_min": 2,
+        "free_probability": "0.45",
+        "maximum": "166",
+        "maximum_price_ratio": "0.50",
+        "minimum": "0"
+      }
+    },
+    {
+      "card_id": "home.storage",
+      "category_aliases": [
+        "home / storage",
+        "\u5bb6\u5c45\u6536\u7eb3",
+        "\u6536\u7eb3\u7528\u54c1"
+      ],
+      "entity_kind": "PRIMARY_PRODUCT",
+      "inventory": {
+        "in_stock_probability": "0.98",
+        "out_of_stock_probability": "0.02"
+      },
+      "name": "Storage",
+      "negative_keywords": [],
+      "parent_id": "home",
+      "positive_keywords": [
+        "storage"
+      ],
+      "pricing": {
+        "hard_max": "6000",
+        "hard_min": "10",
+        "p50": "180"
+      },
+      "prototype_text": "home storage",
+      "shipping": {
+        "delivery_days_max": 10,
+        "delivery_days_min": 2,
+        "free_probability": "0.45",
+        "maximum": "200",
+        "maximum_price_ratio": "0.50",
+        "minimum": "0"
+      }
+    },
+    {
+      "card_id": "home.rug",
+      "category_aliases": [
+        "home / rug",
+        "\u5730\u6bef",
+        "\u5730\u57ab"
+      ],
+      "entity_kind": "PRIMARY_PRODUCT",
+      "inventory": {
+        "in_stock_probability": "0.98",
+        "out_of_stock_probability": "0.02"
+      },
+      "name": "Rug",
+      "negative_keywords": [],
+      "parent_id": "home",
+      "positive_keywords": [
+        "rug"
+      ],
+      "pricing": {
+        "hard_max": "15000",
+        "hard_min": "20",
+        "p50": "350"
+      },
+      "prototype_text": "home rug",
+      "shipping": {
+        "delivery_days_max": 10,
+        "delivery_days_min": 2,
+        "free_probability": "0.45",
+        "maximum": "300",
+        "maximum_price_ratio": "0.50",
+        "minimum": "0"
+      }
+    },
+    {
+      "card_id": "home.window-treatment",
+      "category_aliases": [
+        "home / window treatment",
+        "\u7a97\u5e18",
+        "\u767e\u53f6\u7a97"
+      ],
+      "entity_kind": "PRIMARY_PRODUCT",
+      "inventory": {
+        "in_stock_probability": "0.98",
+        "out_of_stock_probability": "0.02"
+      },
+      "name": "Window Treatment",
+      "negative_keywords": [],
+      "parent_id": "home",
+      "positive_keywords": [
+        "window",
+        "treatment"
+      ],
+      "pricing": {
+        "hard_max": "8000",
+        "hard_min": "20",
+        "p50": "300"
+      },
+      "prototype_text": "home window treatment",
+      "shipping": {
+        "delivery_days_max": 10,
+        "delivery_days_min": 2,
+        "free_probability": "0.45",
+        "maximum": "266",
+        "maximum_price_ratio": "0.50",
+        "minimum": "0"
+      }
+    },
+    {
+      "card_id": "home.accessory",
+      "category_aliases": [
+        "home / accessory",
+        "\u5bb6\u5c45\u914d\u4ef6"
+      ],
+      "entity_kind": "ACCESSORY",
+      "inventory": {
+        "in_stock_probability": "0.98",
+        "out_of_stock_probability": "0.02"
+      },
+      "name": "Accessory",
+      "negative_keywords": [],
+      "parent_id": "home",
+      "positive_keywords": [
+        "accessory"
+      ],
+      "pricing": {
+        "hard_max": "2000",
+        "hard_min": "3",
+        "p50": "80"
+      },
+      "prototype_text": "home accessory",
+      "shipping": {
+        "delivery_days_max": 10,
+        "delivery_days_min": 2,
+        "free_probability": "0.45",
+        "maximum": "66",
+        "maximum_price_ratio": "0.50",
+        "minimum": "0"
+      }
+    },
+    {
+      "card_id": "furniture.chair",
+      "category_aliases": [
+        "furniture / chair",
+        "\u6905\u5b50",
+        "\u5ea7\u6905"
+      ],
+      "entity_kind": "PRIMARY_PRODUCT",
+      "inventory": {
+        "in_stock_probability": "0.98",
+        "out_of_stock_probability": "0.02"
+      },
+      "name": "Chair",
+      "negative_keywords": [],
+      "parent_id": "furniture",
+      "positive_keywords": [
+        "chair"
+      ],
+      "pricing": {
+        "hard_max": "20000",
+        "hard_min": "80",
+        "p50": "700"
+      },
+      "prototype_text": "furniture chair",
+      "shipping": {
+        "delivery_days_max": 15,
+        "delivery_days_min": 2,
+        "free_probability": "0.45",
+        "maximum": "1000",
+        "maximum_price_ratio": "0.50",
+        "minimum": "0"
+      }
+    },
+    {
+      "card_id": "furniture.sofa",
+      "category_aliases": [
+        "furniture / sofa",
+        "\u6c99\u53d1"
+      ],
+      "entity_kind": "PRIMARY_PRODUCT",
+      "inventory": {
+        "in_stock_probability": "0.98",
+        "out_of_stock_probability": "0.02"
+      },
+      "name": "Sofa",
+      "negative_keywords": [],
+      "parent_id": "furniture",
+      "positive_keywords": [
+        "sofa"
+      ],
+      "pricing": {
+        "hard_max": "60000",
+        "hard_min": "500",
+        "p50": "4000"
+      },
+      "prototype_text": "furniture sofa",
+      "shipping": {
+        "delivery_days_max": 15,
+        "delivery_days_min": 2,
+        "free_probability": "0.45",
+        "maximum": "1200",
+        "maximum_price_ratio": "0.50",
+        "minimum": "0"
+      }
+    },
+    {
+      "card_id": "furniture.bed",
+      "category_aliases": [
+        "furniture / bed",
+        "\u5e8a\u67b6",
+        "\u5e8a"
+      ],
+      "entity_kind": "PRIMARY_PRODUCT",
+      "inventory": {
+        "in_stock_probability": "0.98",
+        "out_of_stock_probability": "0.02"
+      },
+      "name": "Bed",
+      "negative_keywords": [],
+      "parent_id": "furniture",
+      "positive_keywords": [
+        "bed"
+      ],
+      "pricing": {
+        "hard_max": "50000",
+        "hard_min": "500",
+        "p50": "3500"
+      },
+      "prototype_text": "furniture bed",
+      "shipping": {
+        "delivery_days_max": 15,
+        "delivery_days_min": 2,
+        "free_probability": "0.45",
+        "maximum": "1200",
+        "maximum_price_ratio": "0.50",
+        "minimum": "0"
+      }
+    },
+    {
+      "card_id": "furniture.table",
+      "category_aliases": [
+        "furniture / table",
+        "\u684c\u5b50",
+        "\u9910\u684c"
+      ],
+      "entity_kind": "PRIMARY_PRODUCT",
+      "inventory": {
+        "in_stock_probability": "0.98",
+        "out_of_stock_probability": "0.02"
+      },
+      "name": "Table",
+      "negative_keywords": [],
+      "parent_id": "furniture",
+      "positive_keywords": [
+        "table"
+      ],
+      "pricing": {
+        "hard_max": "30000",
+        "hard_min": "150",
+        "p50": "1500"
+      },
+      "prototype_text": "furniture table",
+      "shipping": {
+        "delivery_days_max": 15,
+        "delivery_days_min": 2,
+        "free_probability": "0.45",
+        "maximum": "1200",
+        "maximum_price_ratio": "0.50",
+        "minimum": "0"
+      }
+    },
+    {
+      "card_id": "furniture.desk",
+      "category_aliases": [
+        "furniture / desk",
+        "\u4e66\u684c",
+        "\u529e\u516c\u684c"
+      ],
+      "entity_kind": "PRIMARY_PRODUCT",
+      "inventory": {
+        "in_stock_probability": "0.98",
+        "out_of_stock_probability": "0.02"
+      },
+      "name": "Desk",
+      "negative_keywords": [],
+      "parent_id": "furniture",
+      "positive_keywords": [
+        "desk"
+      ],
+      "pricing": {
+        "hard_max": "20000",
+        "hard_min": "150",
+        "p50": "1200"
+      },
+      "prototype_text": "furniture desk",
+      "shipping": {
+        "delivery_days_max": 15,
+        "delivery_days_min": 2,
+        "free_probability": "0.45",
+        "maximum": "1000",
+        "maximum_price_ratio": "0.50",
+        "minimum": "0"
+      }
+    },
+    {
+      "card_id": "furniture.cabinet",
+      "category_aliases": [
+        "furniture / cabinet",
+        "\u67dc\u5b50",
+        "\u6a71\u67dc"
+      ],
+      "entity_kind": "PRIMARY_PRODUCT",
+      "inventory": {
+        "in_stock_probability": "0.98",
+        "out_of_stock_probability": "0.02"
+      },
+      "name": "Cabinet",
+      "negative_keywords": [],
+      "parent_id": "furniture",
+      "positive_keywords": [
+        "cabinet"
+      ],
+      "pricing": {
+        "hard_max": "30000",
+        "hard_min": "150",
+        "p50": "1800"
+      },
+      "prototype_text": "furniture cabinet",
+      "shipping": {
+        "delivery_days_max": 15,
+        "delivery_days_min": 2,
+        "free_probability": "0.45",
+        "maximum": "1200",
+        "maximum_price_ratio": "0.50",
+        "minimum": "0"
+      }
+    },
+    {
+      "card_id": "furniture.shelf",
+      "category_aliases": [
+        "furniture / shelf",
+        "\u7f6e\u7269\u67b6",
+        "\u4e66\u67b6"
+      ],
+      "entity_kind": "PRIMARY_PRODUCT",
+      "inventory": {
+        "in_stock_probability": "0.98",
+        "out_of_stock_probability": "0.02"
+      },
+      "name": "Shelf",
+      "negative_keywords": [],
+      "parent_id": "furniture",
+      "positive_keywords": [
+        "shelf"
+      ],
+      "pricing": {
+        "hard_max": "10000",
+        "hard_min": "50",
+        "p50": "500"
+      },
+      "prototype_text": "furniture shelf",
+      "shipping": {
+        "delivery_days_max": 15,
+        "delivery_days_min": 2,
+        "free_probability": "0.45",
+        "maximum": "500",
+        "maximum_price_ratio": "0.50",
+        "minimum": "0"
+      }
+    },
+    {
+      "card_id": "furniture.outdoor",
+      "category_aliases": [
+        "furniture / outdoor",
+        "\u6237\u5916\u5bb6\u5177"
+      ],
+      "entity_kind": "PRIMARY_PRODUCT",
+      "inventory": {
+        "in_stock_probability": "0.98",
+        "out_of_stock_probability": "0.02"
+      },
+      "name": "Outdoor",
+      "negative_keywords": [],
+      "parent_id": "furniture",
+      "positive_keywords": [
+        "outdoor"
+      ],
+      "pricing": {
+        "hard_max": "30000",
+        "hard_min": "100",
+        "p50": "1200"
+      },
+      "prototype_text": "furniture outdoor",
+      "shipping": {
+        "delivery_days_max": 15,
+        "delivery_days_min": 2,
+        "free_probability": "0.45",
+        "maximum": "1200",
+        "maximum_price_ratio": "0.50",
+        "minimum": "0"
+      }
+    },
+    {
+      "card_id": "furniture.mattress",
+      "category_aliases": [
+        "furniture / mattress",
+        "\u5e8a\u57ab"
+      ],
+      "entity_kind": "PRIMARY_PRODUCT",
+      "inventory": {
+        "in_stock_probability": "0.98",
+        "out_of_stock_probability": "0.02"
+      },
+      "name": "Mattress",
+      "negative_keywords": [],
+      "parent_id": "furniture",
+      "positive_keywords": [
+        "mattress"
+      ],
+      "pricing": {
+        "hard_max": "30000",
+        "hard_min": "300",
+        "p50": "2500"
+      },
+      "prototype_text": "furniture mattress",
+      "shipping": {
+        "delivery_days_max": 15,
+        "delivery_days_min": 2,
+        "free_probability": "0.45",
+        "maximum": "1200",
+        "maximum_price_ratio": "0.50",
+        "minimum": "0"
+      }
+    },
+    {
+      "card_id": "furniture.accessory",
+      "category_aliases": [
+        "furniture / accessory",
+        "\u5bb6\u5177\u914d\u4ef6"
+      ],
+      "entity_kind": "ACCESSORY",
+      "inventory": {
+        "in_stock_probability": "0.98",
+        "out_of_stock_probability": "0.02"
+      },
+      "name": "Accessory",
+      "negative_keywords": [],
+      "parent_id": "furniture",
+      "positive_keywords": [
+        "accessory"
+      ],
+      "pricing": {
+        "hard_max": "3000",
+        "hard_min": "10",
+        "p50": "180"
+      },
+      "prototype_text": "furniture accessory",
+      "shipping": {
+        "delivery_days_max": 15,
+        "delivery_days_min": 2,
+        "free_probability": "0.45",
+        "maximum": "150",
+        "maximum_price_ratio": "0.50",
+        "minimum": "0"
+      }
+    },
+    {
+      "card_id": "clothing.mens-top",
+      "category_aliases": [
+        "clothing / mens top",
+        "\u7537\u58eb\u4e0a\u8863",
+        "\u7537\u88c5\u4e0a\u8863"
+      ],
+      "entity_kind": "PRIMARY_PRODUCT",
+      "inventory": {
+        "in_stock_probability": "0.98",
+        "out_of_stock_probability": "0.02"
+      },
+      "name": "Mens Top",
+      "negative_keywords": [],
+      "parent_id": "clothing",
+      "positive_keywords": [
+        "mens",
+        "top"
+      ],
+      "pricing": {
+        "hard_max": "5000",
+        "hard_min": "20",
+        "p50": "180"
+      },
+      "prototype_text": "clothing mens top",
+      "shipping": {
+        "delivery_days_max": 10,
+        "delivery_days_min": 2,
+        "free_probability": "0.45",
+        "maximum": "166",
+        "maximum_price_ratio": "0.50",
+        "minimum": "0"
+      }
+    },
+    {
+      "card_id": "clothing.mens-bottom",
+      "category_aliases": [
+        "clothing / mens bottom",
+        "\u7537\u58eb\u88e4\u88c5",
+        "\u7537\u88e4"
+      ],
+      "entity_kind": "PRIMARY_PRODUCT",
+      "inventory": {
+        "in_stock_probability": "0.98",
+        "out_of_stock_probability": "0.02"
+      },
+      "name": "Mens Bottom",
+      "negative_keywords": [],
+      "parent_id": "clothing",
+      "positive_keywords": [
+        "mens",
+        "bottom"
+      ],
+      "pricing": {
+        "hard_max": "5000",
+        "hard_min": "30",
+        "p50": "220"
+      },
+      "prototype_text": "clothing mens bottom",
+      "shipping": {
+        "delivery_days_max": 10,
+        "delivery_days_min": 2,
+        "free_probability": "0.45",
+        "maximum": "166",
+        "maximum_price_ratio": "0.50",
+        "minimum": "0"
+      }
+    },
+    {
+      "card_id": "clothing.womens-top",
+      "category_aliases": [
+        "clothing / womens top",
+        "\u5973\u58eb\u4e0a\u8863",
+        "\u5973\u88c5\u4e0a\u8863"
+      ],
+      "entity_kind": "PRIMARY_PRODUCT",
+      "inventory": {
+        "in_stock_probability": "0.98",
+        "out_of_stock_probability": "0.02"
+      },
+      "name": "Womens Top",
+      "negative_keywords": [],
+      "parent_id": "clothing",
+      "positive_keywords": [
+        "womens",
+        "top"
+      ],
+      "pricing": {
+        "hard_max": "8000",
+        "hard_min": "20",
+        "p50": "180"
+      },
+      "prototype_text": "clothing womens top",
+      "shipping": {
+        "delivery_days_max": 10,
+        "delivery_days_min": 2,
+        "free_probability": "0.45",
+        "maximum": "266",
+        "maximum_price_ratio": "0.50",
+        "minimum": "0"
+      }
+    },
+    {
+      "card_id": "clothing.womens-bottom",
+      "category_aliases": [
+        "clothing / womens bottom",
+        "\u5973\u58eb\u88e4\u88c5",
+        "\u5973\u88e4"
+      ],
+      "entity_kind": "PRIMARY_PRODUCT",
+      "inventory": {
+        "in_stock_probability": "0.98",
+        "out_of_stock_probability": "0.02"
+      },
+      "name": "Womens Bottom",
+      "negative_keywords": [],
+      "parent_id": "clothing",
+      "positive_keywords": [
+        "womens",
+        "bottom"
+      ],
+      "pricing": {
+        "hard_max": "8000",
+        "hard_min": "30",
+        "p50": "220"
+      },
+      "prototype_text": "clothing womens bottom",
+      "shipping": {
+        "delivery_days_max": 10,
+        "delivery_days_min": 2,
+        "free_probability": "0.45",
+        "maximum": "266",
+        "maximum_price_ratio": "0.50",
+        "minimum": "0"
+      }
+    },
+    {
+      "card_id": "clothing.dress",
+      "category_aliases": [
+        "clothing / dress",
+        "\u8fde\u8863\u88d9",
+        "\u88d9\u88c5"
+      ],
+      "entity_kind": "PRIMARY_PRODUCT",
+      "inventory": {
+        "in_stock_probability": "0.98",
+        "out_of_stock_probability": "0.02"
+      },
+      "name": "Dress",
+      "negative_keywords": [],
+      "parent_id": "clothing",
+      "positive_keywords": [
+        "dress"
+      ],
+      "pricing": {
+        "hard_max": "20000",
+        "hard_min": "40",
+        "p50": "300"
+      },
+      "prototype_text": "clothing dress",
+      "shipping": {
+        "delivery_days_max": 10,
+        "delivery_days_min": 2,
+        "free_probability": "0.45",
+        "maximum": "300",
+        "maximum_price_ratio": "0.50",
+        "minimum": "0"
+      }
+    },
+    {
+      "card_id": "clothing.outerwear",
+      "category_aliases": [
+        "clothing / outerwear",
+        "\u5916\u5957",
+        "\u5927\u8863"
+      ],
+      "entity_kind": "PRIMARY_PRODUCT",
+      "inventory": {
+        "in_stock_probability": "0.98",
+        "out_of_stock_probability": "0.02"
+      },
+      "name": "Outerwear",
+      "negative_keywords": [],
+      "parent_id": "clothing",
+      "positive_keywords": [
+        "outerwear"
+      ],
+      "pricing": {
+        "hard_max": "30000",
+        "hard_min": "80",
+        "p50": "600"
+      },
+      "prototype_text": "clothing outerwear",
+      "shipping": {
+        "delivery_days_max": 10,
+        "delivery_days_min": 2,
+        "free_probability": "0.45",
+        "maximum": "300",
+        "maximum_price_ratio": "0.50",
+        "minimum": "0"
+      }
+    },
+    {
+      "card_id": "clothing.underwear",
+      "category_aliases": [
+        "clothing / underwear",
+        "\u5185\u8863"
+      ],
+      "entity_kind": "PRIMARY_PRODUCT",
+      "inventory": {
+        "in_stock_probability": "0.98",
+        "out_of_stock_probability": "0.02"
+      },
+      "name": "Underwear",
+      "negative_keywords": [],
+      "parent_id": "clothing",
+      "positive_keywords": [
+        "underwear"
+      ],
+      "pricing": {
+        "hard_max": "1500",
+        "hard_min": "10",
+        "p50": "100"
+      },
+      "prototype_text": "clothing underwear",
+      "shipping": {
+        "delivery_days_max": 10,
+        "delivery_days_min": 2,
+        "free_probability": "0.45",
+        "maximum": "50",
+        "maximum_price_ratio": "0.50",
+        "minimum": "0"
+      }
+    },
+    {
+      "card_id": "clothing.sleepwear",
+      "category_aliases": [
+        "clothing / sleepwear",
+        "\u7761\u8863",
+        "\u5bb6\u5c45\u670d"
+      ],
+      "entity_kind": "PRIMARY_PRODUCT",
+      "inventory": {
+        "in_stock_probability": "0.98",
+        "out_of_stock_probability": "0.02"
+      },
+      "name": "Sleepwear",
+      "negative_keywords": [],
+      "parent_id": "clothing",
+      "positive_keywords": [
+        "sleepwear"
+      ],
+      "pricing": {
+        "hard_max": "2500",
+        "hard_min": "20",
+        "p50": "180"
+      },
+      "prototype_text": "clothing sleepwear",
+      "shipping": {
+        "delivery_days_max": 10,
+        "delivery_days_min": 2,
+        "free_probability": "0.45",
+        "maximum": "83",
+        "maximum_price_ratio": "0.50",
+        "minimum": "0"
+      }
+    },
+    {
+      "card_id": "clothing.activewear",
+      "category_aliases": [
+        "clothing / activewear",
+        "\u8fd0\u52a8\u670d",
+        "\u5065\u8eab\u670d"
+      ],
+      "entity_kind": "PRIMARY_PRODUCT",
+      "inventory": {
+        "in_stock_probability": "0.98",
+        "out_of_stock_probability": "0.02"
+      },
+      "name": "Activewear",
+      "negative_keywords": [],
+      "parent_id": "clothing",
+      "positive_keywords": [
+        "activewear"
+      ],
+      "pricing": {
+        "hard_max": "5000",
+        "hard_min": "20",
+        "p50": "220"
+      },
+      "prototype_text": "clothing activewear",
+      "shipping": {
+        "delivery_days_max": 10,
+        "delivery_days_min": 2,
+        "free_probability": "0.45",
+        "maximum": "166",
+        "maximum_price_ratio": "0.50",
+        "minimum": "0"
+      }
+    },
+    {
+      "card_id": "clothing.swimwear",
+      "category_aliases": [
+        "clothing / swimwear",
+        "\u6cf3\u88c5",
+        "\u6cf3\u8863"
+      ],
+      "entity_kind": "PRIMARY_PRODUCT",
+      "inventory": {
+        "in_stock_probability": "0.98",
+        "out_of_stock_probability": "0.02"
+      },
+      "name": "Swimwear",
+      "negative_keywords": [],
+      "parent_id": "clothing",
+      "positive_keywords": [
+        "swimwear"
+      ],
+      "pricing": {
+        "hard_max": "3000",
+        "hard_min": "20",
+        "p50": "180"
+      },
+      "prototype_text": "clothing swimwear",
+      "shipping": {
+        "delivery_days_max": 10,
+        "delivery_days_min": 2,
+        "free_probability": "0.45",
+        "maximum": "100",
+        "maximum_price_ratio": "0.50",
+        "minimum": "0"
+      }
+    },
+    {
+      "card_id": "clothing.uniform",
+      "category_aliases": [
+        "clothing / uniform",
+        "\u5236\u670d",
+        "\u5de5\u4f5c\u670d"
+      ],
+      "entity_kind": "PRIMARY_PRODUCT",
+      "inventory": {
+        "in_stock_probability": "0.98",
+        "out_of_stock_probability": "0.02"
+      },
+      "name": "Uniform",
+      "negative_keywords": [],
+      "parent_id": "clothing",
+      "positive_keywords": [
+        "uniform"
+      ],
+      "pricing": {
+        "hard_max": "3000",
+        "hard_min": "30",
+        "p50": "250"
+      },
+      "prototype_text": "clothing uniform",
+      "shipping": {
+        "delivery_days_max": 10,
+        "delivery_days_min": 2,
+        "free_probability": "0.45",
+        "maximum": "100",
+        "maximum_price_ratio": "0.50",
+        "minimum": "0"
+      }
+    },
+    {
+      "card_id": "clothing.accessory",
+      "category_aliases": [
+        "clothing / accessory",
+        "\u670d\u9970\u914d\u4ef6"
+      ],
+      "entity_kind": "ACCESSORY",
+      "inventory": {
+        "in_stock_probability": "0.98",
+        "out_of_stock_probability": "0.02"
+      },
+      "name": "Accessory",
+      "negative_keywords": [],
+      "parent_id": "clothing",
+      "positive_keywords": [
+        "accessory"
+      ],
+      "pricing": {
+        "hard_max": "5000",
+        "hard_min": "5",
+        "p50": "100"
+      },
+      "prototype_text": "clothing accessory",
+      "shipping": {
+        "delivery_days_max": 10,
+        "delivery_days_min": 2,
+        "free_probability": "0.45",
+        "maximum": "166",
+        "maximum_price_ratio": "0.50",
+        "minimum": "0"
+      }
+    },
+    {
+      "card_id": "shoes.athletic",
+      "category_aliases": [
+        "shoes / athletic",
+        "\u8fd0\u52a8\u978b",
+        "\u8dd1\u978b"
+      ],
+      "entity_kind": "PRIMARY_PRODUCT",
+      "inventory": {
+        "in_stock_probability": "0.98",
+        "out_of_stock_probability": "0.02"
+      },
+      "name": "Athletic",
+      "negative_keywords": [],
+      "parent_id": "shoes",
+      "positive_keywords": [
+        "athletic"
+      ],
+      "pricing": {
+        "hard_max": "8000",
+        "hard_min": "50",
+        "p50": "400"
+      },
+      "prototype_text": "shoes athletic",
+      "shipping": {
+        "delivery_days_max": 10,
+        "delivery_days_min": 2,
+        "free_probability": "0.45",
+        "maximum": "266",
+        "maximum_price_ratio": "0.50",
+        "minimum": "0"
+      }
+    },
+    {
+      "card_id": "shoes.casual",
+      "category_aliases": [
+        "shoes / casual",
+        "\u4f11\u95f2\u978b"
+      ],
+      "entity_kind": "PRIMARY_PRODUCT",
+      "inventory": {
+        "in_stock_probability": "0.98",
+        "out_of_stock_probability": "0.02"
+      },
+      "name": "Casual",
+      "negative_keywords": [],
+      "parent_id": "shoes",
+      "positive_keywords": [
+        "casual"
+      ],
+      "pricing": {
+        "hard_max": "6000",
+        "hard_min": "40",
+        "p50": "300"
+      },
+      "prototype_text": "shoes casual",
+      "shipping": {
+        "delivery_days_max": 10,
+        "delivery_days_min": 2,
+        "free_probability": "0.45",
+        "maximum": "200",
+        "maximum_price_ratio": "0.50",
+        "minimum": "0"
+      }
+    },
+    {
+      "card_id": "shoes.formal",
+      "category_aliases": [
+        "shoes / formal",
+        "\u6b63\u88c5\u978b",
+        "\u76ae\u978b"
+      ],
+      "entity_kind": "PRIMARY_PRODUCT",
+      "inventory": {
+        "in_stock_probability": "0.98",
+        "out_of_stock_probability": "0.02"
+      },
+      "name": "Formal",
+      "negative_keywords": [],
+      "parent_id": "shoes",
+      "positive_keywords": [
+        "formal"
+      ],
+      "pricing": {
+        "hard_max": "12000",
+        "hard_min": "80",
+        "p50": "500"
+      },
+      "prototype_text": "shoes formal",
+      "shipping": {
+        "delivery_days_max": 10,
+        "delivery_days_min": 2,
+        "free_probability": "0.45",
+        "maximum": "300",
+        "maximum_price_ratio": "0.50",
+        "minimum": "0"
+      }
+    },
+    {
+      "card_id": "shoes.boot",
+      "category_aliases": [
+        "shoes / boot",
+        "\u9774\u5b50",
+        "\u77ed\u9774"
+      ],
+      "entity_kind": "PRIMARY_PRODUCT",
+      "inventory": {
+        "in_stock_probability": "0.98",
+        "out_of_stock_probability": "0.02"
+      },
+      "name": "Boot",
+      "negative_keywords": [],
+      "parent_id": "shoes",
+      "positive_keywords": [
+        "boot"
+      ],
+      "pricing": {
+        "hard_max": "12000",
+        "hard_min": "80",
+        "p50": "550"
+      },
+      "prototype_text": "shoes boot",
+      "shipping": {
+        "delivery_days_max": 10,
+        "delivery_days_min": 2,
+        "free_probability": "0.45",
+        "maximum": "300",
+        "maximum_price_ratio": "0.50",
+        "minimum": "0"
+      }
+    },
+    {
+      "card_id": "shoes.sandal",
+      "category_aliases": [
+        "shoes / sandal",
+        "\u51c9\u978b",
+        "\u62d6\u978b"
+      ],
+      "entity_kind": "PRIMARY_PRODUCT",
+      "inventory": {
+        "in_stock_probability": "0.98",
+        "out_of_stock_probability": "0.02"
+      },
+      "name": "Sandal",
+      "negative_keywords": [],
+      "parent_id": "shoes",
+      "positive_keywords": [
+        "sandal"
+      ],
+      "pricing": {
+        "hard_max": "3000",
+        "hard_min": "20",
+        "p50": "180"
+      },
+      "prototype_text": "shoes sandal",
+      "shipping": {
+        "delivery_days_max": 10,
+        "delivery_days_min": 2,
+        "free_probability": "0.45",
+        "maximum": "100",
+        "maximum_price_ratio": "0.50",
+        "minimum": "0"
+      }
+    },
+    {
+      "card_id": "shoes.accessory",
+      "category_aliases": [
+        "shoes / accessory",
+        "\u978b\u7c7b\u914d\u4ef6",
+        "\u978b\u57ab"
+      ],
+      "entity_kind": "ACCESSORY",
+      "inventory": {
+        "in_stock_probability": "0.98",
+        "out_of_stock_probability": "0.02"
+      },
+      "name": "Accessory",
+      "negative_keywords": [],
+      "parent_id": "shoes",
+      "positive_keywords": [
+        "accessory"
+      ],
+      "pricing": {
+        "hard_max": "1000",
+        "hard_min": "3",
+        "p50": "50"
+      },
+      "prototype_text": "shoes accessory",
+      "shipping": {
+        "delivery_days_max": 10,
+        "delivery_days_min": 2,
+        "free_probability": "0.45",
+        "maximum": "33",
+        "maximum_price_ratio": "0.50",
+        "minimum": "0"
+      }
+    },
+    {
+      "card_id": "beauty.skincare",
+      "category_aliases": [
+        "beauty / skincare",
+        "\u62a4\u80a4\u54c1",
+        "\u62a4\u80a4"
+      ],
+      "entity_kind": "PRIMARY_PRODUCT",
+      "inventory": {
+        "in_stock_probability": "0.98",
+        "out_of_stock_probability": "0.02"
+      },
+      "name": "Skincare",
+      "negative_keywords": [],
+      "parent_id": "beauty",
+      "positive_keywords": [
+        "skincare"
+      ],
+      "pricing": {
+        "hard_max": "5000",
+        "hard_min": "10",
+        "p50": "180"
+      },
+      "prototype_text": "beauty skincare",
+      "shipping": {
+        "delivery_days_max": 7,
+        "delivery_days_min": 2,
+        "free_probability": "0.45",
+        "maximum": "60",
+        "maximum_price_ratio": "0.50",
+        "minimum": "0"
+      }
+    },
+    {
+      "card_id": "beauty.makeup",
+      "category_aliases": [
+        "beauty / makeup",
+        "\u5f69\u5986",
+        "\u5316\u5986\u54c1"
+      ],
+      "entity_kind": "PRIMARY_PRODUCT",
+      "inventory": {
+        "in_stock_probability": "0.98",
+        "out_of_stock_probability": "0.02"
+      },
+      "name": "Makeup",
+      "negative_keywords": [],
+      "parent_id": "beauty",
+      "positive_keywords": [
+        "makeup"
+      ],
+      "pricing": {
+        "hard_max": "3000",
+        "hard_min": "5",
+        "p50": "120"
+      },
+      "prototype_text": "beauty makeup",
+      "shipping": {
+        "delivery_days_max": 7,
+        "delivery_days_min": 2,
+        "free_probability": "0.45",
+        "maximum": "60",
+        "maximum_price_ratio": "0.50",
+        "minimum": "0"
+      }
+    },
+    {
+      "card_id": "beauty.haircare",
+      "category_aliases": [
+        "beauty / haircare",
+        "\u62a4\u53d1",
+        "\u7f8e\u53d1\u7528\u54c1"
+      ],
+      "entity_kind": "PRIMARY_PRODUCT",
+      "inventory": {
+        "in_stock_probability": "0.98",
+        "out_of_stock_probability": "0.02"
+      },
+      "name": "Haircare",
+      "negative_keywords": [],
+      "parent_id": "beauty",
+      "positive_keywords": [
+        "haircare"
+      ],
+      "pricing": {
+        "hard_max": "2000",
+        "hard_min": "10",
+        "p50": "100"
+      },
+      "prototype_text": "beauty haircare",
+      "shipping": {
+        "delivery_days_max": 7,
+        "delivery_days_min": 2,
+        "free_probability": "0.45",
+        "maximum": "60",
+        "maximum_price_ratio": "0.50",
+        "minimum": "0"
+      }
+    },
+    {
+      "card_id": "beauty.fragrance",
+      "category_aliases": [
+        "beauty / fragrance",
+        "\u9999\u6c34",
+        "\u9999\u6c1b"
+      ],
+      "entity_kind": "PRIMARY_PRODUCT",
+      "inventory": {
+        "in_stock_probability": "0.98",
+        "out_of_stock_probability": "0.02"
+      },
+      "name": "Fragrance",
+      "negative_keywords": [],
+      "parent_id": "beauty",
+      "positive_keywords": [
+        "fragrance"
+      ],
+      "pricing": {
+        "hard_max": "8000",
+        "hard_min": "30",
+        "p50": "400"
+      },
+      "prototype_text": "beauty fragrance",
+      "shipping": {
+        "delivery_days_max": 7,
+        "delivery_days_min": 2,
+        "free_probability": "0.45",
+        "maximum": "60",
+        "maximum_price_ratio": "0.50",
+        "minimum": "0"
+      }
+    },
+    {
+      "card_id": "beauty.personal-care",
+      "category_aliases": [
+        "beauty / personal care",
+        "\u4e2a\u4eba\u62a4\u7406"
+      ],
+      "entity_kind": "PRIMARY_PRODUCT",
+      "inventory": {
+        "in_stock_probability": "0.98",
+        "out_of_stock_probability": "0.02"
+      },
+      "name": "Personal Care",
+      "negative_keywords": [],
+      "parent_id": "beauty",
+      "positive_keywords": [
+        "personal",
+        "care"
+      ],
+      "pricing": {
+        "hard_max": "1500",
+        "hard_min": "5",
+        "p50": "80"
+      },
+      "prototype_text": "beauty personal care",
+      "shipping": {
+        "delivery_days_max": 7,
+        "delivery_days_min": 2,
+        "free_probability": "0.45",
+        "maximum": "60",
+        "maximum_price_ratio": "0.50",
+        "minimum": "0"
+      }
+    },
+    {
+      "card_id": "health.vitamin",
+      "category_aliases": [
+        "health / vitamin",
+        "\u7ef4\u751f\u7d20",
+        "\u8425\u517b\u8865\u5145\u5242"
+      ],
+      "entity_kind": "PRIMARY_PRODUCT",
+      "inventory": {
+        "in_stock_probability": "0.98",
+        "out_of_stock_probability": "0.02"
+      },
+      "name": "Vitamin",
+      "negative_keywords": [],
+      "parent_id": "health",
+      "positive_keywords": [
+        "vitamin"
+      ],
+      "pricing": {
+        "hard_max": "2000",
+        "hard_min": "10",
+        "p50": "120"
+      },
+      "prototype_text": "health vitamin",
+      "shipping": {
+        "delivery_days_max": 7,
+        "delivery_days_min": 2,
+        "free_probability": "0.45",
+        "maximum": "60",
+        "maximum_price_ratio": "0.50",
+        "minimum": "0"
+      }
+    },
+    {
+      "card_id": "health.medical-supply",
+      "category_aliases": [
+        "health / medical supply",
+        "\u533b\u7597\u7528\u54c1",
+        "\u533b\u7528\u8017\u6750"
+      ],
+      "entity_kind": "PRIMARY_PRODUCT",
+      "inventory": {
+        "in_stock_probability": "0.98",
+        "out_of_stock_probability": "0.02"
+      },
+      "name": "Medical Supply",
+      "negative_keywords": [],
+      "parent_id": "health",
+      "positive_keywords": [
+        "medical",
+        "supply"
+      ],
+      "pricing": {
+        "hard_max": "10000",
+        "hard_min": "5",
+        "p50": "120"
+      },
+      "prototype_text": "health medical supply",
+      "shipping": {
+        "delivery_days_max": 7,
+        "delivery_days_min": 2,
+        "free_probability": "0.45",
+        "maximum": "60",
+        "maximum_price_ratio": "0.50",
+        "minimum": "0"
+      }
+    },
+    {
+      "card_id": "health.wellness-device",
+      "category_aliases": [
+        "health / wellness device",
+        "\u5065\u5eb7\u8bbe\u5907",
+        "\u7406\u7597\u4eea"
+      ],
+      "entity_kind": "PRIMARY_PRODUCT",
+      "inventory": {
+        "in_stock_probability": "0.98",
+        "out_of_stock_probability": "0.02"
+      },
+      "name": "Wellness Device",
+      "negative_keywords": [],
+      "parent_id": "health",
+      "positive_keywords": [
+        "wellness",
+        "device"
+      ],
+      "pricing": {
+        "hard_max": "20000",
+        "hard_min": "30",
+        "p50": "500"
+      },
+      "prototype_text": "health wellness device",
+      "shipping": {
+        "delivery_days_max": 7,
+        "delivery_days_min": 2,
+        "free_probability": "0.45",
+        "maximum": "60",
+        "maximum_price_ratio": "0.50",
+        "minimum": "0"
+      }
+    },
+    {
+      "card_id": "health.oral-care",
+      "category_aliases": [
+        "health / oral care",
+        "\u53e3\u8154\u62a4\u7406",
+        "\u7259\u9f7f\u62a4\u7406"
+      ],
+      "entity_kind": "PRIMARY_PRODUCT",
+      "inventory": {
+        "in_stock_probability": "0.98",
+        "out_of_stock_probability": "0.02"
+      },
+      "name": "Oral Care",
+      "negative_keywords": [],
+      "parent_id": "health",
+      "positive_keywords": [
+        "oral",
+        "care"
+      ],
+      "pricing": {
+        "hard_max": "2000",
+        "hard_min": "5",
+        "p50": "80"
+      },
+      "prototype_text": "health oral care",
+      "shipping": {
+        "delivery_days_max": 7,
+        "delivery_days_min": 2,
+        "free_probability": "0.45",
+        "maximum": "60",
+        "maximum_price_ratio": "0.50",
+        "minimum": "0"
+      }
+    },
+    {
+      "card_id": "health.vision-care",
+      "category_aliases": [
+        "health / vision care",
+        "\u89c6\u529b\u62a4\u7406",
+        "\u773c\u90e8\u62a4\u7406"
+      ],
+      "entity_kind": "PRIMARY_PRODUCT",
+      "inventory": {
+        "in_stock_probability": "0.98",
+        "out_of_stock_probability": "0.02"
+      },
+      "name": "Vision Care",
+      "negative_keywords": [],
+      "parent_id": "health",
+      "positive_keywords": [
+        "vision",
+        "care"
+      ],
+      "pricing": {
+        "hard_max": "8000",
+        "hard_min": "10",
+        "p50": "150"
+      },
+      "prototype_text": "health vision care",
+      "shipping": {
+        "delivery_days_max": 7,
+        "delivery_days_min": 2,
+        "free_probability": "0.45",
+        "maximum": "60",
+        "maximum_price_ratio": "0.50",
+        "minimum": "0"
+      }
+    },
+    {
+      "card_id": "sports.fitness",
+      "category_aliases": [
+        "sports / fitness",
+        "\u5065\u8eab\u5668\u6750",
+        "\u5065\u8eab\u7528\u54c1"
+      ],
+      "entity_kind": "PRIMARY_PRODUCT",
+      "inventory": {
+        "in_stock_probability": "0.98",
+        "out_of_stock_probability": "0.02"
+      },
+      "name": "Fitness",
+      "negative_keywords": [],
+      "parent_id": "sports",
+      "positive_keywords": [
+        "fitness"
+      ],
+      "pricing": {
+        "hard_max": "20000",
+        "hard_min": "10",
+        "p50": "300"
+      },
+      "prototype_text": "sports fitness",
+      "shipping": {
+        "delivery_days_max": 10,
+        "delivery_days_min": 2,
+        "free_probability": "0.45",
+        "maximum": "300",
+        "maximum_price_ratio": "0.50",
+        "minimum": "0"
+      }
+    },
+    {
+      "card_id": "sports.team-sport",
+      "category_aliases": [
+        "sports / team sport",
+        "\u56e2\u961f\u8fd0\u52a8\u7528\u54c1",
+        "\u7403\u7c7b\u7528\u54c1"
+      ],
+      "entity_kind": "PRIMARY_PRODUCT",
+      "inventory": {
+        "in_stock_probability": "0.98",
+        "out_of_stock_probability": "0.02"
+      },
+      "name": "Team Sport",
+      "negative_keywords": [],
+      "parent_id": "sports",
+      "positive_keywords": [
+        "team",
+        "sport"
+      ],
+      "pricing": {
+        "hard_max": "6000",
+        "hard_min": "10",
+        "p50": "180"
+      },
+      "prototype_text": "sports team sport",
+      "shipping": {
+        "delivery_days_max": 10,
+        "delivery_days_min": 2,
+        "free_probability": "0.45",
+        "maximum": "200",
+        "maximum_price_ratio": "0.50",
+        "minimum": "0"
+      }
+    },
+    {
+      "card_id": "sports.cycling",
+      "category_aliases": [
+        "sports / cycling",
+        "\u9a91\u884c\u7528\u54c1",
+        "\u81ea\u884c\u8f66\u7528\u54c1"
+      ],
+      "entity_kind": "PRIMARY_PRODUCT",
+      "inventory": {
+        "in_stock_probability": "0.98",
+        "out_of_stock_probability": "0.02"
+      },
+      "name": "Cycling",
+      "negative_keywords": [],
+      "parent_id": "sports",
+      "positive_keywords": [
+        "cycling"
+      ],
+      "pricing": {
+        "hard_max": "50000",
+        "hard_min": "20",
+        "p50": "800"
+      },
+      "prototype_text": "sports cycling",
+      "shipping": {
+        "delivery_days_max": 10,
+        "delivery_days_min": 2,
+        "free_probability": "0.45",
+        "maximum": "300",
+        "maximum_price_ratio": "0.50",
+        "minimum": "0"
+      }
+    },
+    {
+      "card_id": "sports.racket-sport",
+      "category_aliases": [
+        "sports / racket sport",
+        "\u7403\u62cd\u8fd0\u52a8",
+        "\u7f51\u7403\u7528\u54c1"
+      ],
+      "entity_kind": "PRIMARY_PRODUCT",
+      "inventory": {
+        "in_stock_probability": "0.98",
+        "out_of_stock_probability": "0.02"
+      },
+      "name": "Racket Sport",
+      "negative_keywords": [],
+      "parent_id": "sports",
+      "positive_keywords": [
+        "racket",
+        "sport"
+      ],
+      "pricing": {
+        "hard_max": "10000",
+        "hard_min": "20",
+        "p50": "300"
+      },
+      "prototype_text": "sports racket sport",
+      "shipping": {
+        "delivery_days_max": 10,
+        "delivery_days_min": 2,
+        "free_probability": "0.45",
+        "maximum": "300",
+        "maximum_price_ratio": "0.50",
+        "minimum": "0"
+      }
+    },
+    {
+      "card_id": "sports.water-sport",
+      "category_aliases": [
+        "sports / water sport",
+        "\u6c34\u4e0a\u8fd0\u52a8\u7528\u54c1"
+      ],
+      "entity_kind": "PRIMARY_PRODUCT",
+      "inventory": {
+        "in_stock_probability": "0.98",
+        "out_of_stock_probability": "0.02"
+      },
+      "name": "Water Sport",
+      "negative_keywords": [],
+      "parent_id": "sports",
+      "positive_keywords": [
+        "water",
+        "sport"
+      ],
+      "pricing": {
+        "hard_max": "50000",
+        "hard_min": "30",
+        "p50": "800"
+      },
+      "prototype_text": "sports water sport",
+      "shipping": {
+        "delivery_days_max": 10,
+        "delivery_days_min": 2,
+        "free_probability": "0.45",
+        "maximum": "300",
+        "maximum_price_ratio": "0.50",
+        "minimum": "0"
+      }
+    },
+    {
+      "card_id": "outdoor.camping",
+      "category_aliases": [
+        "outdoor / camping",
+        "\u9732\u8425\u7528\u54c1",
+        "\u9732\u8425\u88c5\u5907"
+      ],
+      "entity_kind": "PRIMARY_PRODUCT",
+      "inventory": {
+        "in_stock_probability": "0.98",
+        "out_of_stock_probability": "0.02"
+      },
+      "name": "Camping",
+      "negative_keywords": [],
+      "parent_id": "outdoor",
+      "positive_keywords": [
+        "camping"
+      ],
+      "pricing": {
+        "hard_max": "20000",
+        "hard_min": "20",
+        "p50": "500"
+      },
+      "prototype_text": "outdoor camping",
+      "shipping": {
+        "delivery_days_max": 10,
+        "delivery_days_min": 2,
+        "free_probability": "0.45",
+        "maximum": "300",
+        "maximum_price_ratio": "0.50",
+        "minimum": "0"
+      }
+    },
+    {
+      "card_id": "outdoor.hiking",
+      "category_aliases": [
+        "outdoor / hiking",
+        "\u5f92\u6b65\u7528\u54c1",
+        "\u5f92\u6b65\u88c5\u5907"
+      ],
+      "entity_kind": "PRIMARY_PRODUCT",
+      "inventory": {
+        "in_stock_probability": "0.98",
+        "out_of_stock_probability": "0.02"
+      },
+      "name": "Hiking",
+      "negative_keywords": [],
+      "parent_id": "outdoor",
+      "positive_keywords": [
+        "hiking"
+      ],
+      "pricing": {
+        "hard_max": "10000",
+        "hard_min": "20",
+        "p50": "350"
+      },
+      "prototype_text": "outdoor hiking",
+      "shipping": {
+        "delivery_days_max": 10,
+        "delivery_days_min": 2,
+        "free_probability": "0.45",
+        "maximum": "300",
+        "maximum_price_ratio": "0.50",
+        "minimum": "0"
+      }
+    },
+    {
+      "card_id": "outdoor.fishing",
+      "category_aliases": [
+        "outdoor / fishing",
+        "\u9493\u9c7c\u7528\u54c1",
+        "\u6e14\u5177"
+      ],
+      "entity_kind": "PRIMARY_PRODUCT",
+      "inventory": {
+        "in_stock_probability": "0.98",
+        "out_of_stock_probability": "0.02"
+      },
+      "name": "Fishing",
+      "negative_keywords": [],
+      "parent_id": "outdoor",
+      "positive_keywords": [
+        "fishing"
+      ],
+      "pricing": {
+        "hard_max": "20000",
+        "hard_min": "10",
+        "p50": "300"
+      },
+      "prototype_text": "outdoor fishing",
+      "shipping": {
+        "delivery_days_max": 10,
+        "delivery_days_min": 2,
+        "free_probability": "0.45",
+        "maximum": "300",
+        "maximum_price_ratio": "0.50",
+        "minimum": "0"
+      }
+    },
+    {
+      "card_id": "outdoor.hunting",
+      "category_aliases": [
+        "outdoor / hunting",
+        "\u72e9\u730e\u7528\u54c1"
+      ],
+      "entity_kind": "PRIMARY_PRODUCT",
+      "inventory": {
+        "in_stock_probability": "0.98",
+        "out_of_stock_probability": "0.02"
+      },
+      "name": "Hunting",
+      "negative_keywords": [],
+      "parent_id": "outdoor",
+      "positive_keywords": [
+        "hunting"
+      ],
+      "pricing": {
+        "hard_max": "30000",
+        "hard_min": "20",
+        "p50": "500"
+      },
+      "prototype_text": "outdoor hunting",
+      "shipping": {
+        "delivery_days_max": 10,
+        "delivery_days_min": 2,
+        "free_probability": "0.45",
+        "maximum": "300",
+        "maximum_price_ratio": "0.50",
+        "minimum": "0"
+      }
+    },
+    {
+      "card_id": "outdoor.accessory",
+      "category_aliases": [
+        "outdoor / accessory",
+        "\u6237\u5916\u914d\u4ef6"
+      ],
+      "entity_kind": "ACCESSORY",
+      "inventory": {
+        "in_stock_probability": "0.98",
+        "out_of_stock_probability": "0.02"
+      },
+      "name": "Accessory",
+      "negative_keywords": [],
+      "parent_id": "outdoor",
+      "positive_keywords": [
+        "accessory"
+      ],
+      "pricing": {
+        "hard_max": "3000",
+        "hard_min": "5",
+        "p50": "100"
+      },
+      "prototype_text": "outdoor accessory",
+      "shipping": {
+        "delivery_days_max": 10,
+        "delivery_days_min": 2,
+        "free_probability": "0.45",
+        "maximum": "100",
+        "maximum_price_ratio": "0.50",
+        "minimum": "0"
+      }
+    },
+    {
+      "card_id": "automotive.part",
+      "category_aliases": [
+        "automotive / part",
+        "\u6c7d\u8f66\u96f6\u4ef6",
+        "\u6c7d\u914d\u96f6\u4ef6"
+      ],
+      "entity_kind": "REPLACEMENT_PART",
+      "inventory": {
+        "in_stock_probability": "0.98",
+        "out_of_stock_probability": "0.02"
+      },
+      "name": "Part",
+      "negative_keywords": [],
+      "parent_id": "automotive",
+      "positive_keywords": [
+        "part"
+      ],
+      "pricing": {
+        "hard_max": "30000",
+        "hard_min": "20",
+        "p50": "500"
+      },
+      "prototype_text": "automotive part",
+      "shipping": {
+        "delivery_days_max": 10,
+        "delivery_days_min": 2,
+        "free_probability": "0.45",
+        "maximum": "300",
+        "maximum_price_ratio": "0.50",
+        "minimum": "0"
+      }
+    },
+    {
+      "card_id": "automotive.accessory",
+      "category_aliases": [
+        "automotive / accessory",
+        "\u6c7d\u8f66\u7528\u54c1",
+        "\u6c7d\u8f66\u914d\u4ef6"
+      ],
+      "entity_kind": "ACCESSORY",
+      "inventory": {
+        "in_stock_probability": "0.98",
+        "out_of_stock_probability": "0.02"
+      },
+      "name": "Accessory",
+      "negative_keywords": [],
+      "parent_id": "automotive",
+      "positive_keywords": [
+        "accessory"
+      ],
+      "pricing": {
+        "hard_max": "8000",
+        "hard_min": "5",
+        "p50": "150"
+      },
+      "prototype_text": "automotive accessory",
+      "shipping": {
+        "delivery_days_max": 10,
+        "delivery_days_min": 2,
+        "free_probability": "0.45",
+        "maximum": "266",
+        "maximum_price_ratio": "0.50",
+        "minimum": "0"
+      }
+    },
+    {
+      "card_id": "automotive.tire",
+      "category_aliases": [
+        "automotive / tire",
+        "\u8f6e\u80ce",
+        "\u6c7d\u8f66\u8f6e\u80ce"
+      ],
+      "entity_kind": "PRIMARY_PRODUCT",
+      "inventory": {
+        "in_stock_probability": "0.98",
+        "out_of_stock_probability": "0.02"
+      },
+      "name": "Tire",
+      "negative_keywords": [],
+      "parent_id": "automotive",
+      "positive_keywords": [
+        "tire"
+      ],
+      "pricing": {
+        "hard_max": "8000",
+        "hard_min": "100",
+        "p50": "600"
+      },
+      "prototype_text": "automotive tire",
+      "shipping": {
+        "delivery_days_max": 10,
+        "delivery_days_min": 2,
+        "free_probability": "0.45",
+        "maximum": "266",
+        "maximum_price_ratio": "0.50",
+        "minimum": "0"
+      }
+    },
+    {
+      "card_id": "automotive.fluid",
+      "category_aliases": [
+        "automotive / fluid",
+        "\u6c7d\u8f66\u6cb9\u6db2",
+        "\u673a\u6cb9"
+      ],
+      "entity_kind": "PRIMARY_PRODUCT",
+      "inventory": {
+        "in_stock_probability": "0.98",
+        "out_of_stock_probability": "0.02"
+      },
+      "name": "Fluid",
+      "negative_keywords": [],
+      "parent_id": "automotive",
+      "positive_keywords": [
+        "fluid"
+      ],
+      "pricing": {
+        "hard_max": "1000",
+        "hard_min": "10",
+        "p50": "100"
+      },
+      "prototype_text": "automotive fluid",
+      "shipping": {
+        "delivery_days_max": 10,
+        "delivery_days_min": 2,
+        "free_probability": "0.45",
+        "maximum": "33",
+        "maximum_price_ratio": "0.50",
+        "minimum": "0"
+      }
+    },
+    {
+      "card_id": "tools.hand-tool",
+      "category_aliases": [
+        "tools / hand tool",
+        "\u624b\u52a8\u5de5\u5177"
+      ],
+      "entity_kind": "PRIMARY_PRODUCT",
+      "inventory": {
+        "in_stock_probability": "0.98",
+        "out_of_stock_probability": "0.02"
+      },
+      "name": "Hand Tool",
+      "negative_keywords": [],
+      "parent_id": "tools",
+      "positive_keywords": [
+        "hand",
+        "tool"
+      ],
+      "pricing": {
+        "hard_max": "5000",
+        "hard_min": "5",
+        "p50": "100"
+      },
+      "prototype_text": "tools hand tool",
+      "shipping": {
+        "delivery_days_max": 10,
+        "delivery_days_min": 2,
+        "free_probability": "0.45",
+        "maximum": "166",
+        "maximum_price_ratio": "0.50",
+        "minimum": "0"
+      }
+    },
+    {
+      "card_id": "tools.power-tool",
+      "category_aliases": [
+        "tools / power tool",
+        "\u7535\u52a8\u5de5\u5177"
+      ],
+      "entity_kind": "PRIMARY_PRODUCT",
+      "inventory": {
+        "in_stock_probability": "0.98",
+        "out_of_stock_probability": "0.02"
+      },
+      "name": "Power Tool",
+      "negative_keywords": [],
+      "parent_id": "tools",
+      "positive_keywords": [
+        "power",
+        "tool"
+      ],
+      "pricing": {
+        "hard_max": "20000",
+        "hard_min": "80",
+        "p50": "600"
+      },
+      "prototype_text": "tools power tool",
+      "shipping": {
+        "delivery_days_max": 10,
+        "delivery_days_min": 2,
+        "free_probability": "0.45",
+        "maximum": "300",
+        "maximum_price_ratio": "0.50",
+        "minimum": "0"
+      }
+    },
+    {
+      "card_id": "tools.accessory",
+      "category_aliases": [
+        "tools / accessory",
+        "\u5de5\u5177\u914d\u4ef6"
+      ],
+      "entity_kind": "ACCESSORY",
+      "inventory": {
+        "in_stock_probability": "0.98",
+        "out_of_stock_probability": "0.02"
+      },
+      "name": "Accessory",
+      "negative_keywords": [],
+      "parent_id": "tools",
+      "positive_keywords": [
+        "accessory"
+      ],
+      "pricing": {
+        "hard_max": "3000",
+        "hard_min": "3",
+        "p50": "80"
+      },
+      "prototype_text": "tools accessory",
+      "shipping": {
+        "delivery_days_max": 10,
+        "delivery_days_min": 2,
+        "free_probability": "0.45",
+        "maximum": "100",
+        "maximum_price_ratio": "0.50",
+        "minimum": "0"
+      }
+    },
+    {
+      "card_id": "industrial.safety-supply",
+      "category_aliases": [
+        "industrial / safety supply",
+        "\u5de5\u4e1a\u5b89\u5168\u7528\u54c1",
+        "\u52b3\u4fdd\u7528\u54c1"
+      ],
+      "entity_kind": "PRIMARY_PRODUCT",
+      "inventory": {
+        "in_stock_probability": "0.98",
+        "out_of_stock_probability": "0.02"
+      },
+      "name": "Safety Supply",
+      "negative_keywords": [],
+      "parent_id": "industrial",
+      "positive_keywords": [
+        "safety",
+        "supply"
+      ],
+      "pricing": {
+        "hard_max": "10000",
+        "hard_min": "5",
+        "p50": "150"
+      },
+      "prototype_text": "industrial safety supply",
+      "shipping": {
+        "delivery_days_max": 10,
+        "delivery_days_min": 2,
+        "free_probability": "0.45",
+        "maximum": "300",
+        "maximum_price_ratio": "0.50",
+        "minimum": "0"
+      }
+    },
+    {
+      "card_id": "industrial.material-handling",
+      "category_aliases": [
+        "industrial / material handling",
+        "\u7269\u6599\u642c\u8fd0\u8bbe\u5907"
+      ],
+      "entity_kind": "PRIMARY_PRODUCT",
+      "inventory": {
+        "in_stock_probability": "0.98",
+        "out_of_stock_probability": "0.02"
+      },
+      "name": "Material Handling",
+      "negative_keywords": [],
+      "parent_id": "industrial",
+      "positive_keywords": [
+        "material",
+        "handling"
+      ],
+      "pricing": {
+        "hard_max": "80000",
+        "hard_min": "50",
+        "p50": "1000"
+      },
+      "prototype_text": "industrial material handling",
+      "shipping": {
+        "delivery_days_max": 10,
+        "delivery_days_min": 2,
+        "free_probability": "0.45",
+        "maximum": "300",
+        "maximum_price_ratio": "0.50",
+        "minimum": "0"
+      }
+    },
+    {
+      "card_id": "industrial.component",
+      "category_aliases": [
+        "industrial / component",
+        "\u5de5\u4e1a\u96f6\u90e8\u4ef6"
+      ],
+      "entity_kind": "REPLACEMENT_PART",
+      "inventory": {
+        "in_stock_probability": "0.98",
+        "out_of_stock_probability": "0.02"
+      },
+      "name": "Component",
+      "negative_keywords": [],
+      "parent_id": "industrial",
+      "positive_keywords": [
+        "component"
+      ],
+      "pricing": {
+        "hard_max": "30000",
+        "hard_min": "5",
+        "p50": "200"
+      },
+      "prototype_text": "industrial component",
+      "shipping": {
+        "delivery_days_max": 10,
+        "delivery_days_min": 2,
+        "free_probability": "0.45",
+        "maximum": "300",
+        "maximum_price_ratio": "0.50",
+        "minimum": "0"
+      }
+    },
+    {
+      "card_id": "books.book",
+      "category_aliases": [
+        "books / book",
+        "\u56fe\u4e66",
+        "\u4e66\u7c4d"
+      ],
+      "entity_kind": "PRIMARY_PRODUCT",
+      "inventory": {
+        "in_stock_probability": "0.98",
+        "out_of_stock_probability": "0.02"
+      },
+      "name": "Book",
+      "negative_keywords": [],
+      "parent_id": "books",
+      "positive_keywords": [
+        "book"
+      ],
+      "pricing": {
+        "hard_max": "1000",
+        "hard_min": "5",
+        "p50": "60"
+      },
+      "prototype_text": "books book",
+      "shipping": {
+        "delivery_days_max": 10,
+        "delivery_days_min": 2,
+        "free_probability": "0.45",
+        "maximum": "33",
+        "maximum_price_ratio": "0.50",
+        "minimum": "0"
+      }
+    },
+    {
+      "card_id": "media.music-recording",
+      "category_aliases": [
+        "media / music recording",
+        "\u97f3\u4e50\u5531\u7247",
+        "\u97f3\u4e50\u5f55\u97f3"
+      ],
+      "entity_kind": "PRIMARY_PRODUCT",
+      "inventory": {
+        "in_stock_probability": "0.98",
+        "out_of_stock_probability": "0.02"
+      },
+      "name": "Music Recording",
+      "negative_keywords": [],
+      "parent_id": "media",
+      "positive_keywords": [
+        "music",
+        "recording"
+      ],
+      "pricing": {
+        "hard_max": "3000",
+        "hard_min": "5",
+        "p50": "80"
+      },
+      "prototype_text": "media music recording",
+      "shipping": {
+        "delivery_days_max": 10,
+        "delivery_days_min": 2,
+        "free_probability": "0.45",
+        "maximum": "100",
+        "maximum_price_ratio": "0.50",
+        "minimum": "0"
+      }
+    },
+    {
+      "card_id": "media.movie-video",
+      "category_aliases": [
+        "media / movie video",
+        "\u7535\u5f71\u5f71\u789f",
+        "\u5f71\u89c6\u89c6\u9891"
+      ],
+      "entity_kind": "PRIMARY_PRODUCT",
+      "inventory": {
+        "in_stock_probability": "0.98",
+        "out_of_stock_probability": "0.02"
+      },
+      "name": "Movie Video",
+      "negative_keywords": [],
+      "parent_id": "media",
+      "positive_keywords": [
+        "movie",
+        "video"
+      ],
+      "pricing": {
+        "hard_max": "1500",
+        "hard_min": "5",
+        "p50": "60"
+      },
+      "prototype_text": "media movie video",
+      "shipping": {
+        "delivery_days_max": 10,
+        "delivery_days_min": 2,
+        "free_probability": "0.45",
+        "maximum": "50",
+        "maximum_price_ratio": "0.50",
+        "minimum": "0"
+      }
+    },
+    {
+      "card_id": "media.video-game",
+      "category_aliases": [
+        "media / video game",
+        "\u7535\u5b50\u6e38\u620f",
+        "\u6e38\u620f\u8f6f\u4ef6"
+      ],
+      "entity_kind": "PRIMARY_PRODUCT",
+      "inventory": {
+        "in_stock_probability": "0.98",
+        "out_of_stock_probability": "0.02"
+      },
+      "name": "Video Game",
+      "negative_keywords": [],
+      "parent_id": "media",
+      "positive_keywords": [
+        "video",
+        "game"
+      ],
+      "pricing": {
+        "hard_max": "1200",
+        "hard_min": "20",
+        "p50": "300"
+      },
+      "prototype_text": "media video game",
+      "shipping": {
+        "delivery_days_max": 10,
+        "delivery_days_min": 2,
+        "free_probability": "0.45",
+        "maximum": "40",
+        "maximum_price_ratio": "0.50",
+        "minimum": "0"
+      }
+    },
+    {
+      "card_id": "office.stationery",
+      "category_aliases": [
+        "office / stationery",
+        "\u6587\u5177",
+        "\u529e\u516c\u6587\u5177"
+      ],
+      "entity_kind": "PRIMARY_PRODUCT",
+      "inventory": {
+        "in_stock_probability": "0.98",
+        "out_of_stock_probability": "0.02"
+      },
+      "name": "Stationery",
+      "negative_keywords": [],
+      "parent_id": "office",
+      "positive_keywords": [
+        "stationery"
+      ],
+      "pricing": {
+        "hard_max": "800",
+        "hard_min": "2",
+        "p50": "30"
+      },
+      "prototype_text": "office stationery",
+      "shipping": {
+        "delivery_days_max": 10,
+        "delivery_days_min": 2,
+        "free_probability": "0.45",
+        "maximum": "26",
+        "maximum_price_ratio": "0.50",
+        "minimum": "0"
+      }
+    },
+    {
+      "card_id": "office.electronics",
+      "category_aliases": [
+        "office / electronics",
+        "\u529e\u516c\u7535\u5b50\u8bbe\u5907"
+      ],
+      "entity_kind": "PRIMARY_PRODUCT",
+      "inventory": {
+        "in_stock_probability": "0.98",
+        "out_of_stock_probability": "0.02"
+      },
+      "name": "Electronics",
+      "negative_keywords": [],
+      "parent_id": "office",
+      "positive_keywords": [
+        "electronics"
+      ],
+      "pricing": {
+        "hard_max": "10000",
+        "hard_min": "20",
+        "p50": "400"
+      },
+      "prototype_text": "office electronics",
+      "shipping": {
+        "delivery_days_max": 10,
+        "delivery_days_min": 2,
+        "free_probability": "0.45",
+        "maximum": "300",
+        "maximum_price_ratio": "0.50",
+        "minimum": "0"
+      }
+    },
+    {
+      "card_id": "office.art-supply",
+      "category_aliases": [
+        "office / art supply",
+        "\u7f8e\u672f\u7528\u54c1",
+        "\u753b\u6750"
+      ],
+      "entity_kind": "PRIMARY_PRODUCT",
+      "inventory": {
+        "in_stock_probability": "0.98",
+        "out_of_stock_probability": "0.02"
+      },
+      "name": "Art Supply",
+      "negative_keywords": [],
+      "parent_id": "office",
+      "positive_keywords": [
+        "art",
+        "supply"
+      ],
+      "pricing": {
+        "hard_max": "3000",
+        "hard_min": "3",
+        "p50": "80"
+      },
+      "prototype_text": "office art supply",
+      "shipping": {
+        "delivery_days_max": 10,
+        "delivery_days_min": 2,
+        "free_probability": "0.45",
+        "maximum": "100",
+        "maximum_price_ratio": "0.50",
+        "minimum": "0"
+      }
+    },
+    {
+      "card_id": "office.school-supply",
+      "category_aliases": [
+        "office / school supply",
+        "\u5b66\u4e60\u7528\u54c1",
+        "\u5b66\u6821\u7528\u54c1"
+      ],
+      "entity_kind": "PRIMARY_PRODUCT",
+      "inventory": {
+        "in_stock_probability": "0.98",
+        "out_of_stock_probability": "0.02"
+      },
+      "name": "School Supply",
+      "negative_keywords": [],
+      "parent_id": "office",
+      "positive_keywords": [
+        "school",
+        "supply"
+      ],
+      "pricing": {
+        "hard_max": "1500",
+        "hard_min": "2",
+        "p50": "50"
+      },
+      "prototype_text": "office school supply",
+      "shipping": {
+        "delivery_days_max": 10,
+        "delivery_days_min": 2,
+        "free_probability": "0.45",
+        "maximum": "50",
+        "maximum_price_ratio": "0.50",
+        "minimum": "0"
+      }
+    },
+    {
+      "card_id": "toys.figure-doll",
+      "category_aliases": [
+        "toys / figure doll",
+        "\u73a9\u5076",
+        "\u516c\u4ed4"
+      ],
+      "entity_kind": "PRIMARY_PRODUCT",
+      "inventory": {
+        "in_stock_probability": "0.98",
+        "out_of_stock_probability": "0.02"
+      },
+      "name": "Figure Doll",
+      "negative_keywords": [],
+      "parent_id": "toys",
+      "positive_keywords": [
+        "figure",
+        "doll"
+      ],
+      "pricing": {
+        "hard_max": "5000",
+        "hard_min": "5",
+        "p50": "100"
+      },
+      "prototype_text": "toys figure doll",
+      "shipping": {
+        "delivery_days_max": 10,
+        "delivery_days_min": 2,
+        "free_probability": "0.45",
+        "maximum": "166",
+        "maximum_price_ratio": "0.50",
+        "minimum": "0"
+      }
+    },
+    {
+      "card_id": "toys.building-set",
+      "category_aliases": [
+        "toys / building set",
+        "\u79ef\u6728",
+        "\u62fc\u88c5\u73a9\u5177"
+      ],
+      "entity_kind": "PRIMARY_PRODUCT",
+      "inventory": {
+        "in_stock_probability": "0.98",
+        "out_of_stock_probability": "0.02"
+      },
+      "name": "Building Set",
+      "negative_keywords": [],
+      "parent_id": "toys",
+      "positive_keywords": [
+        "building",
+        "set"
+      ],
+      "pricing": {
+        "hard_max": "8000",
+        "hard_min": "10",
+        "p50": "200"
+      },
+      "prototype_text": "toys building set",
+      "shipping": {
+        "delivery_days_max": 10,
+        "delivery_days_min": 2,
+        "free_probability": "0.45",
+        "maximum": "266",
+        "maximum_price_ratio": "0.50",
+        "minimum": "0"
+      }
+    },
+    {
+      "card_id": "toys.game-puzzle",
+      "category_aliases": [
+        "toys / game puzzle",
+        "\u684c\u6e38\u62fc\u56fe",
+        "\u76ca\u667a\u6e38\u620f"
+      ],
+      "entity_kind": "PRIMARY_PRODUCT",
+      "inventory": {
+        "in_stock_probability": "0.98",
+        "out_of_stock_probability": "0.02"
+      },
+      "name": "Game Puzzle",
+      "negative_keywords": [],
+      "parent_id": "toys",
+      "positive_keywords": [
+        "game",
+        "puzzle"
+      ],
+      "pricing": {
+        "hard_max": "1500",
+        "hard_min": "5",
+        "p50": "80"
+      },
+      "prototype_text": "toys game puzzle",
+      "shipping": {
+        "delivery_days_max": 10,
+        "delivery_days_min": 2,
+        "free_probability": "0.45",
+        "maximum": "50",
+        "maximum_price_ratio": "0.50",
+        "minimum": "0"
+      }
+    },
+    {
+      "card_id": "toys.outdoor-toy",
+      "category_aliases": [
+        "toys / outdoor toy",
+        "\u6237\u5916\u73a9\u5177"
+      ],
+      "entity_kind": "PRIMARY_PRODUCT",
+      "inventory": {
+        "in_stock_probability": "0.98",
+        "out_of_stock_probability": "0.02"
+      },
+      "name": "Outdoor Toy",
+      "negative_keywords": [],
+      "parent_id": "toys",
+      "positive_keywords": [
+        "outdoor",
+        "toy"
+      ],
+      "pricing": {
+        "hard_max": "5000",
+        "hard_min": "10",
+        "p50": "180"
+      },
+      "prototype_text": "toys outdoor toy",
+      "shipping": {
+        "delivery_days_max": 10,
+        "delivery_days_min": 2,
+        "free_probability": "0.45",
+        "maximum": "166",
+        "maximum_price_ratio": "0.50",
+        "minimum": "0"
+      }
+    },
+    {
+      "card_id": "baby.diaper",
+      "category_aliases": [
+        "baby / diaper",
+        "\u7eb8\u5c3f\u88e4",
+        "\u5c3f\u4e0d\u6e7f"
+      ],
+      "entity_kind": "PRIMARY_PRODUCT",
+      "inventory": {
+        "in_stock_probability": "0.98",
+        "out_of_stock_probability": "0.02"
+      },
+      "name": "Diaper",
+      "negative_keywords": [],
+      "parent_id": "baby",
+      "positive_keywords": [
+        "diaper"
+      ],
+      "pricing": {
+        "hard_max": "1000",
+        "hard_min": "20",
+        "p50": "120"
+      },
+      "prototype_text": "baby diaper",
+      "shipping": {
+        "delivery_days_max": 10,
+        "delivery_days_min": 2,
+        "free_probability": "0.45",
+        "maximum": "33",
+        "maximum_price_ratio": "0.50",
+        "minimum": "0"
+      }
+    },
+    {
+      "card_id": "baby.feeding",
+      "category_aliases": [
+        "baby / feeding",
+        "\u5a74\u513f\u5582\u517b\u7528\u54c1"
+      ],
+      "entity_kind": "PRIMARY_PRODUCT",
+      "inventory": {
+        "in_stock_probability": "0.98",
+        "out_of_stock_probability": "0.02"
+      },
+      "name": "Feeding",
+      "negative_keywords": [],
+      "parent_id": "baby",
+      "positive_keywords": [
+        "feeding"
+      ],
+      "pricing": {
+        "hard_max": "3000",
+        "hard_min": "5",
+        "p50": "100"
+      },
+      "prototype_text": "baby feeding",
+      "shipping": {
+        "delivery_days_max": 10,
+        "delivery_days_min": 2,
+        "free_probability": "0.45",
+        "maximum": "100",
+        "maximum_price_ratio": "0.50",
+        "minimum": "0"
+      }
+    },
+    {
+      "card_id": "baby.gear",
+      "category_aliases": [
+        "baby / gear",
+        "\u5a74\u513f\u7528\u54c1",
+        "\u6bcd\u5a74\u88c5\u5907"
+      ],
+      "entity_kind": "PRIMARY_PRODUCT",
+      "inventory": {
+        "in_stock_probability": "0.98",
+        "out_of_stock_probability": "0.02"
+      },
+      "name": "Gear",
+      "negative_keywords": [],
+      "parent_id": "baby",
+      "positive_keywords": [
+        "gear"
+      ],
+      "pricing": {
+        "hard_max": "15000",
+        "hard_min": "30",
+        "p50": "800"
+      },
+      "prototype_text": "baby gear",
+      "shipping": {
+        "delivery_days_max": 10,
+        "delivery_days_min": 2,
+        "free_probability": "0.45",
+        "maximum": "300",
+        "maximum_price_ratio": "0.50",
+        "minimum": "0"
+      }
+    },
+    {
+      "card_id": "pets.food",
+      "category_aliases": [
+        "pets / food",
+        "\u5ba0\u7269\u98df\u54c1",
+        "\u5ba0\u7269\u7cae"
+      ],
+      "entity_kind": "PRIMARY_PRODUCT",
+      "inventory": {
+        "in_stock_probability": "0.98",
+        "out_of_stock_probability": "0.02"
+      },
+      "name": "Food",
+      "negative_keywords": [],
+      "parent_id": "pets",
+      "positive_keywords": [
+        "food"
+      ],
+      "pricing": {
+        "hard_max": "2000",
+        "hard_min": "5",
+        "p50": "100"
+      },
+      "prototype_text": "pets food",
+      "shipping": {
+        "delivery_days_max": 10,
+        "delivery_days_min": 2,
+        "free_probability": "0.45",
+        "maximum": "66",
+        "maximum_price_ratio": "0.50",
+        "minimum": "0"
+      }
+    },
+    {
+      "card_id": "pets.litter-supply",
+      "category_aliases": [
+        "pets / litter supply",
+        "\u732b\u7802\u7528\u54c1",
+        "\u5ba0\u7269\u6e05\u6d01\u7528\u54c1"
+      ],
+      "entity_kind": "PRIMARY_PRODUCT",
+      "inventory": {
+        "in_stock_probability": "0.98",
+        "out_of_stock_probability": "0.02"
+      },
+      "name": "Litter Supply",
+      "negative_keywords": [],
+      "parent_id": "pets",
+      "positive_keywords": [
+        "litter",
+        "supply"
+      ],
+      "pricing": {
+        "hard_max": "1000",
+        "hard_min": "5",
+        "p50": "80"
+      },
+      "prototype_text": "pets litter supply",
+      "shipping": {
+        "delivery_days_max": 10,
+        "delivery_days_min": 2,
+        "free_probability": "0.45",
+        "maximum": "33",
+        "maximum_price_ratio": "0.50",
+        "minimum": "0"
+      }
+    },
+    {
+      "card_id": "pets.accessory",
+      "category_aliases": [
+        "pets / accessory",
+        "\u5ba0\u7269\u7528\u54c1",
+        "\u5ba0\u7269\u914d\u4ef6"
+      ],
+      "entity_kind": "ACCESSORY",
+      "inventory": {
+        "in_stock_probability": "0.98",
+        "out_of_stock_probability": "0.02"
+      },
+      "name": "Accessory",
+      "negative_keywords": [],
+      "parent_id": "pets",
+      "positive_keywords": [
+        "accessory"
+      ],
+      "pricing": {
+        "hard_max": "3000",
+        "hard_min": "3",
+        "p50": "80"
+      },
+      "prototype_text": "pets accessory",
+      "shipping": {
+        "delivery_days_max": 10,
+        "delivery_days_min": 2,
+        "free_probability": "0.45",
+        "maximum": "100",
+        "maximum_price_ratio": "0.50",
+        "minimum": "0"
+      }
+    },
+    {
+      "card_id": "grocery.snack",
+      "category_aliases": [
+        "grocery / snack",
+        "\u96f6\u98df",
+        "\u4f11\u95f2\u98df\u54c1"
+      ],
+      "entity_kind": "PRIMARY_PRODUCT",
+      "inventory": {
+        "in_stock_probability": "0.98",
+        "out_of_stock_probability": "0.02"
+      },
+      "name": "Snack",
+      "negative_keywords": [],
+      "parent_id": "grocery",
+      "positive_keywords": [
+        "snack"
+      ],
+      "pricing": {
+        "hard_max": "300",
+        "hard_min": "1",
+        "p50": "25"
+      },
+      "prototype_text": "grocery snack",
+      "shipping": {
+        "delivery_days_max": 7,
+        "delivery_days_min": 2,
+        "free_probability": "0.45",
+        "maximum": "15",
+        "maximum_price_ratio": "0.50",
+        "minimum": "0"
+      }
+    },
+    {
+      "card_id": "grocery.beverage",
+      "category_aliases": [
+        "grocery / beverage",
+        "\u996e\u6599",
+        "\u996e\u54c1"
+      ],
+      "entity_kind": "PRIMARY_PRODUCT",
+      "inventory": {
+        "in_stock_probability": "0.98",
+        "out_of_stock_probability": "0.02"
+      },
+      "name": "Beverage",
+      "negative_keywords": [],
+      "parent_id": "grocery",
+      "positive_keywords": [
+        "beverage"
+      ],
+      "pricing": {
+        "hard_max": "500",
+        "hard_min": "1",
+        "p50": "20"
+      },
+      "prototype_text": "grocery beverage",
+      "shipping": {
+        "delivery_days_max": 7,
+        "delivery_days_min": 2,
+        "free_probability": "0.45",
+        "maximum": "25",
+        "maximum_price_ratio": "0.50",
+        "minimum": "0"
+      }
+    },
+    {
+      "card_id": "grocery.pantry",
+      "category_aliases": [
+        "grocery / pantry",
+        "\u53a8\u623f\u98df\u54c1",
+        "\u7cae\u6cb9\u8c03\u5473"
+      ],
+      "entity_kind": "PRIMARY_PRODUCT",
+      "inventory": {
+        "in_stock_probability": "0.98",
+        "out_of_stock_probability": "0.02"
+      },
+      "name": "Pantry",
+      "negative_keywords": [],
+      "parent_id": "grocery",
+      "positive_keywords": [
+        "pantry"
+      ],
+      "pricing": {
+        "hard_max": "800",
+        "hard_min": "1",
+        "p50": "30"
+      },
+      "prototype_text": "grocery pantry",
+      "shipping": {
+        "delivery_days_max": 7,
+        "delivery_days_min": 2,
+        "free_probability": "0.45",
+        "maximum": "40",
+        "maximum_price_ratio": "0.50",
+        "minimum": "0"
+      }
+    },
+    {
+      "card_id": "grocery.fresh",
+      "category_aliases": [
+        "grocery / fresh",
+        "\u751f\u9c9c",
+        "\u65b0\u9c9c\u98df\u54c1"
+      ],
+      "entity_kind": "PRIMARY_PRODUCT",
+      "inventory": {
+        "in_stock_probability": "0.98",
+        "out_of_stock_probability": "0.02"
+      },
+      "name": "Fresh",
+      "negative_keywords": [],
+      "parent_id": "grocery",
+      "positive_keywords": [
+        "fresh"
+      ],
+      "pricing": {
+        "hard_max": "1000",
+        "hard_min": "1",
+        "p50": "40"
+      },
+      "prototype_text": "grocery fresh",
+      "shipping": {
+        "delivery_days_max": 7,
+        "delivery_days_min": 2,
+        "free_probability": "0.45",
+        "maximum": "50",
+        "maximum_price_ratio": "0.50",
+        "minimum": "0"
+      }
+    },
+    {
+      "card_id": "grocery.frozen",
+      "category_aliases": [
+        "grocery / frozen",
+        "\u51b7\u51bb\u98df\u54c1",
+        "\u901f\u51bb\u98df\u54c1"
+      ],
+      "entity_kind": "PRIMARY_PRODUCT",
+      "inventory": {
+        "in_stock_probability": "0.98",
+        "out_of_stock_probability": "0.02"
+      },
+      "name": "Frozen",
+      "negative_keywords": [],
+      "parent_id": "grocery",
+      "positive_keywords": [
+        "frozen"
+      ],
+      "pricing": {
+        "hard_max": "1000",
+        "hard_min": "5",
+        "p50": "60"
+      },
+      "prototype_text": "grocery frozen",
+      "shipping": {
+        "delivery_days_max": 7,
+        "delivery_days_min": 2,
+        "free_probability": "0.45",
+        "maximum": "50",
+        "maximum_price_ratio": "0.50",
+        "minimum": "0"
+      }
+    },
+    {
+      "card_id": "grocery.household-consumable",
+      "category_aliases": [
+        "grocery / household consumable",
+        "\u5bb6\u5ead\u6d88\u8017\u54c1",
+        "\u65e5\u7528\u6d88\u8017\u54c1"
+      ],
+      "entity_kind": "PRIMARY_PRODUCT",
+      "inventory": {
+        "in_stock_probability": "0.98",
+        "out_of_stock_probability": "0.02"
+      },
+      "name": "Household Consumable",
+      "negative_keywords": [],
+      "parent_id": "grocery",
+      "positive_keywords": [
+        "household",
+        "consumable"
+      ],
+      "pricing": {
+        "hard_max": "800",
+        "hard_min": "3",
+        "p50": "50"
+      },
+      "prototype_text": "grocery household consumable",
+      "shipping": {
+        "delivery_days_max": 7,
+        "delivery_days_min": 2,
+        "free_probability": "0.45",
+        "maximum": "40",
+        "maximum_price_ratio": "0.50",
+        "minimum": "0"
+      }
+    },
+    {
+      "card_id": "jewelry.fine",
+      "category_aliases": [
+        "jewelry / fine",
+        "\u8d35\u91cd\u73e0\u5b9d",
+        "\u9ad8\u7ea7\u73e0\u5b9d"
+      ],
+      "entity_kind": "PRIMARY_PRODUCT",
+      "inventory": {
+        "in_stock_probability": "0.95",
+        "out_of_stock_probability": "0.05"
+      },
+      "name": "Fine",
+      "negative_keywords": [],
+      "parent_id": "jewelry",
+      "positive_keywords": [
+        "fine"
+      ],
+      "pricing": {
+        "hard_max": "200000",
+        "hard_min": "100",
+        "p50": "3000"
+      },
+      "prototype_text": "jewelry fine",
+      "shipping": {
+        "delivery_days_max": 10,
+        "delivery_days_min": 2,
+        "free_probability": "0.45",
+        "maximum": "300",
+        "maximum_price_ratio": "0.50",
+        "minimum": "0"
+      }
+    },
+    {
+      "card_id": "jewelry.fashion",
+      "category_aliases": [
+        "jewelry / fashion",
+        "\u65f6\u5c1a\u9996\u9970",
+        "\u9970\u54c1"
+      ],
+      "entity_kind": "PRIMARY_PRODUCT",
+      "inventory": {
+        "in_stock_probability": "0.98",
+        "out_of_stock_probability": "0.02"
+      },
+      "name": "Fashion",
+      "negative_keywords": [],
+      "parent_id": "jewelry",
+      "positive_keywords": [
+        "fashion"
+      ],
+      "pricing": {
+        "hard_max": "5000",
+        "hard_min": "5",
+        "p50": "100"
+      },
+      "prototype_text": "jewelry fashion",
+      "shipping": {
+        "delivery_days_max": 10,
+        "delivery_days_min": 2,
+        "free_probability": "0.45",
+        "maximum": "166",
+        "maximum_price_ratio": "0.50",
+        "minimum": "0"
+      }
+    },
+    {
+      "card_id": "jewelry.watch",
+      "category_aliases": [
+        "jewelry / watch",
+        "\u624b\u8868",
+        "\u8155\u8868"
+      ],
+      "entity_kind": "PRIMARY_PRODUCT",
+      "inventory": {
+        "in_stock_probability": "0.95",
+        "out_of_stock_probability": "0.05"
+      },
+      "name": "Watch",
+      "negative_keywords": [],
+      "parent_id": "jewelry",
+      "positive_keywords": [
+        "watch"
+      ],
+      "pricing": {
+        "hard_max": "300000",
+        "hard_min": "30",
+        "p50": "800"
+      },
+      "prototype_text": "jewelry watch",
+      "shipping": {
+        "delivery_days_max": 10,
+        "delivery_days_min": 2,
+        "free_probability": "0.45",
+        "maximum": "300",
+        "maximum_price_ratio": "0.50",
+        "minimum": "0"
+      }
+    },
+    {
+      "card_id": "luggage.suitcase",
+      "category_aliases": [
+        "luggage / suitcase",
+        "\u884c\u674e\u7bb1",
+        "\u65c5\u884c\u7bb1"
+      ],
+      "entity_kind": "PRIMARY_PRODUCT",
+      "inventory": {
+        "in_stock_probability": "0.98",
+        "out_of_stock_probability": "0.02"
+      },
+      "name": "Suitcase",
+      "negative_keywords": [],
+      "parent_id": "luggage",
+      "positive_keywords": [
+        "suitcase"
+      ],
+      "pricing": {
+        "hard_max": "12000",
+        "hard_min": "80",
+        "p50": "600"
+      },
+      "prototype_text": "luggage suitcase",
+      "shipping": {
+        "delivery_days_max": 10,
+        "delivery_days_min": 2,
+        "free_probability": "0.45",
+        "maximum": "300",
+        "maximum_price_ratio": "0.50",
+        "minimum": "0"
+      }
+    },
+    {
+      "card_id": "luggage.bag",
+      "category_aliases": [
+        "luggage / bag",
+        "\u7bb1\u5305",
+        "\u80cc\u5305"
+      ],
+      "entity_kind": "PRIMARY_PRODUCT",
+      "inventory": {
+        "in_stock_probability": "0.98",
+        "out_of_stock_probability": "0.02"
+      },
+      "name": "Bag",
+      "negative_keywords": [],
+      "parent_id": "luggage",
+      "positive_keywords": [
+        "bag"
+      ],
+      "pricing": {
+        "hard_max": "30000",
+        "hard_min": "20",
+        "p50": "300"
+      },
+      "prototype_text": "luggage bag",
+      "shipping": {
+        "delivery_days_max": 10,
+        "delivery_days_min": 2,
+        "free_probability": "0.45",
+        "maximum": "300",
+        "maximum_price_ratio": "0.50",
+        "minimum": "0"
+      }
+    },
+    {
+      "card_id": "luggage.travel-accessory",
+      "category_aliases": [
+        "luggage / travel accessory",
+        "\u65c5\u884c\u914d\u4ef6",
+        "\u65c5\u884c\u6536\u7eb3"
+      ],
+      "entity_kind": "ACCESSORY",
+      "inventory": {
+        "in_stock_probability": "0.98",
+        "out_of_stock_probability": "0.02"
+      },
+      "name": "Travel Accessory",
+      "negative_keywords": [],
+      "parent_id": "luggage",
+      "positive_keywords": [
+        "travel",
+        "accessory"
+      ],
+      "pricing": {
+        "hard_max": "2000",
+        "hard_min": "5",
+        "p50": "80"
+      },
+      "prototype_text": "luggage travel accessory",
+      "shipping": {
+        "delivery_days_max": 10,
+        "delivery_days_min": 2,
+        "free_probability": "0.45",
+        "maximum": "66",
+        "maximum_price_ratio": "0.50",
+        "minimum": "0"
+      }
+    },
+    {
+      "card_id": "musical-instruments.string",
+      "category_aliases": [
+        "musical instruments / string",
+        "\u5f26\u4e50\u5668",
+        "\u5409\u4ed6"
+      ],
+      "entity_kind": "PRIMARY_PRODUCT",
+      "inventory": {
+        "in_stock_probability": "0.98",
+        "out_of_stock_probability": "0.02"
+      },
+      "name": "String",
+      "negative_keywords": [],
+      "parent_id": "musical-instruments",
+      "positive_keywords": [
+        "string"
+      ],
+      "pricing": {
+        "hard_max": "100000",
+        "hard_min": "100",
+        "p50": "1500"
+      },
+      "prototype_text": "musical instruments string",
+      "shipping": {
+        "delivery_days_max": 10,
+        "delivery_days_min": 2,
+        "free_probability": "0.45",
+        "maximum": "300",
+        "maximum_price_ratio": "0.50",
+        "minimum": "0"
+      }
+    },
+    {
+      "card_id": "musical-instruments.keyboard",
+      "category_aliases": [
+        "musical instruments / keyboard",
+        "\u952e\u76d8\u4e50\u5668",
+        "\u7535\u5b50\u7434"
+      ],
+      "entity_kind": "PRIMARY_PRODUCT",
+      "inventory": {
+        "in_stock_probability": "0.98",
+        "out_of_stock_probability": "0.02"
+      },
+      "name": "Keyboard",
+      "negative_keywords": [],
+      "parent_id": "musical-instruments",
+      "positive_keywords": [
+        "keyboard"
+      ],
+      "pricing": {
+        "hard_max": "80000",
+        "hard_min": "200",
+        "p50": "2000"
+      },
+      "prototype_text": "musical instruments keyboard",
+      "shipping": {
+        "delivery_days_max": 10,
+        "delivery_days_min": 2,
+        "free_probability": "0.45",
+        "maximum": "300",
+        "maximum_price_ratio": "0.50",
+        "minimum": "0"
+      }
+    },
+    {
+      "card_id": "musical-instruments.percussion",
+      "category_aliases": [
+        "musical instruments / percussion",
+        "\u6253\u51fb\u4e50\u5668",
+        "\u67b6\u5b50\u9f13"
+      ],
+      "entity_kind": "PRIMARY_PRODUCT",
+      "inventory": {
+        "in_stock_probability": "0.98",
+        "out_of_stock_probability": "0.02"
+      },
+      "name": "Percussion",
+      "negative_keywords": [],
+      "parent_id": "musical-instruments",
+      "positive_keywords": [
+        "percussion"
+      ],
+      "pricing": {
+        "hard_max": "100000",
+        "hard_min": "30",
+        "p50": "800"
+      },
+      "prototype_text": "musical instruments percussion",
+      "shipping": {
+        "delivery_days_max": 10,
+        "delivery_days_min": 2,
+        "free_probability": "0.45",
+        "maximum": "300",
+        "maximum_price_ratio": "0.50",
+        "minimum": "0"
+      }
+    },
+    {
+      "card_id": "general.general-merchandise",
+      "category_aliases": [
+        "general / general merchandise",
+        "\u4e00\u822c\u5546\u54c1",
+        "\u7efc\u5408\u767e\u8d27"
+      ],
+      "entity_kind": "PRIMARY_PRODUCT",
+      "inventory": {
+        "in_stock_probability": "0.98",
+        "out_of_stock_probability": "0.02"
+      },
+      "name": "General Merchandise",
+      "negative_keywords": [],
+      "parent_id": "general",
+      "positive_keywords": [
+        "general",
+        "merchandise"
+      ],
+      "pricing": {
+        "hard_max": "5000",
+        "hard_min": "1",
+        "p50": "100"
+      },
+      "prototype_text": "general general merchandise",
+      "shipping": {
+        "delivery_days_max": 10,
+        "delivery_days_min": 2,
+        "free_probability": "0.45",
+        "maximum": "166",
+        "maximum_price_ratio": "0.50",
+        "minimum": "0"
+      }
+    }
+  ],
+  "ruleset_version": "semantic-category-clean-v4",
+  "schema_version": "glodex.category-cards.v2"
+}

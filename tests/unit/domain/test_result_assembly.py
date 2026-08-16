@@ -207,7 +207,10 @@ def _pipeline(*, count: int = 2, budget: bool = True) -> _Pipeline:
         *(
             (
                 BudgetMax(
-                    amount=Decimal("800"),
+                    mode="maximum",
+                    target_amount=Decimal("800"),
+                    lower_bound=None,
+                    upper_bound=Decimal("800"),
                     currency="USD",
                     source_span=_source_span(query, "预算800美元"),
                 ),
@@ -235,7 +238,10 @@ def _pipeline(*, count: int = 2, budget: bool = True) -> _Pipeline:
                 offer.cost_components,
                 rates,
                 display_currency="USD",
-                budget_max=Decimal("800") if budget else None,
+                budget_mode="maximum" if budget else None,
+                budget_target_amount=Decimal("800") if budget else None,
+                budget_lower_bound=None,
+                budget_upper_bound=Decimal("800") if budget else None,
                 budget_currency="USD" if budget else None,
             ),
         )

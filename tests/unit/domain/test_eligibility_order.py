@@ -73,7 +73,10 @@ def _request_with_preference(value: str) -> InterpretedRequest:
                 source_span=SourceSpan(start=0, end=3, text="笔记本"),
             ),
             BudgetMax(
-                amount=Decimal("1000"),
+                mode="maximum",
+                target_amount=Decimal("1000"),
+                lower_bound=None,
+                upper_bound=Decimal("1000"),
                 currency="CNY",
                 source_span=SourceSpan(start=4, end=12, text="预算1000元"),
             ),
@@ -109,7 +112,7 @@ def _offer_reasons(
     budget = next(
         constraint for constraint in context.required if isinstance(constraint, BudgetMax)
     )
-    if gate is OfferGateId.BUDGET and candidate.exact_cost > budget.amount:
+    if gate is OfferGateId.BUDGET and candidate.exact_cost > budget.upper_bound:
         return ("over_budget",)
     return ()
 

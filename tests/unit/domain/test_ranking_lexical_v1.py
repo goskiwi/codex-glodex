@@ -4,7 +4,6 @@ from dataclasses import replace
 
 import pytest
 
-from glodex.adapters.deterministic_ranker import DeterministicQueryRanker
 from glodex.domain.catalog import CanonicalAttribute
 from glodex.domain.intent import PreferredCriterion, SourceSpan
 from glodex.domain.ranking import (
@@ -13,6 +12,7 @@ from glodex.domain.ranking import (
     lexical_tokens,
     score_eligible_product,
 )
+from glodex.retrieval.deterministic_ranker import DeterministicQueryRanker
 from tests.unit.domain.test_eligibility_pipeline import _assemble, _offer, _product
 
 pytestmark = [

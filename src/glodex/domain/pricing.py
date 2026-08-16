@@ -30,6 +30,7 @@ _PRICING_EMIN: Final = -999_999
 _PRICING_EMAX: Final = 999_999
 
 type CostComponentName = Literal["item_price", "shipping", "tax", "duty"]
+type BudgetMode = Literal["maximum", "around", "range"]
 _COST_COMPONENT_ORDER: Final[tuple[CostComponentName, ...]] = (
     "item_price",
     "shipping",
@@ -268,7 +269,10 @@ class LandedCost:
     display_exact: Decimal
     budget_exact: Decimal
     display_quantized: Decimal
-    budget_max: Decimal | None
+    budget_mode: BudgetMode | None
+    budget_target_amount: Decimal | None
+    budget_lower_bound: Decimal | None
+    budget_upper_bound: Decimal | None
     within_budget: bool | None
     trace: PricingTrace
     kind: Literal["SUCCESS"] = field(default="SUCCESS", init=False)
@@ -282,18 +286,22 @@ class LandedCost:
             self.display_quantized,
             "display quantized amount",
         )
-        if self.budget_max is not None:
-            _require_non_negative_decimal(self.budget_max, "budget maximum")
+        _validate_budget_constraint(
+            mode=self.budget_mode,
+            target_amount=self.budget_target_amount,
+            lower_bound=self.budget_lower_bound,
+            upper_bound=self.budget_upper_bound,
+        )
         if self.within_budget is not None and type(self.within_budget) is not bool:
             raise TypeError("within_budget must be bool or None")
-        if self.budget_max is None and self.within_budget is not None:
-            raise ValueError("within_budget requires a budget maximum")
-        if self.budget_max is not None and self.within_budget is None:
-            raise ValueError("budget maximum requires a within_budget verdict")
-        if self.budget_max is not None and self.within_budget is not (
-            self.budget_exact <= self.budget_max
-        ):
-            raise ValueError("within_budget must use the exact inclusive comparison")
+        expected_within_budget = _within_budget(
+            self.budget_exact,
+            mode=self.budget_mode,
+            lower_bound=self.budget_lower_bound,
+            upper_bound=self.budget_upper_bound,
+        )
+        if self.within_budget is not expected_within_budget:
+            raise ValueError("within_budget must use the exact inclusive constraint")
         if type(self.trace) is not PricingTrace:
             raise TypeError("trace must be a PricingTrace")
         try:
@@ -380,12 +388,67 @@ class PricingFailure:
 type PricingResult = LandedCost | PricingFailure
 
 
+def _validate_budget_constraint(
+    *,
+    mode: BudgetMode | None,
+    target_amount: Decimal | None,
+    lower_bound: Decimal | None,
+    upper_bound: Decimal | None,
+) -> None:
+    values = (target_amount, lower_bound, upper_bound)
+    if mode is None:
+        if any(value is not None for value in values):
+            raise ValueError("budget amounts require an explicit budget mode")
+        return
+    if mode not in {"maximum", "around", "range"}:
+        raise ValueError("budget mode must be maximum, around, or range")
+    if target_amount is None or upper_bound is None:
+        raise ValueError("budget mode requires target and upper amounts")
+    _require_positive_decimal(target_amount, "budget target amount")
+    _require_positive_decimal(upper_bound, "budget upper bound")
+    if lower_bound is not None:
+        _require_positive_decimal(lower_bound, "budget lower bound")
+    if mode == "maximum":
+        if lower_bound is not None or upper_bound != target_amount:
+            raise ValueError("maximum budget requires target equal to its sole upper bound")
+        return
+    if mode == "around":
+        if lower_bound != target_amount * Decimal("0.90") or upper_bound != target_amount * Decimal(
+            "1.10"
+        ):
+            raise ValueError("around budget requires exact inclusive ten-percent bounds")
+        return
+    if lower_bound is None or lower_bound >= upper_bound or target_amount != upper_bound:
+        raise ValueError("range budget requires explicit ordered bounds and target upper bound")
+
+
+def _within_budget(
+    amount: Decimal,
+    *,
+    mode: BudgetMode | None,
+    lower_bound: Decimal | None,
+    upper_bound: Decimal | None,
+) -> bool | None:
+    if mode is None:
+        return None
+    if upper_bound is None:
+        raise ValueError("budget mode requires an upper bound")
+    if mode == "maximum":
+        return amount <= upper_bound
+    if mode in {"around", "range"} and lower_bound is not None:
+        return lower_bound <= amount <= upper_bound
+    raise ValueError("bounded budget mode requires a lower bound")
+
+
 def calculate_landed_cost(
     costs: CostBreakdown,
     exchange_rates: ExchangeRateTable,
     *,
     display_currency: str,
-    budget_max: Decimal | None = None,
+    budget_mode: BudgetMode | None = None,
+    budget_target_amount: Decimal | None = None,
+    budget_lower_bound: Decimal | None = None,
+    budget_upper_bound: Decimal | None = None,
     budget_currency: str | None = None,
 ) -> PricingResult:
     """Calculate an evidenced landed cost without gates, I/O, or implicit FX."""
@@ -394,8 +457,12 @@ def calculate_landed_cost(
     effective_budget_currency = (
         display_currency if budget_currency is None else _require_currency(budget_currency)
     )
-    if budget_max is not None:
-        _require_non_negative_decimal(budget_max, "budget maximum")
+    _validate_budget_constraint(
+        mode=budget_mode,
+        target_amount=budget_target_amount,
+        lower_bound=budget_lower_bound,
+        upper_bound=budget_upper_bound,
+    )
     costs = _require_cost_breakdown(costs)
     table = _require_exchange_rate_table(exchange_rates)
 
@@ -476,14 +543,22 @@ def calculate_landed_cost(
             display_rate=_exchange_rate_trace(display_rate),
             budget_rate=_exchange_rate_trace(budget_rate),
         )
-        within_budget = None if budget_max is None else budget_exact <= budget_max
+        within_budget = _within_budget(
+            budget_exact,
+            mode=budget_mode,
+            lower_bound=budget_lower_bound,
+            upper_bound=budget_upper_bound,
+        )
         return LandedCost(
             display_currency=display_currency,
             budget_currency=effective_budget_currency,
             display_exact=display_exact,
             budget_exact=budget_exact,
             display_quantized=display_quantized,
-            budget_max=budget_max,
+            budget_mode=budget_mode,
+            budget_target_amount=budget_target_amount,
+            budget_lower_bound=budget_lower_bound,
+            budget_upper_bound=budget_upper_bound,
             within_budget=within_budget,
             trace=trace,
         )
@@ -711,6 +786,7 @@ __all__ = [
     "PRICING_ALGORITHM_VERSION",
     "PRICING_PRECISION",
     "PRICING_ROUNDING",
+    "BudgetMode",
     "CostBreakdown",
     "CostComponentName",
     "CostComponentTrace",

@@ -17,37 +17,35 @@ import pytest
 
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
 M0_SPEC_PATH = PROJECT_ROOT / "specs" / "000-glodex-mvp" / "spec.md"
-M1A_SPEC_PATH = PROJECT_ROOT / "specs" / "001-glodex-m1-api" / "spec.md"
-M1B_SPEC_PATH = PROJECT_ROOT / "specs" / "002-glodex-m1b-provider" / "spec.md"
-M1C_SPEC_PATH = PROJECT_ROOT / "specs" / "003-glodex-m1c-llm-intent" / "spec.md"
-M1D_SPEC_PATH = PROJECT_ROOT / "specs" / "004-glodex-m1d-agent-demo" / "spec.md"
-M1E_SPEC_PATH = PROJECT_ROOT / "specs" / "005-glodex-m1e-esci-retrieval-benchmark" / "spec.md"
-M1F_SPEC_PATH = PROJECT_ROOT / "specs" / "006-glodex-m1f-local-showcase" / "spec.md"
-M2A_SPEC_PATH = PROJECT_ROOT / "specs" / "007-glodex-m2a-opensearch-hybrid-retrieval" / "spec.md"
-M2B_SPEC_PATH = PROJECT_ROOT / "specs" / "008-glodex-m2b-durable-agent-runtime" / "spec.md"
-M2C_SPEC_PATH = PROJECT_ROOT / "specs" / "009-glodex-m2c-retrieval-model-service" / "spec.md"
-M2D_SPEC_PATH = PROJECT_ROOT / "specs" / "010-glodex-m2d-agui-react-operations" / "spec.md"
-M2E_SPEC_PATH = PROJECT_ROOT / "specs" / "011-glodex-m2e-durable-bge-composition" / "spec.md"
-DEFAULT_SPEC_PATH = M0_SPEC_PATH
+DURABLE_SPEC_PATH = PROJECT_ROOT / "specs" / "008-glodex-durable-agent-runtime" / "spec.md"
+RETRIEVAL_MODEL_SPEC_PATH = (
+    PROJECT_ROOT / "specs" / "009-glodex-retrieval-model-service" / "spec.md"
+)
+WEB_CONSOLE_SPEC_PATH = PROJECT_ROOT / "specs" / "010-glodex-web-console" / "spec.md"
+AGENT_COMPOSITION_SPEC_PATH = PROJECT_ROOT / "specs" / "011-glodex-agent-composition" / "spec.md"
+M4_SPEC_PATH = PROJECT_ROOT / "specs" / "013-glodex-m4-real-shopping-reliability" / "spec.md"
+M5_SPEC_PATH = PROJECT_ROOT / "specs" / "014-glodex-m5-user-memory-identity" / "spec.md"
+M5B_SPEC_PATH = PROJECT_ROOT / "specs" / "019-glodex-m5b-memory-semantics" / "spec.md"
+M6_SPEC_PATH = PROJECT_ROOT / "specs" / "015-glodex-m6-observability-operations" / "spec.md"
+M7_SPEC_PATH = PROJECT_ROOT / "specs" / "016-glodex-m7-rubric-quality-loop" / "spec.md"
 DEFAULT_TESTS_PATH = PROJECT_ROOT / "tests"
 DEFAULT_PYTEST_CONFIG = PROJECT_ROOT / "pyproject.toml"
 
 _P0_DEFINITION = re.compile(
-    r"^\|\s*`((?:GLO-P0|GLO-M1-P0|GLO-M1B-P0|GLO-M1C-P0|GLO-M1D-P0|GLO-M1E-P0|GLO-M1F-P0|GLO-M2A-P0|GLO-M2B-P0|GLO-M2C-P0|GLO-M2D-P0|GLO-M2E-P0)-\d{3})`\s*\|",
+    r"^\|\s*`((?:GLO-P0|GLO-DURABLE-P0|GLO-RETRIEVAL_MODEL-P0|GLO-WEB_CONSOLE-P0|GLO-AGENT_COMPOSITION-P0|GLO-M4-P0|GLO-M5-P0|GLO-M5B-P0|GLO-M6-P0|GLO-M7-P0)-\d{3})`\s*\|",
     re.MULTILINE,
 )
 _NFR_DEFINITION = re.compile(
-    r"^\|\s*`((?:GLO-NFR|GLO-M1-NFR|GLO-M1B-NFR|GLO-M1C-NFR|GLO-M1D-NFR|GLO-M1E-NFR|GLO-M1F-NFR|GLO-M2A-NFR|GLO-M2B-NFR|GLO-M2C-NFR|GLO-M2D-NFR|GLO-M2E-NFR)-\d{3})`\s*\|",
+    r"^\|\s*`((?:GLO-NFR|GLO-DURABLE-NFR|GLO-RETRIEVAL_MODEL-NFR|GLO-WEB_CONSOLE-NFR|GLO-AGENT_COMPOSITION-NFR|GLO-M4-NFR|GLO-M5-NFR|GLO-M5B-NFR|GLO-M6-NFR|GLO-M7-NFR)-\d{3})`\s*\|",
     re.MULTILINE,
 )
 _AC_DEFINITION = re.compile(
-    r"^###\s+`((?:AC|M1-AC|M1B-AC|M1C-AC|M1D-AC|M1E-AC|M1F-AC|M2A-AC|M2B-AC|M2C-AC|M2D-AC|M2E-AC)-\d{3})`(?:\s|$)",
+    r"^###\s+`((?:AC|DURABLE-AC|RETRIEVAL_MODEL-AC|WEB_CONSOLE-AC|AGENT_COMPOSITION-AC|M4-AC|M5-AC|M5B-AC|M6-AC|M7-AC)-\d{3})`(?:\s|$)",
     re.MULTILINE,
 )
 _SPEC_ID_SHAPE = re.compile(
-    r"(?:GLO-(?:P0|NFR)|GLO-M1-(?:P0|NFR)|GLO-M1B-(?:P0|NFR)|"
-    r"GLO-M1C-(?:P0|NFR)|GLO-M1D-(?:P0|NFR)|GLO-M1E-(?:P0|NFR)|"
-    r"GLO-M1F-(?:P0|NFR)|GLO-M2A-(?:P0|NFR)|GLO-M2B-(?:P0|NFR)|GLO-M2C-(?:P0|NFR)|GLO-M2D-(?:P0|NFR)|GLO-M2E-(?:P0|NFR)|AC|M1-AC|M1B-AC|M1C-AC|M1D-AC|M1E-AC|M1F-AC|M2A-AC|M2B-AC|M2C-AC|M2D-AC|M2E-AC)"
+    r"(?:GLO-(?:P0|NFR)|"
+    r"GLO-DURABLE-(?:P0|NFR)|GLO-RETRIEVAL_MODEL-(?:P0|NFR)|GLO-WEB_CONSOLE-(?:P0|NFR)|GLO-AGENT_COMPOSITION-(?:P0|NFR)|GLO-M4-(?:P0|NFR)|GLO-M5-(?:P0|NFR)|GLO-M5B-(?:P0|NFR)|GLO-M6-(?:P0|NFR)|GLO-M7-(?:P0|NFR)|AC|DURABLE-AC|RETRIEVAL_MODEL-AC|WEB_CONSOLE-AC|AGENT_COMPOSITION-AC|M4-AC|M5-AC|M5B-AC|M6-AC|M7-AC)"
     r"-\d{3}\Z"
 )
 
@@ -79,70 +77,58 @@ _APPROVED_M0_INVENTORY = SpecInventory(
     ac_ids=tuple(f"AC-{index:03d}" for index in range(1, 13)),
 )
 
-_APPROVED_M1A_INVENTORY = SpecInventory(
-    p0_ids=tuple(f"GLO-M1-P0-{index:03d}" for index in range(1, 10)),
-    nfr_ids=tuple(f"GLO-M1-NFR-{index:03d}" for index in range(1, 11)),
-    ac_ids=tuple(f"M1-AC-{index:03d}" for index in range(1, 11)),
+_APPROVED_DURABLE_INVENTORY = SpecInventory(
+    p0_ids=tuple(f"GLO-DURABLE-P0-{index:03d}" for index in range(1, 9)),
+    nfr_ids=tuple(f"GLO-DURABLE-NFR-{index:03d}" for index in range(1, 8)),
+    ac_ids=tuple(f"DURABLE-AC-{index:03d}" for index in range(1, 8)),
 )
 
-_APPROVED_M1B_INVENTORY = SpecInventory(
-    p0_ids=tuple(f"GLO-M1B-P0-{index:03d}" for index in range(1, 7)),
-    nfr_ids=tuple(f"GLO-M1B-NFR-{index:03d}" for index in range(1, 7)),
-    ac_ids=tuple(f"M1B-AC-{index:03d}" for index in range(1, 7)),
+_APPROVED_RETRIEVAL_MODEL_INVENTORY = SpecInventory(
+    p0_ids=tuple(f"GLO-RETRIEVAL_MODEL-P0-{index:03d}" for index in range(1, 8)),
+    nfr_ids=tuple(f"GLO-RETRIEVAL_MODEL-NFR-{index:03d}" for index in range(1, 7)),
+    ac_ids=tuple(f"RETRIEVAL_MODEL-AC-{index:03d}" for index in range(1, 7)),
 )
 
-_APPROVED_M1C_INVENTORY = SpecInventory(
-    p0_ids=tuple(f"GLO-M1C-P0-{index:03d}" for index in range(1, 7)),
-    nfr_ids=tuple(f"GLO-M1C-NFR-{index:03d}" for index in range(1, 7)),
-    ac_ids=tuple(f"M1C-AC-{index:03d}" for index in range(1, 7)),
+_APPROVED_WEB_CONSOLE_INVENTORY = SpecInventory(
+    p0_ids=tuple(f"GLO-WEB_CONSOLE-P0-{index:03d}" for index in range(1, 7)),
+    nfr_ids=tuple(f"GLO-WEB_CONSOLE-NFR-{index:03d}" for index in range(1, 7)),
+    ac_ids=tuple(f"WEB_CONSOLE-AC-{index:03d}" for index in range(1, 7)),
 )
 
-_APPROVED_M1D_INVENTORY = SpecInventory(
-    p0_ids=tuple(f"GLO-M1D-P0-{index:03d}" for index in range(1, 7)),
-    nfr_ids=tuple(f"GLO-M1D-NFR-{index:03d}" for index in range(1, 7)),
-    ac_ids=tuple(f"M1D-AC-{index:03d}" for index in range(1, 7)),
+_APPROVED_AGENT_COMPOSITION_INVENTORY = SpecInventory(
+    p0_ids=tuple(f"GLO-AGENT_COMPOSITION-P0-{index:03d}" for index in range(1, 7)),
+    nfr_ids=tuple(f"GLO-AGENT_COMPOSITION-NFR-{index:03d}" for index in range(1, 5)),
+    ac_ids=tuple(f"AGENT_COMPOSITION-AC-{index:03d}" for index in range(1, 4)),
 )
 
-_APPROVED_M1E_INVENTORY = SpecInventory(
-    p0_ids=tuple(f"GLO-M1E-P0-{index:03d}" for index in range(1, 5)),
-    nfr_ids=tuple(f"GLO-M1E-NFR-{index:03d}" for index in range(1, 5)),
-    ac_ids=tuple(f"M1E-AC-{index:03d}" for index in range(1, 5)),
+_APPROVED_M4_INVENTORY = SpecInventory(
+    p0_ids=tuple(f"GLO-M4-P0-{index:03d}" for index in range(1, 7)),
+    nfr_ids=tuple(f"GLO-M4-NFR-{index:03d}" for index in range(1, 5)),
+    ac_ids=tuple(f"M4-AC-{index:03d}" for index in range(1, 4)),
 )
 
-_APPROVED_M1F_INVENTORY = SpecInventory(
-    p0_ids=tuple(f"GLO-M1F-P0-{index:03d}" for index in range(1, 5)),
-    nfr_ids=tuple(f"GLO-M1F-NFR-{index:03d}" for index in range(1, 5)),
-    ac_ids=tuple(f"M1F-AC-{index:03d}" for index in range(1, 5)),
+_APPROVED_M5_INVENTORY = SpecInventory(
+    p0_ids=tuple(f"GLO-M5-P0-{index:03d}" for index in range(1, 9)),
+    nfr_ids=tuple(f"GLO-M5-NFR-{index:03d}" for index in range(1, 7)),
+    ac_ids=tuple(f"M5-AC-{index:03d}" for index in range(1, 5)),
 )
 
-_APPROVED_M2A_INVENTORY = SpecInventory(
-    p0_ids=tuple(f"GLO-M2A-P0-{index:03d}" for index in range(1, 8)),
-    nfr_ids=tuple(f"GLO-M2A-NFR-{index:03d}" for index in range(1, 7)),
-    ac_ids=tuple(f"M2A-AC-{index:03d}" for index in range(1, 8)),
+_APPROVED_M5B_INVENTORY = SpecInventory(
+    p0_ids=tuple(f"GLO-M5B-P0-{index:03d}" for index in range(1, 7)),
+    nfr_ids=tuple(f"GLO-M5B-NFR-{index:03d}" for index in range(1, 5)),
+    ac_ids=tuple(f"M5B-AC-{index:03d}" for index in range(1, 6)),
 )
 
-_APPROVED_M2B_INVENTORY = SpecInventory(
-    p0_ids=tuple(f"GLO-M2B-P0-{index:03d}" for index in range(1, 9)),
-    nfr_ids=tuple(f"GLO-M2B-NFR-{index:03d}" for index in range(1, 8)),
-    ac_ids=tuple(f"M2B-AC-{index:03d}" for index in range(1, 8)),
+_APPROVED_M6_INVENTORY = SpecInventory(
+    p0_ids=tuple(f"GLO-M6-P0-{index:03d}" for index in range(1, 7)),
+    nfr_ids=tuple(f"GLO-M6-NFR-{index:03d}" for index in range(1, 6)),
+    ac_ids=tuple(f"M6-AC-{index:03d}" for index in range(1, 5)),
 )
 
-_APPROVED_M2C_INVENTORY = SpecInventory(
-    p0_ids=tuple(f"GLO-M2C-P0-{index:03d}" for index in range(1, 8)),
-    nfr_ids=tuple(f"GLO-M2C-NFR-{index:03d}" for index in range(1, 7)),
-    ac_ids=tuple(f"M2C-AC-{index:03d}" for index in range(1, 7)),
-)
-
-_APPROVED_M2D_INVENTORY = SpecInventory(
-    p0_ids=tuple(f"GLO-M2D-P0-{index:03d}" for index in range(1, 7)),
-    nfr_ids=tuple(f"GLO-M2D-NFR-{index:03d}" for index in range(1, 7)),
-    ac_ids=tuple(f"M2D-AC-{index:03d}" for index in range(1, 7)),
-)
-
-_APPROVED_M2E_INVENTORY = SpecInventory(
-    p0_ids=tuple(f"GLO-M2E-P0-{index:03d}" for index in range(1, 7)),
-    nfr_ids=tuple(f"GLO-M2E-NFR-{index:03d}" for index in range(1, 5)),
-    ac_ids=tuple(f"M2E-AC-{index:03d}" for index in range(1, 4)),
+_APPROVED_M7_INVENTORY = SpecInventory(
+    p0_ids=tuple(f"GLO-M7-P0-{index:03d}" for index in range(1, 8)),
+    nfr_ids=tuple(f"GLO-M7-NFR-{index:03d}" for index in range(1, 6)),
+    ac_ids=tuple(f"M7-AC-{index:03d}" for index in range(1, 5)),
 )
 
 
@@ -173,71 +159,65 @@ _TRACEABILITY_PROFILES = {
         ),
         approved_inventory=_APPROVED_M0_INVENTORY,
     ),
-    "m1a": TraceabilityProfile(
-        label="M1a",
-        spec_path=M1A_SPEC_PATH,
-        test_paths=(DEFAULT_TESTS_PATH / "m1a",),
-        approved_inventory=_APPROVED_M1A_INVENTORY,
+    "durable": TraceabilityProfile(
+        label="Durable",
+        spec_path=DURABLE_SPEC_PATH,
+        test_paths=(DEFAULT_TESTS_PATH / "durable_runtime",),
+        approved_inventory=_APPROVED_DURABLE_INVENTORY,
     ),
-    "m1b": TraceabilityProfile(
-        label="M1b",
-        spec_path=M1B_SPEC_PATH,
-        test_paths=(DEFAULT_TESTS_PATH / "m1b",),
-        approved_inventory=_APPROVED_M1B_INVENTORY,
+    "retrieval_model": TraceabilityProfile(
+        label="RetrievalModel",
+        spec_path=RETRIEVAL_MODEL_SPEC_PATH,
+        test_paths=(
+            DEFAULT_TESTS_PATH / "retrieval_model",
+            PROJECT_ROOT
+            / "opensearch"
+            / "current-product"
+            / "test_current_product_hybrid_gateway.py",
+        ),
+        approved_inventory=_APPROVED_RETRIEVAL_MODEL_INVENTORY,
     ),
-    "m1c": TraceabilityProfile(
-        label="M1c",
-        spec_path=M1C_SPEC_PATH,
-        test_paths=(DEFAULT_TESTS_PATH / "m1c",),
-        approved_inventory=_APPROVED_M1C_INVENTORY,
+    "web_console": TraceabilityProfile(
+        label="WebConsole",
+        spec_path=WEB_CONSOLE_SPEC_PATH,
+        test_paths=(DEFAULT_TESTS_PATH / "web_console",),
+        approved_inventory=_APPROVED_WEB_CONSOLE_INVENTORY,
     ),
-    "m1d": TraceabilityProfile(
-        label="M1d",
-        spec_path=M1D_SPEC_PATH,
-        test_paths=(DEFAULT_TESTS_PATH / "m1d",),
-        approved_inventory=_APPROVED_M1D_INVENTORY,
+    "agent_composition": TraceabilityProfile(
+        label="Agent composition",
+        spec_path=AGENT_COMPOSITION_SPEC_PATH,
+        test_paths=(DEFAULT_TESTS_PATH / "composition",),
+        approved_inventory=_APPROVED_AGENT_COMPOSITION_INVENTORY,
     ),
-    "m1e": TraceabilityProfile(
-        label="M1e",
-        spec_path=M1E_SPEC_PATH,
-        test_paths=(DEFAULT_TESTS_PATH / "m1e",),
-        approved_inventory=_APPROVED_M1E_INVENTORY,
+    "m4": TraceabilityProfile(
+        label="M4",
+        spec_path=M4_SPEC_PATH,
+        test_paths=(DEFAULT_TESTS_PATH / "m4",),
+        approved_inventory=_APPROVED_M4_INVENTORY,
     ),
-    "m1f": TraceabilityProfile(
-        label="M1f",
-        spec_path=M1F_SPEC_PATH,
-        test_paths=(DEFAULT_TESTS_PATH / "m1f",),
-        approved_inventory=_APPROVED_M1F_INVENTORY,
+    "m5": TraceabilityProfile(
+        label="M5",
+        spec_path=M5_SPEC_PATH,
+        test_paths=(DEFAULT_TESTS_PATH / "m5",),
+        approved_inventory=_APPROVED_M5_INVENTORY,
     ),
-    "m2a": TraceabilityProfile(
-        label="M2a",
-        spec_path=M2A_SPEC_PATH,
-        test_paths=(DEFAULT_TESTS_PATH / "m2a",),
-        approved_inventory=_APPROVED_M2A_INVENTORY,
+    "m5b": TraceabilityProfile(
+        label="M5b",
+        spec_path=M5B_SPEC_PATH,
+        test_paths=(DEFAULT_TESTS_PATH / "m5b",),
+        approved_inventory=_APPROVED_M5B_INVENTORY,
     ),
-    "m2b": TraceabilityProfile(
-        label="M2b",
-        spec_path=M2B_SPEC_PATH,
-        test_paths=(DEFAULT_TESTS_PATH / "m2b",),
-        approved_inventory=_APPROVED_M2B_INVENTORY,
+    "m6": TraceabilityProfile(
+        label="M6",
+        spec_path=M6_SPEC_PATH,
+        test_paths=(DEFAULT_TESTS_PATH / "m6",),
+        approved_inventory=_APPROVED_M6_INVENTORY,
     ),
-    "m2c": TraceabilityProfile(
-        label="M2c",
-        spec_path=M2C_SPEC_PATH,
-        test_paths=(DEFAULT_TESTS_PATH / "m2c",),
-        approved_inventory=_APPROVED_M2C_INVENTORY,
-    ),
-    "m2d": TraceabilityProfile(
-        label="M2d",
-        spec_path=M2D_SPEC_PATH,
-        test_paths=(DEFAULT_TESTS_PATH / "m2d",),
-        approved_inventory=_APPROVED_M2D_INVENTORY,
-    ),
-    "m2e": TraceabilityProfile(
-        label="M2e",
-        spec_path=M2E_SPEC_PATH,
-        test_paths=(DEFAULT_TESTS_PATH / "m2e",),
-        approved_inventory=_APPROVED_M2E_INVENTORY,
+    "m7": TraceabilityProfile(
+        label="M7",
+        spec_path=M7_SPEC_PATH,
+        test_paths=(DEFAULT_TESTS_PATH / "m7",),
+        approved_inventory=_APPROVED_M7_INVENTORY,
     ),
 }
 
@@ -414,12 +394,6 @@ def require_approved_inventory(
         f"coverage mode requires the exact approved {profile.label} inventory; "
         + "; ".join(differences)
     )
-
-
-def require_approved_m0_inventory(inventory: SpecInventory) -> None:
-    """Preserve the original M0 inventory-checking API."""
-
-    require_approved_inventory(inventory, _TRACEABILITY_PROFILES["m0"])
 
 
 class _SpecCollectionPlugin:

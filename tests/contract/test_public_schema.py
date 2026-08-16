@@ -18,6 +18,7 @@ from glodex.contracts import (
     SearchRequest,
     SearchResponse,
     SearchResult,
+    SemanticQueryFilters,
     SourceSpanSummary,
     validate_search_request,
 )
@@ -58,6 +59,36 @@ def test_valid_search_request_is_trimmed_and_strictly_typed() -> None:
 
     with pytest.raises(ValidationError):
         SearchRequest.model_validate(valid_request_data(top_k="3"))
+
+
+def test_semantic_query_filters_are_explicit_wire_values() -> None:
+    query_only = SearchRequest(query="イヤホン")
+    assert query_only.semantic_filters == SemanticQueryFilters()
+    assert query_only.semantic_filters.is_empty
+
+    filtered = SearchRequest.model_validate_json(
+        '{"query":"イヤホン","semantic_filters":{"item_languages":["ja"],'
+        '"canonical_category_ids":["electronics.headphones"],'
+        '"require_carried_source_category":true,'
+        '"attribute_projection_provenance":"SOURCE_ONLY"}}'
+    )
+    assert filtered.semantic_filters == SemanticQueryFilters(
+        item_languages=("ja",),
+        canonical_category_ids=("electronics.headphones",),
+        require_carried_source_category=True,
+        attribute_projection_provenance="SOURCE_ONLY",
+    )
+    assert filtered.model_dump(mode="json")["semantic_filters"] == {
+        "item_languages": ["ja"],
+        "canonical_category_ids": ["electronics.headphones"],
+        "require_carried_source_category": True,
+        "attribute_projection_provenance": "SOURCE_ONLY",
+    }
+
+    with pytest.raises(ValidationError, match="semantic item languages must be unique"):
+        SearchRequest.model_validate_json(
+            '{"query":"イヤホン","semantic_filters":{"item_languages":["ja","ja"]}}'
+        )
 
 
 @pytest.mark.parametrize(

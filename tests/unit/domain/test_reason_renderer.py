@@ -73,7 +73,10 @@ def _bundle(
         *(
             (
                 BudgetMax(
-                    amount=Decimal("800"),
+                    mode="maximum",
+                    target_amount=Decimal("800"),
+                    lower_bound=None,
+                    upper_bound=Decimal("800"),
                     currency="USD",
                     source_span=SourceSpan(start=4, end=12, text="预算800元"),
                 ),
@@ -100,7 +103,10 @@ def _bundle(
                 offer.cost_components,
                 batch.exchange_rates,
                 display_currency="USD",
-                budget_max=Decimal("800") if budget else None,
+                budget_mode="maximum" if budget else None,
+                budget_target_amount=Decimal("800") if budget else None,
+                budget_lower_bound=None,
+                budget_upper_bound=Decimal("800") if budget else None,
                 budget_currency="USD" if budget else None,
             ),
         )
@@ -255,7 +261,7 @@ def test_reason_uses_fixed_budget_inventory_preference_order_and_used_evidence()
     projection = render_reason(bundle, interpreted)
 
     assert projection.reason == (
-        f"满足预算：到手价 {budget.value}；有库存：{inventory.value}；匹配偏好：{attribute.value}"
+        f"满足预算：{budget.value}；有库存：{inventory.value}；匹配偏好：{attribute.value}"
     )
     assert projection.unknowns == ()
     assert projection.evidence_ids == tuple(
@@ -305,7 +311,7 @@ def test_preference_matching_reads_only_source_span_text_and_attribute_claims() 
         "未证实偏好：provider-a",
     )
     assert projection.reason.startswith("满足预算：")
-    assert projection.reason.endswith("有库存：provider-a/US")
+    assert projection.reason.endswith("有库存：US")
 
 
 def test_two_preferences_matching_one_claim_render_it_once() -> None:
@@ -331,7 +337,7 @@ def test_unverified_preferences_are_stable_and_never_become_positive_copy() -> N
 
     projection = render_reason(bundle, interpreted)
 
-    assert projection.reason == "有库存：provider-a/US"
+    assert projection.reason == "有库存：US"
     assert projection.unknowns == (
         "未证实偏好：耐用",
         "未证实偏好：高性能",
@@ -352,7 +358,7 @@ def test_negative_or_unknown_attribute_values_cannot_prove_a_preference(
 
     projection = render_reason(bundle, interpreted)
 
-    assert projection.reason == "有库存：provider-a/US"
+    assert projection.reason == "有库存：US"
     assert projection.unknowns == ("未证实偏好：travel",)
 
 
@@ -367,6 +373,60 @@ def test_affirmative_attribute_value_can_prove_a_source_span_match() -> None:
 
     assert projection.reason.endswith("匹配偏好：travel_ready=true")
     assert projection.unknowns == ()
+
+
+@pytest.mark.parametrize(
+    ("criterion", "attribute"),
+    [
+        (
+            _preferred("续航要好", canonical_value="battery_endurance"),
+            ("电池", "5000mAh"),
+        ),
+        (
+            _preferred("游戏性能好", canonical_value="gaming_performance"),
+            ("处理器", "A18 Pro"),
+        ),
+        (
+            _preferred("游戏性能好", canonical_value="gaming_performance"),
+            ("屏幕尺寸", '6.7" FHD+ AMOLED 120Hz'),
+        ),
+    ],
+)
+def test_domain_renderer_does_not_encode_category_specific_preference_rules(
+    criterion: PreferredCriterion,
+    attribute: tuple[str, str],
+) -> None:
+    bundle, interpreted = _bundle(criterion, budget=False, attribute=attribute)
+
+    projection = render_reason(bundle, interpreted)
+
+    assert "匹配偏好" not in projection.reason
+    assert projection.unknowns == (f"未证实偏好：{criterion.source_span.text}",)
+
+
+@pytest.mark.parametrize(
+    ("criterion", "attribute"),
+    [
+        (
+            _preferred("续航要好", canonical_value="battery_endurance"),
+            ("电池", "3200mAh"),
+        ),
+        (
+            _preferred("游戏性能好", canonical_value="gaming_performance"),
+            ("处理器", "entry-level chip"),
+        ),
+    ],
+)
+def test_semantic_preferences_stay_unverified_without_qualifying_evidence(
+    criterion: PreferredCriterion,
+    attribute: tuple[str, str],
+) -> None:
+    bundle, interpreted = _bundle(criterion, budget=False, attribute=attribute)
+
+    projection = render_reason(bundle, interpreted)
+
+    assert "匹配偏好" not in projection.reason
+    assert projection.unknowns == (f"未证实偏好：{criterion.source_span.text}",)
 
 
 def test_claim_input_order_cannot_change_rendered_projection() -> None:
@@ -394,7 +454,7 @@ def test_removing_an_attribute_claim_turns_its_preference_into_an_unknown() -> N
 
     projection = render_reason(without_attribute, interpreted)
 
-    assert projection.reason == "有库存：provider-a/US"
+    assert projection.reason == "有库存：US"
     assert projection.unknowns == ("未证实偏好：weight",)
     assert "ev-product-weight" not in projection.evidence_ids
 

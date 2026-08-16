@@ -25,12 +25,39 @@ class SourceSpan:
 
 
 @dataclass(frozen=True, slots=True)
-class BudgetMax:
-    """An exact maximum amount and its optional currency as written by the user."""
+class BudgetCalculation:
+    """Model-authored numeric proof for one semantically interpreted budget.
 
-    amount: Decimal
+    Natural-language meaning remains the interpreter's responsibility.  This
+    value lets the trust boundary verify quoted numeric evidence and arithmetic
+    without maintaining a vocabulary of equivalent user phrases.
+    """
+
+    base_amount: Decimal
+    allowance_amounts: tuple[Decimal, ...] = ()
+    explicit_maximum: Decimal | None = None
+
+
+@dataclass(frozen=True, slots=True)
+class BudgetMax:
+    """A typed price constraint whose target and inclusive bounds are explicit.
+
+    The interpreter only supplies contract inputs; the system derives the
+    bounds from the mode and rejects any interpreter-computed bound:
+      - ``maximum``: price ≤ ``upper_bound == target_amount``
+        (``lower_bound`` must be None)
+      - ``around``: price ∈ [target·0.9, target·1.1]
+      - ``range``:   price ∈ [``lower_bound``, ``upper_bound``]
+        (``target_amount`` is the upper bound)
+    """
+
+    mode: Literal["maximum", "around", "range"]
+    target_amount: Decimal
+    lower_bound: Decimal | None
+    upper_bound: Decimal
     source_span: SourceSpan
     currency: str | None = None
+    calculation: BudgetCalculation | None = None
     kind: Literal["budget_max"] = field(default="budget_max", init=False)
 
 
@@ -149,27 +176,52 @@ _EXPECTED_KIND = {
     PreferredCriterion: "preferred",
 }
 _PARSER_VERSION = re.compile(r"[A-Za-z0-9][A-Za-z0-9._:/-]{0,127}\Z")
-_BUDGET_AMOUNT_TEXT = r"(?P<amount>[0-9]+(?:\.[0-9]+)?)"
-_BUDGET_CURRENCY_TEXT = (
-    r"(?P<currency>人民币|美元|美金|欧元|英镑|元|"
+# Budget evidence is matched structurally, not by an expanding phrase
+# allowlist: an amount token, optionally followed by a currency and/or an
+# upper-limit or approximate marker, or two amounts joined by a range
+# separator. A bare number without any of these is never budget evidence.
+_BUDGET_CN_DIGITS = {
+    "一": 1,
+    "二": 2,
+    "两": 2,
+    "三": 3,
+    "四": 4,
+    "五": 5,
+    "六": 6,
+    "七": 7,
+    "八": 8,
+    "九": 9,
+}
+_BUDGET_AMOUNT_PATTERN = r"(?:[0-9]+[万千]|[一二两三四五六七八九][万千]|[0-9]+(?:\.[0-9]+)?)"
+_BUDGET_CURRENCY_PATTERN = (
+    r"(?:人民币|美元|美金|欧元|英镑|元|"
     r"(?<![A-Za-z])(?:CNY|USD|EUR|GBP)(?![A-Za-z]))"
 )
-_BUDGET_BOUNDARY = (
-    r"(?=\s*(?:$|[的,，。;；、!?！？]|"  # noqa: RUF001
-    r"(?:且|并且|并|和|但|可是|有库存|现货|在售)))"
-)
-_EXPLICIT_BUDGET_SPAN = re.compile(
-    rf"(?P<full>预算\s*(?:(?:不超过|最多|为|是|[:：])\s*)?"  # noqa: RUF001
-    rf"{_BUDGET_AMOUNT_TEXT}(?:\s*{_BUDGET_CURRENCY_TEXT})?"
-    rf"(?:\s*(?:以内|以下|之内|封顶))?){_BUDGET_BOUNDARY}",
+_BUDGET_CURRENCY_TOKEN_RE = re.compile(
+    r"(?:人民币|美元|美金|欧元|英镑|元|"
+    r"(?<![A-Za-z])(?:CNY|USD|EUR|GBP)(?![A-Za-z]))",
     re.IGNORECASE,
 )
-_CURRENCY_LIMIT_BUDGET_SPAN = re.compile(
-    rf"(?P<full>{_BUDGET_AMOUNT_TEXT}\s*{_BUDGET_CURRENCY_TEXT}"
-    rf"\s*(?:以内|以下|之内|封顶)){_BUDGET_BOUNDARY}",
+_BUDGET_MARKER_PATTERN = (
+    r"(?:以下|以内|之内|封顶|不超过|最多|不高于|"
+    r"左右|上下|附近|大约|约|大概|差不多)"
+)
+_BUDGET_UP_LIMIT_MARKERS = ("以下", "以内", "之内", "封顶", "不超过", "最多", "不高于")
+_BUDGET_AROUND_MARKERS = ("左右", "上下", "附近", "大约", "约", "大概", "差不多")
+_BUDGET_RANGE_SEPARATORS = ("到", "至", "~", "—", "-", "－", "…")  # noqa: RUF001
+_BUDGET_PREFIX_PATTERN = (
+    r"预算\s*(?:(?:改成|改为|调整为|调到|不超过|最多|为|是|[:：])\s*)?"  # noqa: RUF001
+)
+# An amount must not be followed by unrecognized text (e.g. an unknown
+# currency like 日元); only boundaries and connectors may follow it.
+_BUDGET_TAIL_RE = re.compile(
+    r"(?:$|[的,，。;；、!?！？]|\s*(?:且|并且|并|或|和|但|可是|有库存|现货|在售))",  # noqa: RUF001
     re.IGNORECASE,
 )
-_QUERY_NUMBER = re.compile(r"[0-9]+(?:\.[0-9]+)?")
+_BUDGET_AMOUNT_TOKEN = re.compile(_BUDGET_AMOUNT_PATTERN)
+_BUDGET_PREFIX_RE = re.compile(_BUDGET_PREFIX_PATTERN, re.IGNORECASE)
+_BUDGET_CURRENCY_RE = re.compile(_BUDGET_CURRENCY_PATTERN, re.IGNORECASE)
+_BUDGET_MARKER_RE = re.compile(_BUDGET_MARKER_PATTERN, re.IGNORECASE)
 _BUDGET_NEGATION_PREFIX = (
     r"(?:不是|不要(?:这个|这项|该)?(?:使用|采用)?|无所谓|"
     r"我?不考虑(?:使用|采用)?|我?不采用|"
@@ -250,6 +302,7 @@ _AGENT_CATEGORY_BY_TEXT = {
     "智能手机": "phone",
     "平板电脑": "tablet",
     "平板": "tablet",
+    "电脑": "laptop",
 }
 _STOCK_TEXTS = frozenset({"有库存", "现货", "在售"})
 _EXCLUSION_TEXTS = {
@@ -277,6 +330,10 @@ _EXCLUSION_CANONICAL = {
 _PREFERRED_TEXTS = {
     "travel": frozenset({"适合出差"}),
     "long_battery": frozenset({"续航长", "长续航"}),
+    "battery_endurance": frozenset({"续航要好", "续航好", "续航强", "续航优秀", "电池耐用"}),
+    "gaming_performance": frozenset(
+        {"游戏性能好", "游戏性能要好", "打游戏流畅", "游戏流畅", "适合游戏"}
+    ),
     "lightweight": frozenset({"轻薄"}),
     "portable": frozenset({"便携"}),
     "轻薄": frozenset({"轻薄"}),
@@ -284,6 +341,8 @@ _PREFERRED_TEXTS = {
 _PREFERRED_CANONICAL = {
     "travel": "travel",
     "long_battery": "long_battery",
+    "battery_endurance": "battery_endurance",
+    "gaming_performance": "gaming_performance",
     "lightweight": "lightweight",
     "portable": "portable",
     "轻薄": "lightweight",
@@ -378,7 +437,13 @@ def _required_signatures(
     for criterion in required:
         span = criterion.source_span
         if type(criterion) is BudgetMax:
-            value: object = (criterion.amount, criterion.currency)
+            value: object = (
+                criterion.mode,
+                criterion.target_amount,
+                criterion.lower_bound,
+                criterion.upper_bound,
+                criterion.currency,
+            )
         elif type(criterion) is TargetCategory:
             value = criterion.category
         elif type(criterion) is StockRequired:
@@ -668,17 +733,95 @@ def _validate_criterion(
         )
 
     if type(criterion) is BudgetMax:
-        amount_is_invalid = (
-            type(criterion.amount) is not Decimal
-            or not criterion.amount.is_finite()
-            or criterion.amount <= 0
+        amounts = (criterion.target_amount, criterion.upper_bound)
+        amount_is_invalid = any(
+            type(amount) is not Decimal or not amount.is_finite() or amount <= 0
+            for amount in amounts
+        )
+        lower_is_invalid = criterion.lower_bound is not None and (
+            type(criterion.lower_bound) is not Decimal
+            or not criterion.lower_bound.is_finite()
+            or criterion.lower_bound <= 0
+        )
+        mode_is_invalid = criterion.mode not in {"maximum", "around", "range"}
+        bounds_are_invalid = (
+            mode_is_invalid
+            or lower_is_invalid
+            or (
+                criterion.mode == "maximum"
+                and (
+                    criterion.lower_bound is not None
+                    or criterion.target_amount != criterion.upper_bound
+                )
+            )
+            or (
+                criterion.mode == "around"
+                and (
+                    criterion.lower_bound != criterion.target_amount * Decimal("0.90")
+                    or criterion.upper_bound != criterion.target_amount * Decimal("1.10")
+                )
+            )
+            or (
+                criterion.mode == "range"
+                and (
+                    criterion.lower_bound is None
+                    or criterion.upper_bound <= criterion.lower_bound
+                    or criterion.target_amount != criterion.upper_bound
+                )
+            )
+        )
+        calculation = criterion.calculation
+        calculation_is_invalid = calculation is not None and (
+            type(calculation) is not BudgetCalculation
+            or type(calculation.base_amount) is not Decimal
+            or not calculation.base_amount.is_finite()
+            or calculation.base_amount <= 0
+            or type(calculation.allowance_amounts) is not tuple
+            or len(calculation.allowance_amounts) > 2
+            or any(
+                type(amount) is not Decimal or not amount.is_finite() or amount <= 0
+                for amount in calculation.allowance_amounts
+            )
+            or (
+                calculation.explicit_maximum is not None
+                and (
+                    type(calculation.explicit_maximum) is not Decimal
+                    or not calculation.explicit_maximum.is_finite()
+                    or calculation.explicit_maximum <= 0
+                )
+            )
+            or criterion.mode != "maximum"
+            or criterion.target_amount
+            != (
+                calculation.explicit_maximum
+                if calculation.explicit_maximum is not None
+                else calculation.base_amount
+                + (max(calculation.allowance_amounts) if calculation.allowance_amounts else 0)
+            )
         )
         if amount_is_invalid:
             issues.append(
                 _issue(
                     IntentIssueCode.INVALID_BUDGET_AMOUNT,
-                    f"{location}.amount",
-                    "budget amount must be a finite positive Decimal",
+                    f"{location}.target_amount",
+                    "budget target and upper bound must be finite positive Decimals",
+                )
+            )
+        if bounds_are_invalid:
+            issues.append(
+                _issue(
+                    IntentIssueCode.INVALID_BUDGET_AMOUNT,
+                    f"{location}.lower_bound",
+                    "budget mode, target, and inclusive bounds are inconsistent",
+                )
+            )
+        if calculation_is_invalid:
+            issues.append(
+                _issue(
+                    IntentIssueCode.INVALID_BUDGET_AMOUNT,
+                    f"{location}.calculation",
+                    "budget calculation must be finite, positive, bounded, "
+                    "and arithmetically exact",
                 )
             )
         currency_is_valid = criterion.currency is None or _is_currency_code(criterion.currency)
@@ -690,7 +833,13 @@ def _validate_criterion(
                     "budget currency must be an uppercase three-letter code or None",
                 )
             )
-        if not span_issues and not amount_is_invalid and currency_is_valid:
+        if (
+            not span_issues
+            and not amount_is_invalid
+            and not bounds_are_invalid
+            and not calculation_is_invalid
+            and currency_is_valid
+        ):
             issues.extend(_validate_budget_span_binding(query, criterion, location))
     elif type(criterion) is TargetCategory:
         value_issues = _validate_non_empty_value(
@@ -900,8 +1049,7 @@ def _validate_exclusion_span_binding(
     criterion: Exclusion,
     location: str,
 ) -> tuple[IntentValidationIssue, ...]:
-    allowed_texts = _EXCLUSION_TEXTS.get(criterion.value, frozenset())
-    if criterion.source_span.text not in allowed_texts or not _has_negative_scope(
+    if not _has_negative_scope(
         query.strip(),
         criterion.source_span.start,
         end=criterion.source_span.end,
@@ -911,7 +1059,7 @@ def _validate_exclusion_span_binding(
             _issue(
                 IntentIssueCode.CRITERION_SPAN_SEMANTICS_MISMATCH,
                 f"{location}.value",
-                "exclusion is not bound to an explicitly excluded phrase",
+                "exclusion is not bound to explicit negative scope",
             ),
         )
     return ()
@@ -922,8 +1070,7 @@ def _validate_preferred_span_binding(
     criterion: PreferredCriterion,
     location: str,
 ) -> tuple[IntentValidationIssue, ...]:
-    allowed_texts = _PREFERRED_TEXTS.get(criterion.value, frozenset())
-    if criterion.source_span.text not in allowed_texts or _has_negative_scope(
+    if _has_negative_scope(
         query.strip(),
         criterion.source_span.start,
         end=criterion.source_span.end,
@@ -932,7 +1079,7 @@ def _validate_preferred_span_binding(
             _issue(
                 IntentIssueCode.CRITERION_SPAN_SEMANTICS_MISMATCH,
                 f"{location}.value",
-                "preference is not bound to a positive approved phrase",
+                "preference is inside negative scope",
             ),
         )
     return ()
@@ -1013,67 +1160,245 @@ def _has_negative_scope(
     )
 
 
+@dataclass(frozen=True, slots=True)
+class _BudgetContract:
+    """One structural budget expression found verbatim in a query."""
+
+    start: int
+    end: int
+    text: str
+    amounts: tuple[Decimal, ...]
+    currencies: tuple[str, ...]
+    mode: Literal["maximum", "around", "range"]
+
+
+def _amount_value(token: str) -> Decimal | None:
+    """Parse one amount token into a positive Decimal.
+
+    Supports Arabic decimals and the common 万/千 unit forms (1万, 一万,
+    3000, 三千). Combined forms such as 一万二 are not supported.
+    """
+
+    if re.fullmatch(r"[0-9]+(?:\.[0-9]+)?", token):
+        value = Decimal(token)
+        return value if value.is_finite() and value > 0 else None
+    match = re.fullmatch(r"([0-9]+|[一二两三四五六七八九])([万千])", token)
+    if match is None:
+        return None
+    head_text, unit = match.group(1), match.group(2)
+    head = Decimal(head_text) if head_text.isdigit() else Decimal(_BUDGET_CN_DIGITS[head_text])
+    return head * (Decimal("10000") if unit == "万" else Decimal("1000"))
+
+
+def budget_amount_evidence(text: str) -> tuple[Decimal, ...]:
+    """Return ordered numeric budget evidence without interpreting surrounding words."""
+
+    if type(text) is not str:
+        raise TypeError("budget evidence text must be a string")
+    return tuple(
+        value
+        for token in _BUDGET_AMOUNT_TOKEN.findall(text)
+        if (value := _amount_value(token)) is not None
+    )
+
+
+def budget_currency_evidence(text: str) -> tuple[str, ...]:
+    """Return the distinct ISO currencies explicitly named in budget text."""
+
+    if type(text) is not str:
+        raise TypeError("budget evidence text must be a string")
+    tokens = _BUDGET_CURRENCY_TOKEN_RE.findall(text)
+    codes = {
+        _BUDGET_CURRENCY_CODES[token.upper() if token.isascii() else token] for token in tokens
+    }
+    return tuple(sorted(codes))
+
+
+def budget_source_spans(text: str) -> tuple[SourceSpan, ...]:
+    """Return each independently validated structural budget expression."""
+
+    if type(text) is not str:
+        raise TypeError("budget source text must be a string")
+    return tuple(
+        SourceSpan(start=item.start, end=item.end, text=item.text)
+        for item in _budget_contracts(text)
+    )
+
+
+def _span_currencies(text: str) -> tuple[str, ...]:
+    return budget_currency_evidence(text)
+
+
+def _budget_contracts(query: str) -> tuple[_BudgetContract, ...]:
+    """Find every structural budget expression in a trimmed query.
+
+    A budget expression is an amount token (with optional 万/千 unit),
+    optionally followed by a currency and/or an upper-limit or approximate
+    marker, or two amounts joined by a range separator. A bare number with
+    none of these is never treated as budget evidence.
+    """
+
+    range_pattern = re.compile(
+        rf"{_BUDGET_AMOUNT_PATTERN}\s*(?:{_BUDGET_CURRENCY_PATTERN})?\s*"
+        rf"(?:到|至|~|—|-|－|…)\s*"  # noqa: RUF001
+        rf"{_BUDGET_AMOUNT_PATTERN}\s*(?:{_BUDGET_CURRENCY_PATTERN})?",
+        re.IGNORECASE,
+    )
+    single_pattern = re.compile(
+        rf"(?:{_BUDGET_PREFIX_PATTERN})?"
+        rf"{_BUDGET_AMOUNT_PATTERN}\s*(?:{_BUDGET_CURRENCY_PATTERN})?\s*"
+        rf"(?:{_BUDGET_MARKER_PATTERN})?",
+        re.IGNORECASE,
+    )
+    candidates: list[tuple[int, int]] = []
+    for match in (
+        *range_pattern.finditer(query),
+        *single_pattern.finditer(query),
+    ):
+        text = match.group()
+        if not text:
+            continue
+        has_evidence = (
+            _BUDGET_PREFIX_RE.search(text) is not None
+            or _BUDGET_CURRENCY_RE.search(text) is not None
+            or _BUDGET_MARKER_RE.search(text) is not None
+            or any(separator in text for separator in _BUDGET_RANGE_SEPARATORS)
+        )
+        if not has_evidence:
+            continue  # a bare number is not budget evidence
+        match_start, match_end = match.start(), match.end()
+        tail = query[match_end:]
+        if tail and _BUDGET_TAIL_RE.match(tail) is None:
+            continue  # amount runs into unrecognized text, e.g. an unknown currency
+        if any(match_start < end_ and start_ < match_end for start_, end_ in candidates):
+            continue  # already covered by a longer candidate
+        candidates.append((match_start, match_end))
+
+    merged: list[tuple[int, int]] = []
+    for start, end in sorted(candidates):
+        if merged and start < merged[-1][1]:
+            merged[-1] = (merged[-1][0], max(merged[-1][1], end))
+        else:
+            merged.append((start, end))
+    contracts: list[_BudgetContract] = []
+    for start, end in merged:
+        text = query[start:end]
+        amounts = tuple(
+            value
+            for token in _BUDGET_AMOUNT_TOKEN.findall(text)
+            if (value := _amount_value(token)) is not None
+        )
+        currencies = _span_currencies(text)
+        mode: Literal["maximum", "around", "range"] = (
+            "range"
+            if len(amounts) == 2
+            and any(separator in text for separator in _BUDGET_RANGE_SEPARATORS)
+            else "around"
+            if any(marker in text for marker in _BUDGET_AROUND_MARKERS)
+            else "maximum"
+        )
+        contracts.append(_BudgetContract(start, end, text, amounts, currencies, mode))
+    return tuple(contracts)
+
+
 def _validate_budget_span_binding(
     query: str,
     criterion: BudgetMax,
     location: str,
 ) -> tuple[IntentValidationIssue, ...]:
-    """Prove that a budget's amount and currency are present in its evidence."""
+    """Prove that a budget contract's mode, amount, and currency are present in its evidence."""
+
+    if criterion.calculation is not None:
+        return _validate_model_budget_calculation_binding(criterion, location)
 
     issues: list[IntentValidationIssue] = []
-    matches = _approved_budget_matches(query.strip())
+    trimmed = query.strip()
+    contracts = _budget_contracts(trimmed)
     if (
         _NEGATED_BUDGET_QUERY.search(query)
         or (
-            len(matches) == 1
+            len(contracts) == 1
             and _budget_has_negative_context(
-                query.strip(),
-                matches[0].start("full"),
-                matches[0].end("full"),
+                trimmed,
+                contracts[0].start,
+                contracts[0].end,
             )
         )
         or (
-            len(matches) == 1
+            len(contracts) == 1
             and _has_negative_scope(
-                query.strip(),
-                matches[0].start("full"),
-                end=matches[0].end("full"),
+                trimmed,
+                contracts[0].start,
+                end=contracts[0].end,
                 markers=_BUDGET_REJECTION_MARKERS,
             )
         )
-        or ("预算" in query and len(_QUERY_NUMBER.findall(query)) > 1)
-        or len(matches) != 1
-        or matches[0].start("full") != criterion.source_span.start
-        or matches[0].end("full") != criterion.source_span.end
-        or matches[0].group("full") != criterion.source_span.text
+        or len(contracts) != 1
     ):
         return (
             _issue(
                 IntentIssueCode.INVALID_BUDGET_SPAN_SEMANTICS,
                 f"{location}.source_span",
-                "source_span does not express an approved budget constraint",
+                "source_span does not express a budget constraint",
             ),
         )
-    match = matches[0]
-
-    if Decimal(match.group("amount")) != criterion.amount:
-        issues.append(
+    contract = contracts[0]
+    if (contract.start, contract.end, contract.text) != (
+        criterion.source_span.start,
+        criterion.source_span.end,
+        criterion.source_span.text,
+    ):
+        return (
             _issue(
-                IntentIssueCode.BUDGET_AMOUNT_SPAN_MISMATCH,
-                f"{location}.amount",
-                "budget amount does not match exactly one number in source_span",
-            )
+                IntentIssueCode.INVALID_BUDGET_SPAN_SEMANTICS,
+                f"{location}.source_span",
+                "source_span is not the maximal budget expression in the query",
+            ),
         )
 
-    currency_token = match.group("currency")
-    span_currency = (
-        None
-        if currency_token is None
-        else _BUDGET_CURRENCY_CODES[
-            currency_token.upper() if currency_token.isascii() else currency_token
-        ]
-    )
-    if span_currency != criterion.currency:
+    if contract.mode == "range":
+        if criterion.mode != "range" or len(contract.amounts) != 2:
+            issues.append(
+                _issue(
+                    IntentIssueCode.INVALID_BUDGET_SPAN_SEMANTICS,
+                    f"{location}.mode",
+                    "budget mode does not match source_span semantics",
+                )
+            )
+        elif (
+            contract.amounts[0] != criterion.lower_bound
+            or contract.amounts[1] != criterion.upper_bound
+        ):
+            issues.append(
+                _issue(
+                    IntentIssueCode.BUDGET_AMOUNT_SPAN_MISMATCH,
+                    f"{location}.target_amount",
+                    "budget amounts do not match the two numbers in source_span",
+                )
+            )
+    else:
+        if criterion.mode != contract.mode or len(contract.amounts) != 1:
+            issues.append(
+                _issue(
+                    IntentIssueCode.INVALID_BUDGET_SPAN_SEMANTICS,
+                    f"{location}.mode",
+                    "budget mode does not match source_span semantics",
+                )
+            )
+        elif contract.amounts[0] != criterion.target_amount:
+            issues.append(
+                _issue(
+                    IntentIssueCode.BUDGET_AMOUNT_SPAN_MISMATCH,
+                    f"{location}.target_amount",
+                    "budget amount does not match exactly one number in source_span",
+                )
+            )
+
+    if (
+        len(contract.currencies) > 1
+        or (contract.currencies and contract.currencies[0] != criterion.currency)
+        or (not contract.currencies and criterion.currency is not None)
+    ):
         issues.append(
             _issue(
                 IntentIssueCode.BUDGET_CURRENCY_SPAN_MISMATCH,
@@ -1084,17 +1409,50 @@ def _validate_budget_span_binding(
     return tuple(issues)
 
 
-def _approved_budget_matches(query: str) -> tuple[re.Match[str], ...]:
-    explicit = list(_EXPLICIT_BUDGET_SPAN.finditer(query))
-    occupied = tuple((match.start("full"), match.end("full")) for match in explicit)
-    bare = [
-        match
-        for match in _CURRENCY_LIMIT_BUDGET_SPAN.finditer(query)
-        if not any(
-            match.start("full") < end and start < match.end("full") for start, end in occupied
+def _validate_model_budget_calculation_binding(
+    criterion: BudgetMax,
+    location: str,
+) -> tuple[IntentValidationIssue, ...]:
+    """Validate numeric evidence without interpreting natural-language wording."""
+
+    calculation = criterion.calculation
+    if type(calculation) is not BudgetCalculation:
+        return (
+            _issue(
+                IntentIssueCode.INVALID_BUDGET_AMOUNT,
+                f"{location}.calculation",
+                "budget calculation is invalid",
+            ),
         )
-    ]
-    return tuple(sorted((*explicit, *bare), key=lambda match: match.start("full")))
+    observed_amounts = budget_amount_evidence(criterion.source_span.text)
+    expected_amounts = (
+        calculation.base_amount,
+        *calculation.allowance_amounts,
+        *((calculation.explicit_maximum,) if calculation.explicit_maximum is not None else ()),
+    )
+    issues: list[IntentValidationIssue] = []
+    if sorted(observed_amounts) != sorted(expected_amounts):
+        issues.append(
+            _issue(
+                IntentIssueCode.BUDGET_AMOUNT_SPAN_MISMATCH,
+                f"{location}.calculation",
+                "budget calculation operands must exactly match quoted numeric evidence",
+            )
+        )
+    currencies = _span_currencies(criterion.source_span.text)
+    if (
+        len(currencies) > 1
+        or (currencies and currencies[0] != criterion.currency)
+        or (not currencies and criterion.currency is not None)
+    ):
+        issues.append(
+            _issue(
+                IntentIssueCode.BUDGET_CURRENCY_SPAN_MISMATCH,
+                f"{location}.currency",
+                "budget currency does not match the currency named in source_span",
+            )
+        )
+    return tuple(issues)
 
 
 def _budget_has_negative_context(query: str, start: int, end: int) -> bool:
@@ -1158,6 +1516,7 @@ def _issue(
 
 
 __all__ = [
+    "BudgetCalculation",
     "BudgetMax",
     "Exclusion",
     "IntentCriterion",
@@ -1171,6 +1530,9 @@ __all__ = [
     "SourceSpan",
     "StockRequired",
     "TargetCategory",
+    "budget_amount_evidence",
+    "budget_currency_evidence",
+    "budget_source_spans",
     "required_constraints_match",
     "validate_interpreted_request",
     "validate_source_span",

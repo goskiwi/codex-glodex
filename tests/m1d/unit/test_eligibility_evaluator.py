@@ -6,7 +6,7 @@ from dataclasses import FrozenInstanceError
 
 import pytest
 
-from glodex.adapters.rule_intent import RuleIntentInterpreter
+from glodex.agent.rule_intent import RuleIntentInterpreter
 from glodex.application.eligibility_evaluator import (
     EligibilityEvaluation,
     evaluate_eligibility,

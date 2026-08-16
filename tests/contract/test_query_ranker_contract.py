@@ -5,8 +5,8 @@ import inspect
 
 import pytest
 
-from glodex.adapters.deterministic_ranker import DeterministicQueryRanker
 from glodex.domain.ranking import LexicalScore
+from glodex.retrieval.deterministic_ranker import DeterministicQueryRanker
 from tests.unit.domain.test_ranking_lexical_v1 import _candidate, _preferred
 
 pytestmark = [

@@ -75,15 +75,23 @@ _DOMAIN_IO_ROOTS = frozenset(
         "tempfile",
     }
 )
-_CAPTURE_HTTP_PATH = Path("capture/ebay_http.py")
-_DEEPSEEK_HTTP_PATH = Path("adapters/deepseek_http.py")
-_AGENT_LIVE_HTTP_PATH = Path("adapters/agent_live_http.py")
-_M2A_RERANK_PATH = Path("adapters/dashscope_rerank.py")
-_M2B_POSTGRES_PATH = Path("adapters/m2b_postgres.py")
-_M2B_REDIS_PATH = Path("adapters/m2b_redis.py")
-_M2C_MODEL_SERVICE_PATH = Path("adapters/m2c_model_service.py")
-_M2C_GPU_SERVICE_PATH = Path("m2c_gpu_service.py")
-_M2D_DURABLE_CLIENT_PATH = Path("api/m2d_durable_client.py")
+_LLM_HTTP_PATH = Path("llm/openai_compatible_http.py")
+_EVIDENCE_SEARCH_PATH = Path("facts/evidence.py")
+_POSTGRES_PATH = Path("infrastructure/postgres.py")
+_REDIS_PATH = Path("infrastructure/redis.py")
+_MODEL_SERVICE_PATH = Path("retrieval/model_service.py")
+_CURRENT_PRODUCT_PATH = Path("retrieval/current_product.py")
+_CATEGORY_KNOWLEDGE_PATH = Path("interview_catalog/runtime.py")
+_GPU_SERVICE_PATH = Path("retrieval/gpu_service.py")
+_DURABLE_CLIENT_PATH = Path("api/durable_client.py")
+_TRACE_EXPORT_PATH = Path("observability/exporter.py")
+_NATIVE_AGENT_FRAMEWORK_PATHS = frozenset(
+    {
+        Path("agent/graph.py"),
+        Path("agent/llm.py"),
+        Path("runtime/graph_checkpoint.py"),
+    }
+)
 
 
 def _matches_prefix(module: str, prefixes: tuple[str, ...]) -> bool:
@@ -137,10 +145,10 @@ def find_import_boundary_violations(package_root: Path) -> list[str]:
         layer = relative_parts[0] if len(relative_parts) > 1 else None
 
         for module, line_number in _imports(path, package_root):
-            approved_m2c_gpu_framework = package_relative_path == _M2C_GPU_SERVICE_PATH
+            approved_retrieval_model_gpu_framework = package_relative_path == _GPU_SERVICE_PATH
             if (
                 layer != "api"
-                and not approved_m2c_gpu_framework
+                and not approved_retrieval_model_gpu_framework
                 and _matches_prefix(module, _API_ONLY_FRAMEWORK_PREFIXES)
             ):
                 violations.add(
@@ -148,31 +156,32 @@ def find_import_boundary_violations(package_root: Path) -> list[str]:
                 )
             if _matches_prefix(module, _FORBIDDEN_EXTERNAL_PREFIXES):
                 approved_httpx_transport = package_relative_path in {
-                    _DEEPSEEK_HTTP_PATH,
-                    _AGENT_LIVE_HTTP_PATH,
-                    _M2A_RERANK_PATH,
-                    _M2C_MODEL_SERVICE_PATH,
-                    _M2D_DURABLE_CLIENT_PATH,
+                    _LLM_HTTP_PATH,
+                    _EVIDENCE_SEARCH_PATH,
+                    _MODEL_SERVICE_PATH,
+                    _CURRENT_PRODUCT_PATH,
+                    _CATEGORY_KNOWLEDGE_PATH,
+                    _DURABLE_CLIENT_PATH,
+                    _TRACE_EXPORT_PATH,
                 } and _matches_prefix(module, ("httpx",))
-                approved_m2b_driver = (
-                    package_relative_path == _M2B_POSTGRES_PATH
+                approved_durable_driver = (
+                    package_relative_path == _POSTGRES_PATH
                     and _matches_prefix(module, ("asyncpg",))
-                ) or (
-                    package_relative_path == _M2B_REDIS_PATH and _matches_prefix(module, ("redis",))
+                ) or (package_relative_path == _REDIS_PATH and _matches_prefix(module, ("redis",)))
+                approved_native_agent_framework = (
+                    package_relative_path in _NATIVE_AGENT_FRAMEWORK_PATHS
+                    and _matches_prefix(module, ("langchain", "langgraph"))
                 )
-                if not approved_httpx_transport and not approved_m2b_driver:
+                if (
+                    not approved_httpx_transport
+                    and not approved_durable_driver
+                    and not approved_native_agent_framework
+                ):
                     violations.add(
                         f"{relative_path}:{line_number}: external SDK/framework import ({module})"
                     )
             if _matches_prefix(module, _FORBIDDEN_NETWORK_OR_DATABASE_PREFIXES):
-                approved_capture_http = (
-                    package_relative_path == _CAPTURE_HTTP_PATH
-                    and _matches_prefix(module, ("http.client",))
-                )
-                if not approved_capture_http:
-                    violations.add(
-                        f"{relative_path}:{line_number}: network/database import ({module})"
-                    )
+                violations.add(f"{relative_path}:{line_number}: network/database import ({module})")
 
             if layer == "domain":
                 root_module = module.partition(".")[0]

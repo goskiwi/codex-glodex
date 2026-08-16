@@ -1,0 +1,40 @@
+{
+  "schema_version": "glodex.current-product-binding.v2",
+  "purpose": "Server OpenSearch Hybrid application index built solely from the formal current 926710-product catalog and formal current Item-vector manifest. It is separate from Faiss item recall.",
+  "current_product_contract": {
+    "canonical_join_key": "document_id",
+    "expected_document_count": 926710,
+    "identity_policy": "canonical_document_id_only"
+  },
+  "current_catalog": {
+    "sqlite_path": "/data3/sybai/glodex/product-search/current-product-catalog.sqlite3",
+    "expected_document_count": 926710,
+    "source_binding_sha256": "19ada6773d8d98c493604e0e304dfe286845bfeebe8151f66a9ef31f9d6976b0"
+  },
+  "current_item_vectors": {
+    "manifest_path": "/data3/sybai/glodex/current-model/item-vectors/manifest.json",
+    "manifest_sha256": "1413cbe183b40cbb7e1baae3edc9207d281e82eee1de90e93c43f7709f1a2a60",
+    "expected_schema_version": "current_catalog_item_vectors_v1"
+  },
+  "opensearch": {
+    "endpoint": "http://127.0.0.1:9200",
+    "index_alias": "glodex-current-product-hybrid",
+    "physical_index": "glodex-current-product-hybrid-commerce-v4-20260810",
+    "pipeline_id": "glodex-current-product-hybrid-v1",
+    "vector_field": "item_vector",
+    "embedding_dimension": 1024,
+    "primary_shards": 1,
+    "vector_engine": "lucene_hnsw_cosinesimil",
+    "hybrid_weights": {
+      "semantic": 0.7,
+      "lexical": 0.3
+    }
+  },
+  "schema_policy": {
+    "full_text_fields": ["title", "search_text"],
+    "filter_fields": ["source", "source_locale_raw", "item_language", "target_market_locale", "category", "brand", "color", "has_category", "platform", "category_card_id"],
+    "category_policy": "Every indexed document is assigned exactly one leaf Category Card by trusted source category or a confident, unambiguous existing Item-vector match; weak or ambiguous vectors use the general fallback Card. Lexical rules are forbidden.",
+    "raw_locale_policy": "source_locale_raw is source metadata and is never treated as universal item language.",
+    "serving": "manual server operation only; the supplied build command starts OpenSearch only for its work and stops it before exit"
+  }
+}

@@ -1,6 +1,9 @@
 .DS_Store
 .serena/
 .claude/settings.local.json
+.playwright-cli/
+.reasonix/
+.workbuddy/
 
 .venv/
 __pycache__/
@@ -33,3 +36,23 @@ shopping_queries_dataset/
 **/shopping_queries_dataset_examples.parquet
 **/shopping_queries_dataset_products.parquet
 **/shopping_queries_dataset_sources.csv
+
+# Operator-local public corpus copies and generated interview catalog artifacts.
+# They are reproducible from the checked-in builder and are never committed.
+data/interview-catalog-input/
+data/interview-catalog/
+
+# Generated fact-base artifacts (attribute scan, spec registry, product facts).
+# Reproducible from scripts/build_fact_base.py; never committed.
+data/facts/
+
+# Operator-provided marketplace imports and generated intermediate snapshots.
+data/raw/
+data/normalized/
+data/Alibaba.json
+data/Amazon products.json
+data/Shein- Products.json
+data/Walmart - products .json
+data/eBay.json
+data/brightdata-*-errors.json
+data/snapshots/brightdata-samples-v3/

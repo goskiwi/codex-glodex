@@ -3,10 +3,19 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from datetime import datetime, timedelta
+from datetime import datetime
 from decimal import Decimal
 from enum import StrEnum
 
+from glodex.domain._validation import (
+    require_currency as _require_currency,
+)
+from glodex.domain._validation import (
+    require_text as _require_text,
+)
+from glodex.domain._validation import (
+    require_utc as _require_utc,
+)
 from glodex.domain.evidence import EvidenceEntityType, EvidenceRef, FieldEvidence
 from glodex.domain.issues import (
     CatalogIssue,
@@ -105,6 +114,8 @@ class Offer:
     captured_at: datetime
     snapshot_ordinal: int
     field_evidence: tuple[FieldEvidence, ...] = ()
+    delivery_days_min: int | None = None
+    delivery_days_max: int | None = None
 
     def __post_init__(self) -> None:
         _require_text(self.snapshot_version, "snapshot version", maximum=128)
@@ -142,6 +153,30 @@ class Offer:
                     raise ValueError(f"known {component} requires matching field evidence")
             elif type(cost) is UnknownCost and path in evidence_by_path:
                 raise ValueError(f"unknown {component} cannot have field evidence")
+        delivery_values = (self.delivery_days_min, self.delivery_days_max)
+        if (self.delivery_days_min is None) is not (self.delivery_days_max is None):
+            raise ValueError("offer delivery bounds must both be present or absent")
+        if any(
+            type(value) is not int or isinstance(value, bool) or value < 0
+            for value in delivery_values
+            if value is not None
+        ):
+            raise ValueError("offer delivery bounds must be non-negative integers")
+        if (
+            self.delivery_days_min is not None
+            and self.delivery_days_max is not None
+            and self.delivery_days_max < self.delivery_days_min
+        ):
+            raise ValueError("offer delivery maximum cannot precede minimum")
+        delivery_paths = {
+            "offer.delivery_days_min",
+            "offer.delivery_days_max",
+        }
+        if self.delivery_days_min is None:
+            if delivery_paths.intersection(evidence_by_path):
+                raise ValueError("unknown offer delivery cannot have field evidence")
+        elif not delivery_paths.issubset(evidence_by_path):
+            raise ValueError("known offer delivery requires matching field evidence")
 
 
 @dataclass(frozen=True, slots=True)
@@ -755,35 +790,9 @@ def _known_evidence(
         raise ValueError(f"unknown evidence ID: {evidence_id}") from error
 
 
-def _require_text(value: object, name: str, *, maximum: int) -> str:
-    if type(value) is not str or not value.strip():
-        raise ValueError(f"{name} must be a non-empty string")
-    if len(value) > maximum:
-        raise ValueError(f"{name} exceeds {maximum} code points")
-    return value
-
-
-def _require_currency(value: object) -> str:
-    if (
-        type(value) is not str
-        or len(value) != 3
-        or not value.isascii()
-        or not value.isalpha()
-        or not value.isupper()
-    ):
-        raise ValueError("currency must be an uppercase three-letter code")
-    return value
-
-
 def _require_ordinal(value: object, name: str) -> int:
     if type(value) is not int or isinstance(value, bool) or value < 0:
         raise ValueError(f"{name} must be a non-negative integer")
-    return value
-
-
-def _require_utc(value: object, name: str) -> datetime:
-    if type(value) is not datetime or value.tzinfo is None or value.utcoffset() != timedelta(0):
-        raise ValueError(f"{name} must be timezone-aware UTC")
     return value
 
 

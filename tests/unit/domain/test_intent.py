@@ -1,11 +1,12 @@
 from __future__ import annotations
 
-from dataclasses import FrozenInstanceError
+from dataclasses import FrozenInstanceError, replace
 from decimal import Decimal
 
 import pytest
 
 from glodex.domain.intent import (
+    BudgetCalculation,
     BudgetMax,
     Exclusion,
     IntentIssueCode,
@@ -30,7 +31,14 @@ def _span_for(query: str, text: str) -> SourceSpan:
 
 def test_intent_models_are_immutable_discriminated_variants() -> None:
     span = SourceSpan(start=0, end=2, text="轻薄")
-    budget = BudgetMax(amount=Decimal("999.90"), currency="CNY", source_span=span)
+    budget = BudgetMax(
+        mode="maximum",
+        target_amount=Decimal("999.90"),
+        lower_bound=None,
+        upper_bound=Decimal("999.90"),
+        currency="CNY",
+        source_span=span,
+    )
     category = TargetCategory(category="laptop", source_span=span)
     stock = StockRequired(source_span=span)
     exclusion = Exclusion(value="翻新", source_span=span)
@@ -57,7 +65,10 @@ def test_validator_accepts_every_supported_required_and_preferred_variant() -> N
     interpreted = InterpretedRequest(
         required=(
             BudgetMax(
-                amount=Decimal("1000"),
+                mode="maximum",
+                target_amount=Decimal("1000"),
+                lower_bound=None,
+                upper_bound=Decimal("1000"),
                 currency="CNY",
                 source_span=_span_for(query, "预算1000元"),
             ),
@@ -77,10 +88,24 @@ def test_validator_accepts_every_supported_required_and_preferred_variant() -> N
 
 def test_budget_preserves_exact_decimal_and_optional_original_currency() -> None:
     span = SourceSpan(start=3, end=10, text="999.900")
-    explicit = BudgetMax(amount=Decimal("999.900"), currency="CNY", source_span=span)
-    inherited_later = BudgetMax(amount=Decimal("999.900"), currency=None, source_span=span)
+    explicit = BudgetMax(
+        mode="maximum",
+        target_amount=Decimal("999.900"),
+        lower_bound=None,
+        upper_bound=Decimal("999.900"),
+        currency="CNY",
+        source_span=span,
+    )
+    inherited_later = BudgetMax(
+        mode="maximum",
+        target_amount=Decimal("999.900"),
+        lower_bound=None,
+        upper_bound=Decimal("999.900"),
+        currency=None,
+        source_span=span,
+    )
 
-    assert explicit.amount.as_tuple().exponent == -3
+    assert explicit.target_amount.as_tuple().exponent == -3
     assert explicit.currency == "CNY"
     assert inherited_later.currency is None
 
@@ -140,7 +165,16 @@ def test_invalid_source_spans_fail_closed(
     expected_code: IntentIssueCode,
 ) -> None:
     interpreted = InterpretedRequest(
-        required=(BudgetMax(amount=Decimal("1000"), currency="CNY", source_span=span),),
+        required=(
+            BudgetMax(
+                mode="maximum",
+                target_amount=Decimal("1000"),
+                lower_bound=None,
+                upper_bound=Decimal("1000"),
+                currency="CNY",
+                source_span=span,
+            ),
+        ),
         parser_version="rule-v1",
     )
 
@@ -155,7 +189,10 @@ def test_validator_rejects_offsets_calculated_before_query_trim() -> None:
     interpreted = InterpretedRequest(
         required=(
             BudgetMax(
-                amount=Decimal("1000"),
+                mode="maximum",
+                target_amount=Decimal("1000"),
+                lower_bound=None,
+                upper_bound=Decimal("1000"),
                 currency="CNY",
                 source_span=SourceSpan(start=2, end=4, text="预算"),
             ),
@@ -198,7 +235,10 @@ def test_budget_values_must_be_bound_to_their_source_span(
     interpreted = InterpretedRequest(
         required=(
             BudgetMax(
-                amount=amount,
+                mode="maximum",
+                target_amount=amount,
+                lower_bound=None,
+                upper_bound=amount,
                 currency=currency,
                 source_span=_span_for(query, "预算1000元"),
             ),
@@ -216,16 +256,18 @@ def test_budget_values_must_be_bound_to_their_source_span(
     "query",
     [
         "推荐型号1000的相机",
-        "推荐13以下的笔记本",
         "预算1000日元的相机",
     ],
 )
-def test_budget_span_must_itself_express_an_approved_budget(query: str) -> None:
-    text = "1000" if "型号" in query else "13以下" if "13" in query else "预算1000日元"
+def test_budget_span_without_structural_evidence_is_rejected(query: str) -> None:
+    text = "1000" if "型号" in query else "预算1000日元"
     interpreted = InterpretedRequest(
         required=(
             BudgetMax(
-                amount=Decimal("1000") if "1000" in text else Decimal("13"),
+                mode="maximum",
+                target_amount=Decimal("1000"),
+                lower_bound=None,
+                upper_bound=Decimal("1000"),
                 currency=None,
                 source_span=_span_for(query, text),
             ),
@@ -238,6 +280,68 @@ def test_budget_span_must_itself_express_an_approved_budget(query: str) -> None:
     assert tuple(issue.code for issue in result.issues) == (
         IntentIssueCode.INVALID_BUDGET_SPAN_SEMANTICS,
     )
+
+
+def test_bare_upper_limit_marker_is_a_valid_budget_contract() -> None:
+    query = "推荐13以下的笔记本"
+    interpreted = InterpretedRequest(
+        required=(
+            BudgetMax(
+                mode="maximum",
+                target_amount=Decimal("13"),
+                lower_bound=None,
+                upper_bound=Decimal("13"),
+                currency=None,
+                source_span=_span_for(query, "13以下"),
+            ),
+        ),
+        parser_version="malicious-v1",
+    )
+
+    result = validate_interpreted_request(query, interpreted)
+
+    assert result.is_valid
+
+
+@pytest.mark.parametrize(
+    "source_text",
+    [
+        "预算1500左右，可以超出100-200",  # noqa: RUF001
+        "预算基准1500，留出100-200的弹性",  # noqa: RUF001
+        "价格目标1500，必要时上浮100至200",  # noqa: RUF001
+    ],
+)
+def test_model_budget_calculation_does_not_depend_on_phrase_keywords(source_text: str) -> None:
+    query = f"通勤双肩包，可装16寸电脑，{source_text}"  # noqa: RUF001
+    interpreted = InterpretedRequest(
+        required=(
+            BudgetMax(
+                mode="maximum",
+                target_amount=Decimal("1700"),
+                lower_bound=None,
+                upper_bound=Decimal("1700"),
+                currency=None,
+                source_span=_span_for(query, source_text),
+                calculation=BudgetCalculation(
+                    base_amount=Decimal("1500"),
+                    allowance_amounts=(Decimal("100"), Decimal("200")),
+                ),
+            ),
+        ),
+        parser_version="agent-loop-v1",
+    )
+
+    assert validate_interpreted_request(query, interpreted).is_valid
+    invalid = replace(
+        interpreted.required[0],
+        target_amount=Decimal("1600"),
+        upper_bound=Decimal("1600"),
+    )
+    result = validate_interpreted_request(
+        query,
+        replace(interpreted, required=(invalid,)),
+    )
+    assert tuple(issue.code for issue in result.issues) == (IntentIssueCode.INVALID_BUDGET_AMOUNT,)
 
 
 @pytest.mark.parametrize(
@@ -277,7 +381,10 @@ def test_budget_span_must_be_maximal_non_negated_and_unambiguous(
     interpreted = InterpretedRequest(
         required=(
             BudgetMax(
-                amount=Decimal("1000") if "1000" in text else Decimal("800"),
+                mode="maximum",
+                target_amount=Decimal("1000") if "1000" in text else Decimal("800"),
+                lower_bound=None,
+                upper_bound=Decimal("1000") if "1000" in text else Decimal("800"),
                 currency=currency,
                 source_span=_span_for(query, text),
             ),
@@ -532,7 +639,10 @@ def test_postpositive_exclusions_remain_explicit_required_constraints() -> None:
 def test_duplicate_budget_constraint_is_rejected() -> None:
     query = "预算1000元的笔记本"
     budget = BudgetMax(
-        amount=Decimal("1000"),
+        mode="maximum",
+        target_amount=Decimal("1000"),
+        lower_bound=None,
+        upper_bound=Decimal("1000"),
         currency="CNY",
         source_span=_span_for(query, "预算1000元"),
     )
@@ -665,7 +775,10 @@ def test_exclusion_and_preference_polarity_cannot_be_spoofed(
 
 def test_spoofed_discriminator_fails_closed_even_with_a_valid_span() -> None:
     budget = BudgetMax(
-        amount=Decimal("1000"),
+        mode="maximum",
+        target_amount=Decimal("1000"),
+        lower_bound=None,
+        upper_bound=Decimal("1000"),
         currency="CNY",
         source_span=SourceSpan(start=0, end=7, text="预算1000元"),
     )

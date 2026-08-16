@@ -3,8 +3,18 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from datetime import datetime, timedelta
+from datetime import datetime
 from enum import StrEnum
+
+from glodex.domain._validation import (
+    require_currency as _require_currency,
+)
+from glodex.domain._validation import (
+    require_text as _require_text,
+)
+from glodex.domain._validation import (
+    require_utc as _require_utc,
+)
 
 
 class EvidenceEntityType(StrEnum):
@@ -129,32 +139,6 @@ class VerifiedClaim:
                 raise ValueError("derived monetary claims require pricing-v1")
         elif self.algorithm_version is not None:
             raise ValueError("raw fact claims cannot identify a pricing algorithm")
-
-
-def _require_text(value: object, name: str, *, maximum: int) -> str:
-    if type(value) is not str or not value.strip():
-        raise ValueError(f"{name} must be a non-empty string")
-    if len(value) > maximum:
-        raise ValueError(f"{name} exceeds {maximum} code points")
-    return value
-
-
-def _require_currency(value: object) -> str:
-    if (
-        type(value) is not str
-        or len(value) != 3
-        or not value.isascii()
-        or not value.isalpha()
-        or not value.isupper()
-    ):
-        raise ValueError("currency must be an uppercase three-letter code")
-    return value
-
-
-def _require_utc(value: object, name: str) -> datetime:
-    if type(value) is not datetime or value.tzinfo is None or value.utcoffset() != timedelta(0):
-        raise ValueError(f"{name} must be timezone-aware UTC")
-    return value
 
 
 __all__ = [

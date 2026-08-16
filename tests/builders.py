@@ -5,6 +5,11 @@ from __future__ import annotations
 from datetime import UTC, datetime
 from decimal import Decimal
 
+from glodex.agent.contracts import (
+    SemanticAssertionInput,
+    SemanticAssertionOutput,
+    ShoppingNarrationInput,
+)
 from glodex.domain.catalog import (
     CatalogBatch,
     CostComponents,
@@ -21,6 +26,26 @@ from glodex.domain.pricing import KnownCost
 
 SNAPSHOT_VERSION = "m0-v1"
 CAPTURED_AT = datetime(2026, 1, 1, tzinfo=UTC)
+
+
+class AcceptAllSemanticAssertion:
+    """Test-only semantic assertion whose output remains identity-bound."""
+
+    async def verify(self, request: SemanticAssertionInput) -> SemanticAssertionOutput:
+        return SemanticAssertionOutput(
+            relevant_candidate_ids=tuple(candidate.candidate_id for candidate in request.candidates)
+        )
+
+
+class VerifiedShoppingSummary:
+    """Test-only terminal narrator that preserves the observed pick cardinality."""
+
+    async def summarize(self, request: ShoppingNarrationInput) -> str:
+        items = "".join(
+            f"第{index}项: {pick.title}, {pick.landed_cost_cny} CNY。"
+            for index, pick in enumerate(request.picks, start=1)
+        )
+        return items + "以上仅使用已验证商品属性与到手价进行比较。"
 
 
 def build_product(
@@ -74,6 +99,8 @@ def build_offer(
     cost_components: CostComponents | None = None,
     captured_at: datetime = CAPTURED_AT,
     snapshot_ordinal: int = 0,
+    delivery_days_min: int | None = None,
+    delivery_days_max: int | None = None,
     field_evidence: tuple[FieldEvidence, ...] | None = None,
 ) -> Offer:
     """Build one valid offer with explicit raw cost component provenance."""
@@ -116,6 +143,20 @@ def build_offer(
             ),
             FieldEvidence(field_path="offer.cost_components.tax", evidence_id="ev-offer-tax"),
             FieldEvidence(field_path="offer.cost_components.duty", evidence_id="ev-offer-duty"),
+            *(
+                (
+                    FieldEvidence(
+                        field_path="offer.delivery_days_min",
+                        evidence_id="ev-offer-delivery-min",
+                    ),
+                    FieldEvidence(
+                        field_path="offer.delivery_days_max",
+                        evidence_id="ev-offer-delivery-max",
+                    ),
+                )
+                if delivery_days_min is not None and delivery_days_max is not None
+                else ()
+            ),
         )
     return Offer(
         snapshot_version=snapshot_version,
@@ -129,6 +170,8 @@ def build_offer(
         captured_at=captured_at,
         snapshot_ordinal=snapshot_ordinal,
         field_evidence=field_evidence,
+        delivery_days_min=delivery_days_min,
+        delivery_days_max=delivery_days_max,
     )
 
 
@@ -186,11 +229,17 @@ def build_exchange_rates(
 def build_catalog_batch(
     *,
     snapshot_version: str = SNAPSHOT_VERSION,
+    delivery_days_min: int | None = None,
+    delivery_days_max: int | None = None,
 ) -> CatalogBatch:
     """Build a complete, evidence-closed single-product catalog batch."""
 
     product = build_product(snapshot_version=snapshot_version)
-    offer = build_offer(snapshot_version=snapshot_version)
+    offer = build_offer(
+        snapshot_version=snapshot_version,
+        delivery_days_min=delivery_days_min,
+        delivery_days_max=delivery_days_max,
+    )
     product_refs = (
         build_evidence_ref(snapshot_version=snapshot_version),
         build_evidence_ref(

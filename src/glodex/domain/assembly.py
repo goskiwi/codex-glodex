@@ -18,6 +18,12 @@ from typing import cast
 from unicodedata import normalize
 from weakref import ReferenceType, ref
 
+from glodex.domain._validation import (
+    require_currency as _require_currency,
+)
+from glodex.domain._validation import (
+    require_text as _require_text,
+)
 from glodex.domain.catalog import (
     CanonicalAttribute,
     CanonicalProduct,
@@ -62,6 +68,7 @@ from glodex.domain.pricing import (
     LandedCost,
     PricingTrace,
     canonical_exact_amount,
+    format_display_amount,
 )
 from glodex.domain.ranking import lexical_tokens
 
@@ -338,7 +345,7 @@ def render_reason(
         *matched_attributes,
     )
     reason_parts = (
-        *((f"满足预算：到手价 {budget_claim.value}",) if budget_claim is not None else ()),
+        *((f"满足预算：{budget_claim.value}",) if budget_claim is not None else ()),
         f"有库存：{inventory_claim.value}",
         *(f"匹配偏好：{claim.value}" for claim in matched_attributes),
     )
@@ -833,8 +840,34 @@ def _require_interpreted_request(
     if not budgets:
         return None
     budget = budgets[0]
-    if type(budget.amount) is not Decimal or not budget.amount.is_finite() or budget.amount < 0:
-        raise ValueError("budget amount must be a finite non-negative Decimal")
+    if any(
+        type(amount) is not Decimal or not amount.is_finite() or amount <= 0
+        for amount in (budget.target_amount, budget.upper_bound)
+    ):
+        raise ValueError("budget target and upper bound must be finite positive Decimals")
+    if budget.lower_bound is not None and (
+        type(budget.lower_bound) is not Decimal
+        or not budget.lower_bound.is_finite()
+        or budget.lower_bound <= 0
+    ):
+        raise ValueError("budget lower bound must be a finite positive Decimal or None")
+    if budget.mode == "maximum":
+        if budget.lower_bound is not None or budget.upper_bound != budget.target_amount:
+            raise ValueError("maximum budget bounds are inconsistent")
+    elif budget.mode == "around":
+        if budget.lower_bound != budget.target_amount * Decimal(
+            "0.90"
+        ) or budget.upper_bound != budget.target_amount * Decimal("1.10"):
+            raise ValueError("around budget requires exact ten-percent bounds")
+    elif budget.mode == "range":
+        if (
+            budget.lower_bound is None
+            or budget.lower_bound >= budget.upper_bound
+            or budget.target_amount != budget.upper_bound
+        ):
+            raise ValueError("range budget requires explicit ordered bounds")
+    else:
+        raise ValueError("budget mode is invalid")
     if budget.currency is not None:
         _require_currency(budget.currency)
     if budget.kind != "budget_max":
@@ -1001,7 +1034,7 @@ def _build_offer_claims(
         product_id=product.product_id,
         provider_id=offer.provider_id,
         offer_id=offer.offer_id,
-        value=f"{offer.provider_id}/{offer.market}",
+        value=offer.market,
         evidence_ids=(inventory_id, market_id),
     )
 
@@ -1023,28 +1056,59 @@ def _build_offer_claims(
     )
 
     if budget is None:
-        if landed.budget_max is not None or landed.within_budget is not None:
+        if (
+            landed.budget_mode is not None
+            or landed.budget_target_amount is not None
+            or landed.budget_lower_bound is not None
+            or landed.budget_upper_bound is not None
+            or landed.within_budget is not None
+        ):
             raise ValueError("landed cost carries a budget absent from the request")
         return (inventory_claim, landed_claim)
 
     effective_currency = budget.currency or landed.display_currency
     if (
-        landed.budget_max != budget.amount
+        landed.budget_mode != budget.mode
+        or landed.budget_target_amount != budget.target_amount
+        or landed.budget_lower_bound != budget.lower_bound
+        or landed.budget_upper_bound != budget.upper_bound
         or landed.budget_currency != effective_currency
         or landed.trace.budget_currency != effective_currency
         or landed.within_budget is not True
-        or landed.budget_exact > budget.amount
     ):
         raise ValueError("landed cost does not satisfy the exact request budget")
+    rendered_exact = format_display_amount(
+        landed.budget_exact,
+        landed.trace.budget_rate.minor_units,
+    )
+    if budget.mode == "around":
+        if budget.lower_bound is None:
+            raise ValueError("around budget requires a lower bound")
+        budget_value = (
+            f"目标预算约 {canonical_exact_amount(budget.target_amount)} {effective_currency}；"
+            f"到手价 {rendered_exact} {landed.budget_currency}，在 "
+            f"{canonical_exact_amount(budget.lower_bound)}-"
+            f"{canonical_exact_amount(budget.upper_bound)} {effective_currency} 范围内"
+        )
+    elif budget.mode == "range":
+        if budget.lower_bound is None:
+            raise ValueError("range budget requires a lower bound")
+        budget_value = (
+            f"预算范围 {canonical_exact_amount(budget.lower_bound)}-"
+            f"{canonical_exact_amount(budget.upper_bound)} {effective_currency}；"
+            f"到手价 {rendered_exact} {landed.budget_currency}，在范围内"
+        )
+    else:
+        budget_value = (
+            f"到手价 {rendered_exact} {landed.budget_currency} ≤ "
+            f"{canonical_exact_amount(budget.upper_bound)} {effective_currency}"
+        )
     budget_claim = VerifiedClaim(
         claim_type=VerifiedClaimType.WITHIN_BUDGET,
         product_id=product.product_id,
         provider_id=offer.provider_id,
         offer_id=offer.offer_id,
-        value=(
-            f"{landed.budget_exact_json} {landed.budget_currency} ≤ "
-            f"{canonical_exact_amount(budget.amount)} {effective_currency}"
-        ),
+        value=budget_value,
         evidence_ids=derived_evidence,
         algorithm_version=PRICING_ALGORITHM_VERSION,
     )
@@ -1346,14 +1410,6 @@ def _guarded_results_signature(guarded: GuardedResults) -> bytes:
     return hasher.digest()
 
 
-def _require_text(value: object, name: str, *, maximum: int) -> str:
-    if type(value) is not str or not value.strip():
-        raise ValueError(f"{name} must be a non-empty string")
-    if len(value) > maximum:
-        raise ValueError(f"{name} exceeds {maximum} code points")
-    return value
-
-
 def _require_string_tuple(
     values: object,
     name: str,
@@ -1369,18 +1425,6 @@ def _require_string_tuple(
     for value in checked:
         _require_text(value, name, maximum=maximum)
     return checked
-
-
-def _require_currency(value: object) -> str:
-    if (
-        type(value) is not str
-        or len(value) != 3
-        or not value.isascii()
-        or not value.isalpha()
-        or not value.isupper()
-    ):
-        raise ValueError("currency must be an uppercase three-letter code")
-    return value
 
 
 def _require_unique(values: tuple[str, ...], name: str) -> None:

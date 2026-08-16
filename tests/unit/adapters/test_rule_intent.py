@@ -5,7 +5,7 @@ from decimal import Decimal
 
 import pytest
 
-from glodex.adapters.rule_intent import (
+from glodex.agent.rule_intent import (
     IntentInterpretationCode,
     IntentInterpretationError,
     RuleIntentInterpreter,
@@ -45,7 +45,8 @@ def test_rule_interpreter_parses_the_phase_b_chinese_vertical_slice() -> None:
         if isinstance(item, PreferredCriterion) and item.value == "travel"
     )
 
-    assert budget.amount == Decimal("800")
+    assert budget.target_amount == Decimal("800")
+    assert budget.upper_bound == Decimal("800")
     assert budget.currency == "USD"
     assert category.category == "laptop"
     assert exclusion.value == "翻新"
@@ -74,7 +75,8 @@ def test_budget_currency_and_exact_decimal_are_table_driven(
     interpreted = interpret(query)
     budget = next(item for item in interpreted.required if isinstance(item, BudgetMax))
 
-    assert budget.amount == amount
+    assert budget.target_amount == amount
+    assert budget.upper_bound == amount
     assert budget.currency == currency
     assert budget.source_span.text == source_text
 

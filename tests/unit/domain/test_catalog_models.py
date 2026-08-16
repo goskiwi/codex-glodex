@@ -204,6 +204,31 @@ def test_unknown_cost_must_not_have_a_field_evidence_binding() -> None:
         build_offer(cost_components=unknown_costs)
 
 
+def test_offer_delivery_requires_one_ordered_evidence_closed_pair() -> None:
+    offer = build_offer(delivery_days_min=2, delivery_days_max=6)
+
+    assert offer.delivery_days_min == 2
+    assert offer.delivery_days_max == 6
+    assert {
+        binding.field_path
+        for binding in offer.field_evidence
+        if binding.field_path.startswith("offer.delivery_days_")
+    } == {"offer.delivery_days_min", "offer.delivery_days_max"}
+
+    with pytest.raises(ValueError, match="both be present"):
+        build_offer(delivery_days_min=2)
+    with pytest.raises(ValueError, match="cannot precede"):
+        build_offer(delivery_days_min=6, delivery_days_max=2)
+    with pytest.raises(ValueError, match="requires matching field evidence"):
+        build_offer(
+            delivery_days_min=2,
+            delivery_days_max=6,
+            field_evidence=build_offer().field_evidence,
+        )
+    with pytest.raises(ValueError, match="unknown offer delivery"):
+        build_offer(field_evidence=offer.field_evidence)
+
+
 @pytest.mark.parametrize(
     "required_path",
     [

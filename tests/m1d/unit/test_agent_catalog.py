@@ -6,7 +6,7 @@ from decimal import Decimal
 
 import pytest
 
-from glodex.application.agent.catalog import (
+from glodex.agent.catalog import (
     CandidateManifest,
     CandidateStore,
     InMemoryCatalogGateway,
@@ -14,7 +14,7 @@ from glodex.application.agent.catalog import (
     build_fx_evaluation_view,
     rebind_selected_candidates,
 )
-from glodex.application.agent.contracts import (
+from glodex.agent.contracts import (
     Candidate,
     CandidateAttribute,
     DataMode,
@@ -60,7 +60,7 @@ def _candidate(*, candidate_id: str = "amazon.product-1") -> Candidate:
 
 def _manifest(*, snapshot_version: str = "m0-v1") -> CandidateManifest:
     return CandidateManifest(
-        data_mode=DataMode.DEMO_SNAPSHOT,
+        data_mode=DataMode.SYNTHETIC_INTERVIEW,
         snapshot_version=snapshot_version,
         records=(
             ManifestRecord(
@@ -79,9 +79,12 @@ def _manifest(*, snapshot_version: str = "m0-v1") -> CandidateManifest:
 def _result(*, snapshot_version: str = "m0-v1") -> ItemSearchRuntimeResult:
     return ItemSearchRuntimeResult(
         platform=Platform.AMAZON,
+        target_query="test query",
+        retrieval_query="test query",
         candidates=(_candidate(),),
         platform_sub_batch=build_catalog_batch(snapshot_version=snapshot_version),
         total_recall=1,
+        returned_before_semantic_filter=1,
         truncated=False,
     )
 
@@ -283,9 +286,12 @@ def _multi_result(
 ) -> ItemSearchRuntimeResult:
     return ItemSearchRuntimeResult(
         platform=Platform.AMAZON,
+        target_query="test query",
+        retrieval_query="test query",
         candidates=candidates,
         platform_sub_batch=batch,
         total_recall=len(candidates),
+        returned_before_semantic_filter=len(candidates),
         truncated=False,
     )
 
@@ -307,20 +313,28 @@ def test_candidate_store_validates_manifest_and_materializes_one_closed_batch() 
     assert store.is_cleared
 
 
-def test_candidate_manifest_allows_only_truthful_live_empty_inventory() -> None:
-    live = CandidateManifest(
-        data_mode=DataMode.LIVE_MARKETPLACE,
-        snapshot_version="capture-empty",
+def test_candidate_store_accepts_verified_empty_search_results() -> None:
+    manifest = CandidateManifest(
+        data_mode=DataMode.SYNTHETIC_INTERVIEW,
+        snapshot_version="m1d-demo-v1",
         records=(),
     )
+    result = ItemSearchRuntimeResult(
+        platform=Platform.AMAZON,
+        target_query="commuter backpack",
+        retrieval_query="commuter backpack",
+        candidates=(),
+        platform_sub_batch=CatalogBatch(snapshot_version="m1d-demo-v1"),
+        total_recall=0,
+        returned_before_semantic_filter=0,
+        truncated=False,
+    )
 
-    assert live.records == ()
-    with pytest.raises(ValueError, match="Demo candidate manifest requires records"):
-        CandidateManifest(
-            data_mode=DataMode.DEMO_SNAPSHOT,
-            snapshot_version="m1d-demo-v1",
-            records=(),
-        )
+    pool = CandidateStore(manifest).merge((result,))
+
+    assert pool.candidates == ()
+    assert pool.records == ()
+    assert pool.evaluation_batch.products == ()
 
 
 @pytest.mark.parametrize(
@@ -341,13 +355,33 @@ def test_candidate_store_rejects_candidate_projection_drift(
     forged = _candidate(candidate_id="amazon.forged").model_copy(update=update)
     result = ItemSearchRuntimeResult(
         platform=Platform.AMAZON,
+        target_query="test query",
+        retrieval_query="test query",
         candidates=(forged,),
         platform_sub_batch=build_catalog_batch(),
         total_recall=1,
+        returned_before_semantic_filter=1,
         truncated=False,
     )
 
     with pytest.raises(ValueError, match="Catalog projection"):
+        CandidateStore(_manifest()).merge((result,))
+
+
+def test_candidate_store_rejects_same_product_group_drift() -> None:
+    forged = _candidate().model_copy(update={"same_group_id": "sg-v1-aaaaaaaaaaaaaaaaaaaaaaaa"})
+    result = ItemSearchRuntimeResult(
+        platform=Platform.AMAZON,
+        target_query="test query",
+        retrieval_query="test query",
+        candidates=(forged,),
+        platform_sub_batch=build_catalog_batch(),
+        total_recall=1,
+        returned_before_semantic_filter=1,
+        truncated=False,
+    )
+
+    with pytest.raises(ValueError, match="candidate ownership"):
         CandidateStore(_manifest()).merge((result,))
 
 
@@ -388,7 +422,7 @@ def test_candidate_store_accepts_exact_pack_projection() -> None:
         priced_offer=offer,
     )
     manifest = CandidateManifest(
-        data_mode=DataMode.DEMO_SNAPSHOT,
+        data_mode=DataMode.SYNTHETIC_INTERVIEW,
         snapshot_version="m0-v1",
         records=(record,),
     )
@@ -425,7 +459,7 @@ def test_candidate_store_prices_only_from_source_ref_offer() -> None:
         offer_ids=(source_offer.offer_id, alternate_offer.offer_id),
     )
     manifest = CandidateManifest(
-        data_mode=DataMode.DEMO_SNAPSHOT,
+        data_mode=DataMode.SYNTHETIC_INTERVIEW,
         snapshot_version="m0-v1",
         records=(record,),
     )
@@ -500,7 +534,7 @@ def test_candidate_store_rejects_cross_wired_offer_parents() -> None:
         ),
     )
     manifest = CandidateManifest(
-        data_mode=DataMode.DEMO_SNAPSHOT,
+        data_mode=DataMode.SYNTHETIC_INTERVIEW,
         snapshot_version="m0-v1",
         records=(record_a, record_b),
     )
@@ -552,7 +586,7 @@ def test_candidate_store_rejects_cross_record_provider_laundering() -> None:
         offer_ids=(offer_b.offer_id,),
     )
     manifest = CandidateManifest(
-        data_mode=DataMode.DEMO_SNAPSHOT,
+        data_mode=DataMode.SYNTHETIC_INTERVIEW,
         snapshot_version="m0-v1",
         records=(record_a, record_b),
     )
@@ -596,9 +630,12 @@ def test_candidate_store_rejects_duplicate_catalog_identities(duplicate: str) ->
     )
     result = ItemSearchRuntimeResult(
         platform=Platform.AMAZON,
+        target_query="test query",
+        retrieval_query="test query",
         candidates=(_candidate(),),
         platform_sub_batch=duplicated,
         total_recall=1,
+        returned_before_semantic_filter=1,
         truncated=False,
     )
 
@@ -622,41 +659,17 @@ def test_candidate_store_rejects_unbound_evidence() -> None:
     )
     result = ItemSearchRuntimeResult(
         platform=Platform.AMAZON,
+        target_query="test query",
+        retrieval_query="test query",
         candidates=(_candidate(),),
         platform_sub_batch=open_batch,
         total_recall=1,
+        returned_before_semantic_filter=1,
         truncated=False,
     )
 
     with pytest.raises(ValueError, match="evidence closure"):
         CandidateStore(_manifest()).merge((result,))
-
-
-@pytest.mark.parametrize("data_mode", (DataMode.DEMO_SNAPSHOT, DataMode.LIVE_MARKETPLACE))
-def test_candidate_store_preserves_empty_results(data_mode: DataMode) -> None:
-    snapshot_version = "m0-v1" if data_mode is DataMode.DEMO_SNAPSHOT else "capture-empty"
-    manifest = (
-        _manifest(snapshot_version=snapshot_version)
-        if data_mode is DataMode.DEMO_SNAPSHOT
-        else CandidateManifest(
-            data_mode=DataMode.LIVE_MARKETPLACE,
-            snapshot_version=snapshot_version,
-            records=(),
-        )
-    )
-    empty = ItemSearchRuntimeResult(
-        platform=(Platform.AMAZON if data_mode is DataMode.DEMO_SNAPSHOT else Platform.EBAY),
-        candidates=(),
-        platform_sub_batch=CatalogBatch(snapshot_version=snapshot_version),
-        total_recall=0,
-        truncated=False,
-    )
-
-    pool = CandidateStore(manifest).merge((empty,))
-
-    assert pool.candidates == ()
-    assert pool.records == ()
-    assert pool.evaluation_batch == CatalogBatch(snapshot_version=snapshot_version)
 
 
 def test_candidate_store_rejects_cross_snapshot_and_candidate_fact_mismatch() -> None:
@@ -669,9 +682,12 @@ def test_candidate_store_rejects_cross_snapshot_and_candidate_fact_mismatch() ->
     )
     result = ItemSearchRuntimeResult(
         platform=Platform.AMAZON,
+        target_query="test query",
+        retrieval_query="test query",
         candidates=(bad,),
         platform_sub_batch=build_catalog_batch(),
         total_recall=1,
+        returned_before_semantic_filter=1,
         truncated=False,
     )
     with pytest.raises(ValueError, match="price"):
@@ -708,6 +724,14 @@ def test_rebinder_and_in_memory_gateway_enforce_final_snapshot_and_currency() ->
     assert mapping.candidate_id == "amazon.product-1"
     assert mapping.product_id.startswith("amazon.p.")
     assert mapping.offer_ids[0].startswith("amazon.o.")
+    source_attribute_evidence = pool.evaluation_batch.products[0].attributes[0].evidence_id
+    rebound_attribute_evidence = rebound.mapping.for_evidence(source_attribute_evidence)
+    assert rebound_attribute_evidence.startswith("amazon.e.")
+    assert any(
+        item.evidence_id == rebound_attribute_evidence
+        and item.source_uri == "fixture://provider-a/products/product-1"
+        for item in rebound.batch.evidence
+    )
     assert rebound.batch.products[0].source_uri == "fixture://provider-a/products/product-1"
     assert rebound.batch.offers[0].source_uri == "fixture://provider-a/offers/offer-1"
 

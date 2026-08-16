@@ -5,6 +5,8 @@ from __future__ import annotations
 from dataclasses import dataclass
 from enum import StrEnum
 
+from glodex.domain._validation import require_text as _require_text
+
 
 class IssueDisposition(StrEnum):
     FATAL = "fatal"
@@ -86,14 +88,6 @@ class CatalogIssue:
     @property
     def is_fatal(self) -> bool:
         return self.disposition is IssueDisposition.FATAL
-
-
-def _require_text(value: object, name: str, *, maximum: int) -> str:
-    if type(value) is not str or not value.strip():
-        raise ValueError(f"{name} must be a non-empty string")
-    if len(value) > maximum:
-        raise ValueError(f"{name} exceeds {maximum} code points")
-    return value
 
 
 __all__ = [

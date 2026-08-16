@@ -260,7 +260,7 @@ def _offer_reasons(
         OfferGateId.STOCK: not candidate.in_stock,
         OfferGateId.COST_COMPLETENESS: not candidate.costs_complete,
         OfferGateId.EXCHANGE_RATE: not candidate.exchange_rate_present,
-        OfferGateId.BUDGET: candidate.exact_cost > budget.amount,
+        OfferGateId.BUDGET: candidate.exact_cost > budget.upper_bound,
     }[gate]
     return (f"failed-{gate.value}",) if failed else ()
 
@@ -307,7 +307,10 @@ def test_generated_hard_gates_never_leak_or_restore_a_rejected_candidate() -> No
                         source_span=SourceSpan(start=0, end=3, text="笔记本"),
                     ),
                     BudgetMax(
-                        amount=budget,
+                        mode="maximum",
+                        target_amount=budget,
+                        lower_bound=None,
+                        upper_bound=budget,
                         currency="USD",
                         source_span=SourceSpan(start=4, end=9, text="预算上限"),
                     ),
@@ -474,7 +477,10 @@ def test_generated_source_spans_are_exact_and_bad_offsets_fail_closed() -> None:
             category_start = query.index("笔记本")
             preferred_start = query.index("轻薄")
             valid_budget = BudgetMax(
-                amount=Decimal(amount),
+                mode="maximum",
+                target_amount=Decimal(amount),
+                lower_bound=None,
+                upper_bound=Decimal(amount),
                 currency="USD",
                 source_span=SourceSpan(
                     start=budget_start,

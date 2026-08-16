@@ -124,7 +124,10 @@ def _context(
     if budget is not None:
         required.append(
             BudgetMax(
-                amount=Decimal(budget),
+                mode="maximum",
+                target_amount=Decimal(budget),
+                lower_bound=None,
+                upper_bound=Decimal(budget),
                 currency=budget_currency,
                 source_span=SourceSpan(start=4, end=12, text="预算800元"),
             )
@@ -279,7 +282,10 @@ def _pricing_candidate(
         offer.cost_components,
         _rates() if rates is None else rates,
         display_currency=display_currency,
-        budget_max=None if budget is None else budget.amount,
+        budget_mode=None if budget is None else budget.mode,
+        budget_target_amount=None if budget is None else budget.target_amount,
+        budget_lower_bound=None if budget is None else budget.lower_bound,
+        budget_upper_bound=None if budget is None else budget.upper_bound,
         budget_currency=None if budget is None else budget.currency,
     )
     return OfferPricingCandidate(offer=offer, pricing=result)
@@ -599,7 +605,7 @@ def test_explicit_and_inherited_budget_currency_contracts(
     assert landed.display_currency == display_currency
     assert landed.budget_currency == expected_currency
     assert landed.budget_exact == Decimal("100.00")
-    assert landed.budget_max == Decimal("100.00")
+    assert landed.budget_upper_bound == Decimal("100.00")
 
 
 def test_diagnostics_reports_all_determinable_reasons_without_recovery() -> None:
@@ -1026,7 +1032,7 @@ def test_pricing_request_contract_mismatch_is_a_boundary_error(case: str) -> Non
             _context(budget="801.00", budget_currency="EUR"),
         )
 
-    with pytest.raises(ValueError, match=r"currency|maximum"):
+    with pytest.raises(ValueError, match=r"currency|constraint"):
         run_offer_gates(
             _product_output((_product(),), context),
             (offer,),

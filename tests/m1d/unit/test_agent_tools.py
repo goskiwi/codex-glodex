@@ -1,3 +1,5 @@
+# ruff: noqa: RUF001
+
 from __future__ import annotations
 
 import asyncio
@@ -5,28 +7,26 @@ from dataclasses import dataclass, replace
 from datetime import UTC, datetime
 from decimal import Decimal
 from pathlib import Path
+from typing import Never
 
 import pytest
 from pydantic import ValidationError
 
-from glodex.adapters.deterministic_ranker import DeterministicQueryRanker
-from glodex.adapters.rule_intent import (
-    AgentRuleIntentInterpreter,
-    RuleIntentInterpreter,
-)
-from glodex.application.agent import tools as agent_tools
-from glodex.application.agent.catalog import (
+from glodex.agent.catalog import (
     CandidateEligibility,
     CandidateManifest,
     CandidateStore,
     InMemoryCatalogGateway,
     ManifestRecord,
+    ValidatedCandidatePool,
     build_fx_evaluation_view,
     evaluate_candidate_pool,
 )
-from glodex.application.agent.contracts import (
+from glodex.agent.contracts import (
     BUSINESS_TOOL_SET,
     AgentCapabilities,
+    AgentToolSummary,
+    AttributeDistribution,
     Candidate,
     CandidateAttribute,
     CategoryInsightInput,
@@ -42,31 +42,25 @@ from glodex.application.agent.contracts import (
     PlannerInput,
     PlannerIntentKind,
     Platform,
+    PriceComparisonScope,
+    PriceTierInsight,
+    SemanticAssertionOutput,
+    ShoppingNarrationInput,
     ToolFailureCode,
     ToolName,
     WebEvidence,
     WebSearchInput,
     WebSearchOutput,
 )
-from glodex.application.agent.ports import ToolPortError
-from glodex.application.agent.state import TOOL_RESULT_BYTE_LIMIT
-from glodex.application.agent.tools import (
-    BUSINESS_TOOL_REGISTRY,
-    ChatFallbackInput,
-    ItemPickerInput,
-    ItemSearchToolInput,
-    PriceCompareInput,
-    ShippingCalcInput,
-    ShippingRule,
-    ShoppingSummaryInput,
-    ToolDependencies,
-    execute_business_tool,
-    run_category_insight,
-    run_item_picker,
-    run_item_search,
-    run_planner,
-    run_price_compare,
-    run_shipping_calc,
+from glodex.agent.ports import ToolPortError
+from glodex.agent.rule_intent import (
+    AgentRuleIntentInterpreter,
+    RuleIntentInterpreter,
+)
+from glodex.agent.state import TOOL_RESULT_BYTE_LIMIT
+from glodex.agent.tool_session import (
+    _retain_semantically_relevant_candidates,
+    _unpriced_candidate_ids,
 )
 from glodex.application.search_service import SearchService
 from glodex.config import GlodexConfig
@@ -81,13 +75,37 @@ from glodex.domain.catalog import (
 )
 from glodex.domain.evidence import EvidenceEntityType, FieldEvidence
 from glodex.domain.intent import (
+    BudgetMax,
     InterpretedRequest,
     PreferredCriterion,
+    SourceSpan,
     TargetCategory,
     validate_interpreted_request,
 )
 from glodex.domain.pricing import KnownCost, UnknownCost
+from glodex.retrieval.deterministic_ranker import DeterministicQueryRanker
+from glodex.tools import engine as agent_tools
+from glodex.tools.engine import (
+    BUSINESS_TOOL_REGISTRY,
+    ChatFallbackInput,
+    ItemPickerInput,
+    ItemSearchToolInput,
+    PriceCompareInput,
+    ShippingCalcInput,
+    ShippingRule,
+    ShoppingSummaryInput,
+    TargetCandidateGroup,
+    ToolDependencies,
+    execute_business_tool,
+    run_category_insight,
+    run_item_picker,
+    run_planner,
+    run_price_compare,
+    run_shipping_calc,
+)
 from tests.builders import (
+    AcceptAllSemanticAssertion,
+    VerifiedShoppingSummary,
     build_catalog_batch,
     build_evidence_ref,
     build_offer,
@@ -160,12 +178,19 @@ def _item_result(
 ) -> ItemSearchRuntimeResult:
     return ItemSearchRuntimeResult(
         platform=Platform.AMAZON,
+        target_query="test query",
+        retrieval_query="test query",
         candidates=(_candidate(),),
         platform_sub_batch=build_fx_evaluation_view(
-            build_catalog_batch() if source_batch is None else source_batch,
+            (
+                build_catalog_batch(delivery_days_min=2, delivery_days_max=10)
+                if source_batch is None
+                else source_batch
+            ),
             _cny_fx_batch() if fx_source_batch is None else fx_source_batch,
         ),
         total_recall=1,
+        returned_before_semantic_filter=1,
         truncated=False,
     )
 
@@ -176,7 +201,7 @@ def _pool(
     fx_source_batch: CatalogBatch | None = None,
 ):
     manifest = CandidateManifest(
-        data_mode=DataMode.DEMO_SNAPSHOT,
+        data_mode=DataMode.SYNTHETIC_INTERVIEW,
         snapshot_version="m0-v1",
         records=(
             ManifestRecord(
@@ -198,6 +223,185 @@ def _pool(
             ),
         )
     )
+
+
+def _same_product_pool(
+    *,
+    include_multi_platform_group: bool,
+    include_second_multi_platform_group: bool = False,
+) -> ValidatedCandidatePool:
+    same_group_id = "sg-v1-aaaaaaaaaaaaaaaaaaaaaaaa"
+    candidates = (
+        Candidate(
+            candidate_id="amazon.same-product",
+            item_id="amazon-same-product",
+            platform=Platform.AMAZON,
+            title="Example Phone 128GB",
+            price=Decimal("100.00"),
+            currency="USD",
+            source_ref="amazon-same-offer",
+            record_ref="amazon-same-record",
+            same_group_id=same_group_id,
+        ),
+        Candidate(
+            candidate_id="shopee.same-product",
+            item_id="shopee-same-product",
+            platform=Platform.SHOPEE,
+            title="Example Phone 128GB",
+            price=Decimal("90.00"),
+            currency="USD",
+            source_ref="shopee-same-offer",
+            record_ref="shopee-same-record",
+            same_group_id=same_group_id if include_multi_platform_group else None,
+        ),
+        Candidate(
+            candidate_id="ebay-other-product",
+            item_id="ebay-other-product",
+            platform=Platform.EBAY,
+            title="Unrelated accessory",
+            price=Decimal("1.00"),
+            currency="USD",
+            source_ref="ebay-other-offer",
+            record_ref="ebay-other-record",
+            same_group_id="sg-v1-bbbbbbbbbbbbbbbbbbbbbbbb",
+        ),
+        *(
+            (
+                Candidate(
+                    candidate_id="amazon-other-product",
+                    item_id="amazon-other-product",
+                    platform=Platform.AMAZON,
+                    title="Other Example Phone",
+                    price=Decimal("80.00"),
+                    currency="USD",
+                    source_ref="amazon-other-offer",
+                    record_ref="amazon-other-record",
+                    same_group_id="sg-v1-bbbbbbbbbbbbbbbbbbbbbbbb",
+                ),
+            )
+            if include_second_multi_platform_group
+            else ()
+        ),
+    )
+    records = tuple(
+        ManifestRecord(
+            record_ref=candidate.record_ref,
+            source_ref=candidate.source_ref,
+            item_id=candidate.item_id,
+            platform=candidate.platform,
+            product_id=candidate.candidate_id,
+            offer_identities=(
+                OfferIdentity(provider_id="fixture-provider", offer_id=candidate.source_ref),
+            ),
+            provider_ids=("fixture-provider",),
+            same_group_id=candidate.same_group_id,
+        )
+        for candidate in candidates
+    )
+    return ValidatedCandidatePool(
+        candidates=candidates,
+        evaluation_batch=build_fx_evaluation_view(build_catalog_batch(), _cny_fx_batch()),
+        records=records,
+        data_mode=DataMode.SYNTHETIC_INTERVIEW,
+    )
+
+
+def test_interview_price_compare_keeps_all_products_and_marks_comparable_group() -> None:
+    prices = run_price_compare(
+        PriceCompareInput(pool=_same_product_pool(include_multi_platform_group=True))
+    )
+
+    assert prices.comparison_scope is PriceComparisonScope.ALL_RETRIEVED
+    assert prices.compared_group_ids == ("sg-v1-aaaaaaaaaaaaaaaaaaaaaaaa",)
+    assert {point.candidate_id for point in prices.ranked} == {
+        "shopee.same-product",
+        "amazon.same-product",
+        "ebay-other-product",
+    }
+
+
+def test_interview_price_compare_does_not_drop_later_comparable_products() -> None:
+    prices = run_price_compare(
+        PriceCompareInput(
+            pool=_same_product_pool(
+                include_multi_platform_group=True,
+                include_second_multi_platform_group=True,
+            )
+        )
+    )
+
+    assert prices.comparison_scope is PriceComparisonScope.ALL_RETRIEVED
+    assert prices.compared_group_ids == (
+        "sg-v1-aaaaaaaaaaaaaaaaaaaaaaaa",
+        "sg-v1-bbbbbbbbbbbbbbbbbbbbbbbb",
+    )
+    assert {point.candidate_id for point in prices.ranked} == {
+        "amazon.same-product",
+        "shopee.same-product",
+        "ebay-other-product",
+        "amazon-other-product",
+    }
+
+
+def test_interview_price_compare_keeps_singletons_without_multi_platform_group() -> None:
+    prices = run_price_compare(
+        PriceCompareInput(pool=_same_product_pool(include_multi_platform_group=False))
+    )
+
+    assert prices.comparison_scope is PriceComparisonScope.ALL_RETRIEVED
+    assert prices.compared_group_ids == ()
+    assert {point.candidate_id for point in prices.ranked} == {
+        "amazon.same-product",
+        "shopee.same-product",
+        "ebay-other-product",
+    }
+    assert prices.cheapest_per_platform == {
+        "amazon": "amazon.same-product",
+        "shopee": "shopee.same-product",
+        "ebay": "ebay-other-product",
+    }
+
+
+def test_price_compare_uses_twelve_by_default_and_caps_selector_at_thirty() -> None:
+    pool = _pool()
+
+    assert PriceCompareInput(pool=pool).top_n == 12
+    assert PriceCompareInput(pool=pool, top_n=30).top_n == 30
+    with pytest.raises(ValueError, match="between one and 30"):
+        PriceCompareInput(pool=pool, top_n=31)
+
+
+def test_price_compare_pruning_excludes_unpriced_candidates_from_downstream_selection() -> None:
+    pool = _signal_pool()
+    prices = run_price_compare(PriceCompareInput(pool=pool, top_n=1))
+
+    assert len(prices.ranked) == 1
+    assert _unpriced_candidate_ids(pool, prices) == ("amazon.product-b",)
+    shipping = run_shipping_calc(
+        ShippingCalcInput(
+            pool=pool,
+            price_points=prices,
+            destination_country="CN",
+            rules=(),
+            ruleset_version="test-v1",
+            calculation_date="2026-08-12",
+        )
+    )
+    eligibility = evaluate_candidate_pool(
+        pool,
+        InterpretedRequest(required=(), preferred=(), parser_version="test"),
+        display_currency="USD",
+    )
+    with pytest.raises(ValueError, match="covered by price and shipping"):
+        ItemPickerInput(
+            eligibility=eligibility,
+            prices=prices,
+            shipping=shipping,
+            preferred=(),
+            category_insight=None,
+            target_candidate_groups=(),
+            max_items=1,
+        )
 
 
 def _signal_pool(
@@ -291,13 +495,16 @@ def _signal_pool(
     )
     result = ItemSearchRuntimeResult(
         platform=Platform.AMAZON,
+        target_query="test query",
+        retrieval_query="test query",
         candidates=candidates,
         platform_sub_batch=build_fx_evaluation_view(batch, _cny_fx_batch()),
         total_recall=2,
+        returned_before_semantic_filter=2,
         truncated=False,
     )
     manifest = CandidateManifest(
-        data_mode=DataMode.DEMO_SNAPSHOT,
+        data_mode=DataMode.SYNTHETIC_INTERVIEW,
         snapshot_version="m0-v1",
         records=records,
     )
@@ -550,9 +757,9 @@ class _Category:
     async def retrieve(self, request: CategoryInsightInput) -> CategoryInsightOutput:
         return CategoryInsightOutput(
             status=InsightStatus.FOUND,
+            category=request.category,
             components=("CPU",),
             confidence=Decimal("0.900"),
-            card_ids=("card-1",),
         )
 
 
@@ -563,10 +770,16 @@ class _Items:
         request: ItemSearchInput,
         *,
         query_vector: tuple[float, ...] | None,
+        preference_vector: tuple[float, ...] | None,
     ) -> ItemSearchRuntimeResult:
         assert request.platform is Platform.AMAZON
         assert query_vector is not None and len(query_vector) == 1_024
-        return _item_result()
+        assert preference_vector is None
+        return replace(
+            _item_result(),
+            target_query=request.query,
+            retrieval_query=request.query,
+        )
 
 
 @dataclass
@@ -587,7 +800,19 @@ class _Clock:
         return self.calls * 1_000_000
 
 
-def _service_factory(gateway: InMemoryCatalogGateway) -> SearchService:
+@dataclass(frozen=True)
+class _BoundIntent:
+    interpreted_request: InterpretedRequest
+
+    async def interpret(self, request: SearchRequest) -> InterpretedRequest:
+        assert type(request) is SearchRequest
+        return self.interpreted_request
+
+
+def _service_factory(
+    gateway: InMemoryCatalogGateway,
+    interpreted_request: InterpretedRequest,
+) -> SearchService:
     return SearchService(
         config=GlodexConfig(
             data_dir=Path("data/snapshots"),
@@ -599,7 +824,7 @@ def _service_factory(gateway: InMemoryCatalogGateway) -> SearchService:
         ),
         run_id_provider=_Ids(),
         clock=_Clock(),
-        intent_interpreter=RuleIntentInterpreter(),
+        intent_interpreter=_BoundIntent(interpreted_request),
         catalog_gateway=gateway,
         query_ranker=DeterministicQueryRanker(),
     )
@@ -622,6 +847,7 @@ def test_picker_soft_sort_uses_preferred_and_card_grounded_verified_signal() -> 
         ShippingCalcInput(
             pool=pool,
             price_points=prices,
+            destination_country="CN",
             rules=(),
             ruleset_version="cn-v1",
             calculation_date="2026-07-29",
@@ -640,6 +866,7 @@ def test_picker_soft_sort_uses_preferred_and_card_grounded_verified_signal() -> 
                 shipping=shipping,
                 preferred=preferred,
                 category_insight=category_insight,
+                target_candidate_groups=(),
                 max_items=1,
             )
         ).selected_candidate_ids
@@ -649,17 +876,17 @@ def test_picker_soft_sort_uses_preferred_and_card_grounded_verified_signal() -> 
     assert pick(
         category_insight=CategoryInsightOutput(
             status=InsightStatus.FOUND,
-            attributes=("long_battery",),
+            category="laptop",
+            components=("long_battery",),
             confidence=Decimal("0.900"),
-            card_ids=("card-laptop-core",),
         )
     ) == ("amazon.product-b",)
     assert pick(
         category_insight=CategoryInsightOutput(
             status=InsightStatus.FOUND,
-            attributes=("oled",),
+            category="display",
+            components=("oled",),
             confidence=Decimal("0.900"),
-            card_ids=("card-display-guide",),
         )
     ) == ("amazon.product-a",)
 
@@ -669,9 +896,91 @@ def test_picker_soft_sort_uses_preferred_and_card_grounded_verified_signal() -> 
             prices=prices,
             shipping=shipping,
             preferred=(),
-            category_insight=CategoryInsightOutput(status=InsightStatus.NO_INSIGHT),
+            category_insight=CategoryInsightOutput(
+                status=InsightStatus.NO_INSIGHT,
+                category="unknown",
+                confidence=Decimal("0"),
+            ),
+            target_candidate_groups=(),
             max_items=1,
         )
+
+
+def test_picker_uses_attribute_probability_and_price_range_as_soft_signals() -> None:
+    pool = _signal_pool(second_price="799.00")
+    interpreted = InterpretedRequest(required=(), preferred=(), parser_version="test")
+    eligibility = evaluate_candidate_pool(pool, interpreted, display_currency="USD")
+    prices = run_price_compare(PriceCompareInput(pool=pool))
+    shipping = run_shipping_calc(
+        ShippingCalcInput(
+            pool=pool,
+            price_points=prices,
+            destination_country="CN",
+            rules=(),
+            ruleset_version="test-v1",
+            calculation_date="2026-08-12",
+        )
+    )
+
+    def pick(insight: CategoryInsightOutput) -> tuple[str, ...]:
+        return run_item_picker(
+            ItemPickerInput(
+                eligibility=eligibility,
+                prices=prices,
+                shipping=shipping,
+                preferred=(),
+                category_insight=insight,
+                target_candidate_groups=(),
+                max_items=1,
+            )
+        ).selected_candidate_ids
+
+    assert pick(
+        CategoryInsightOutput(
+            status=InsightStatus.FOUND,
+            category="laptop",
+            attributes=(
+                AttributeDistribution(
+                    name="verified_signal",
+                    distribution={
+                        "portable": Decimal("0.1"),
+                        "long_battery": Decimal("0.9"),
+                    },
+                ),
+            ),
+            confidence=Decimal("0.9"),
+        )
+    ) == ("amazon.product-b",)
+    assert pick(
+        CategoryInsightOutput(
+            status=InsightStatus.FOUND,
+            category="laptop",
+            price_tiers=(
+                PriceTierInsight(
+                    tier="mid",
+                    range_cny=(Decimal("5700"), Decimal("5800")),
+                    notes="合成演示价格档",
+                ),
+            ),
+            confidence=Decimal("0.9"),
+        )
+    ) == ("amazon.product-b",)
+    assert pick(
+        CategoryInsightOutput(
+            status=InsightStatus.FOUND,
+            category="laptop",
+            attributes=(
+                AttributeDistribution(
+                    name="verified_signal",
+                    distribution={
+                        "portable": Decimal("0.1"),
+                        "long_battery": Decimal("0.9"),
+                    },
+                ),
+            ),
+            confidence=Decimal("0.4"),
+        )
+    ) == ("amazon.product-a",)
 
 
 def test_picker_soft_signals_never_bypass_publication_eligibility() -> None:
@@ -691,6 +1000,7 @@ def test_picker_soft_signals_never_bypass_publication_eligibility() -> None:
         ShippingCalcInput(
             pool=pool,
             price_points=prices,
+            destination_country="CN",
             rules=(),
             ruleset_version="cn-v1",
             calculation_date="2026-07-29",
@@ -705,16 +1015,135 @@ def test_picker_soft_signals_never_bypass_publication_eligibility() -> None:
             preferred=interpreted.preferred,
             category_insight=CategoryInsightOutput(
                 status=InsightStatus.FOUND,
-                attributes=("long_battery",),
+                category="laptop",
+                components=("long_battery",),
                 confidence=Decimal("1"),
-                card_ids=("card-laptop-core",),
             ),
+            target_candidate_groups=(),
             max_items=3,
         )
     )
 
     assert eligibility.eligible_candidate_ids == ("amazon.product-a",)
     assert picked.selected_candidate_ids == eligibility.eligible_candidate_ids
+
+
+def test_picker_treats_maximum_budget_as_a_ceiling_not_a_spend_target() -> None:
+    pool = _signal_pool(second_signal="portable", second_price="799.00")
+    request = SearchRequest(query="推荐预算800美元以内的笔记本", display_currency="USD")
+    interpreted = asyncio.run(RuleIntentInterpreter().interpret(request))
+    eligibility = evaluate_candidate_pool(pool, interpreted, display_currency="USD")
+    prices = run_price_compare(PriceCompareInput(pool=pool))
+    shipping = run_shipping_calc(
+        ShippingCalcInput(
+            pool=pool,
+            price_points=prices,
+            destination_country="CN",
+            rules=(),
+            ruleset_version="cn-v1",
+            calculation_date="2026-07-29",
+        )
+    )
+    budget = next(item for item in interpreted.required if type(item) is BudgetMax)
+
+    picked = run_item_picker(
+        ItemPickerInput(
+            eligibility=eligibility,
+            prices=prices,
+            shipping=shipping,
+            preferred=(),
+            category_insight=None,
+            target_candidate_groups=(),
+            max_items=1,
+            budget=budget,
+        )
+    )
+
+    assert picked.selected_candidate_ids == ("amazon.product-a",)
+
+
+def test_picker_uses_distance_only_for_an_around_budget_target() -> None:
+    pool = _signal_pool(second_signal="portable", second_price="799.00")
+    interpreted = InterpretedRequest(required=(), preferred=(), parser_version="test")
+    eligibility = evaluate_candidate_pool(pool, interpreted, display_currency="USD")
+    prices = run_price_compare(PriceCompareInput(pool=pool))
+    shipping = run_shipping_calc(
+        ShippingCalcInput(
+            pool=pool,
+            price_points=prices,
+            destination_country="CN",
+            rules=(),
+            ruleset_version="cn-v1",
+            calculation_date="2026-07-29",
+        )
+    )
+    budget = BudgetMax(
+        mode="around",
+        target_amount=Decimal("800"),
+        lower_bound=Decimal("720"),
+        upper_bound=Decimal("880"),
+        currency="USD",
+        source_span=SourceSpan(start=2, end=9, text="预算800美元"),
+    )
+
+    picked = run_item_picker(
+        ItemPickerInput(
+            eligibility=eligibility,
+            prices=prices,
+            shipping=shipping,
+            preferred=(),
+            category_insight=None,
+            target_candidate_groups=(),
+            max_items=1,
+            budget=budget,
+        )
+    )
+
+    assert picked.selected_candidate_ids == ("amazon.product-b",)
+
+
+def test_picker_reserves_one_verified_candidate_per_comparison_target() -> None:
+    pool = _signal_pool()
+    request = SearchRequest(query="比较 A 和 B", display_currency="USD", top_k=2)
+    interpreted = InterpretedRequest(required=(), preferred=(), parser_version="test")
+    eligibility = evaluate_candidate_pool(pool, interpreted, display_currency="USD")
+    prices = run_price_compare(PriceCompareInput(pool=pool))
+    shipping = run_shipping_calc(
+        ShippingCalcInput(
+            pool=pool,
+            price_points=prices,
+            destination_country="CN",
+            rules=(),
+            ruleset_version="test-v1",
+            calculation_date="2026-08-10",
+        )
+    )
+
+    picked = run_item_picker(
+        ItemPickerInput(
+            eligibility=eligibility,
+            prices=prices,
+            shipping=shipping,
+            preferred=(),
+            category_insight=None,
+            target_candidate_groups=(
+                TargetCandidateGroup(
+                    target_query="A",
+                    candidate_ids=("amazon.product-a",),
+                ),
+                TargetCandidateGroup(
+                    target_query="B",
+                    candidate_ids=("amazon.product-b",),
+                ),
+            ),
+            max_items=request.top_k,
+        )
+    )
+
+    assert picked.selected_candidate_ids == (
+        "amazon.product-a",
+        "amazon.product-b",
+    )
 
 
 def test_static_business_registry_executes_all_nine_real_tools() -> None:
@@ -726,6 +1155,8 @@ def test_static_business_registry_executes_all_nine_real_tools() -> None:
         )
         interpreted = await RuleIntentInterpreter().interpret(request)
         dependencies = ToolDependencies(
+            semantic_assertion=AcceptAllSemanticAssertion(),
+            shopping_summary=VerifiedShoppingSummary(),
             web_search=_Web(),
             category_insight=_Category(),
             item_source=_Items(),
@@ -737,12 +1168,15 @@ def test_static_business_registry_executes_all_nine_real_tools() -> None:
                 interpreted_request=interpreted,
                 required_baseline=interpreted,
                 capabilities=AgentCapabilities(
-                    data_mode=DataMode.DEMO_SNAPSHOT,
+                    data_mode=DataMode.SYNTHETIC_INTERVIEW,
                     available_platforms=(Platform.AMAZON,),
-                    supported_categories=("laptop",),
                     web_search_enabled=True,
                     embedding_enabled=True,
                 ),
+                declared_intent=PlannerIntentKind.SHOPPING,
+                requested_platforms=(Platform.AMAZON,),
+                search_query="笔记本 800美元 有库存",
+                comparison_targets=(),
             ),
             dependencies,
         )
@@ -768,9 +1202,6 @@ def test_static_business_registry_executes_all_nine_real_tools() -> None:
             CategoryInsightInput(
                 category="laptop",
                 depth=InsightDepth.QUICK,
-                query=request.query,
-                query_vector=vector,
-                index_version="m1d-demo-v1",
             ),
             dependencies,
         )
@@ -782,14 +1213,21 @@ def test_static_business_registry_executes_all_nine_real_tools() -> None:
                 request=ItemSearchInput(
                     query=request.query,
                     platform=Platform.AMAZON,
+                    category="laptop",
+                    min_landed_cost_cny=None,
+                    max_landed_cost_cny=None,
                     top_k=20,
                 ),
-                data_mode=DataMode.DEMO_SNAPSHOT,
+                data_mode=DataMode.SYNTHETIC_INTERVIEW,
                 query_vector=vector,
             ),
             dependencies,
         )
-        assert item == _item_result()
+        assert item == replace(
+            _item_result(),
+            target_query=request.query,
+            retrieval_query=request.query,
+        )
 
         pool = _pool()
         eligibility = evaluate_candidate_pool(
@@ -809,6 +1247,7 @@ def test_static_business_registry_executes_all_nine_real_tools() -> None:
             ShippingCalcInput(
                 pool=pool,
                 price_points=prices,  # type: ignore[arg-type]
+                destination_country="CN",
                 rules=(
                     ShippingRule(
                         platform=Platform.AMAZON,
@@ -835,6 +1274,7 @@ def test_static_business_registry_executes_all_nine_real_tools() -> None:
                 shipping=shipping,  # type: ignore[arg-type]
                 preferred=interpreted.preferred,
                 category_insight=category,  # type: ignore[arg-type]
+                target_candidate_groups=(),
                 max_items=1,
             ),
             dependencies,
@@ -858,7 +1298,130 @@ def test_static_business_registry_executes_all_nine_real_tools() -> None:
         assert summary.search_response.status is RunStatus.COMPLETED  # type: ignore[union-attr]
 
     assert tuple(BUSINESS_TOOL_REGISTRY) == BUSINESS_TOOL_SET
-    assert ToolName.DISPATCH_TOOL not in BUSINESS_TOOL_REGISTRY
+    asyncio.run(scenario())
+
+
+def test_tool_summary_accepts_the_root_loop_tool_budget() -> None:
+    summary = AgentToolSummary(
+        tool_name=ToolName.ITEM_SEARCH,
+        call_count=10,
+        safe_outcome="SUCCESS",
+    )
+
+    assert summary.call_count == 10
+    with pytest.raises(ValueError):
+        AgentToolSummary(
+            tool_name=ToolName.ITEM_SEARCH,
+            call_count=11,
+            safe_outcome="SUCCESS",
+        )
+
+
+def test_semantic_assertion_removes_rejected_products_before_candidate_store() -> None:
+    original = _item_result()
+
+    filtered = _retain_semantically_relevant_candidates(
+        original,
+        SemanticAssertionOutput(relevant_candidate_ids=()),
+    )
+
+    assert filtered.candidates == ()
+    assert filtered.platform_sub_batch.products == ()
+    assert filtered.platform_sub_batch.offers == ()
+    assert filtered.total_recall == original.total_recall
+    assert filtered.returned_before_semantic_filter == 1
+    assert filtered.truncated is False
+
+
+def test_shopping_summary_compares_each_result_without_inventing_unknown_preferences() -> None:
+    async def scenario() -> None:
+        request = SearchRequest(
+            query="推荐有库存的笔记本, 长续航",
+            display_currency="USD",
+            top_k=2,
+        )
+        interpreted = await RuleIntentInterpreter().interpret(request)
+        pool = _signal_pool()
+        eligibility = evaluate_candidate_pool(
+            pool,
+            interpreted,
+            display_currency=request.display_currency,
+        )
+        prices = run_price_compare(PriceCompareInput(pool=pool))
+        shipping = run_shipping_calc(
+            ShippingCalcInput(
+                pool=pool,
+                price_points=prices,
+                destination_country="CN",
+                rules=(),
+                ruleset_version="cn-v1",
+                calculation_date="2026-07-29",
+            )
+        )
+        picker = run_item_picker(
+            ItemPickerInput(
+                eligibility=eligibility,
+                prices=prices,
+                shipping=shipping,
+                preferred=interpreted.preferred,
+                category_insight=None,
+                target_candidate_groups=(),
+                max_items=2,
+            )
+        )
+        final_gate_intents: list[InterpretedRequest] = []
+        narration_inputs: list[ShoppingNarrationInput] = []
+
+        class Narrator:
+            async def summarize(self, narration: ShoppingNarrationInput) -> str:
+                narration_inputs.append(narration)
+                return (
+                    "第1项：依据已验证的电池属性与到手价比较，价格为 CNY；"
+                    "第2项：依据已验证的电池属性与到手价比较，价格为 CNY。"
+                )
+
+        def final_gate_factory(
+            gateway: InMemoryCatalogGateway,
+            final_intent: InterpretedRequest,
+        ) -> SearchService:
+            final_gate_intents.append(final_intent)
+            return _service_factory(gateway, final_intent)
+
+        summary = await execute_business_tool(
+            ToolName.SHOPPING_SUMMARY,
+            ShoppingSummaryInput(
+                agent_run_id="agent-run-comparison",
+                request=request,
+                interpreted_request=interpreted,
+                eligibility=eligibility,
+                picker=picker,
+                fx_source_batch=_cny_fx_batch(),
+                search_service_factory=final_gate_factory,
+            ),
+            ToolDependencies(
+                semantic_assertion=AcceptAllSemanticAssertion(),
+                shopping_summary=Narrator(),
+            ),
+        )
+
+        assert summary.status == RunStatus.COMPLETED.value  # type: ignore[union-attr]
+        assert len(final_gate_intents) == 1
+        assert final_gate_intents[0] is interpreted
+        answer = summary.answer  # type: ignore[union-attr]
+        assert "第1项" in answer and "第2项" in answer and "CNY" in answer
+        assert len(narration_inputs) == 1
+        narration = narration_inputs[0]
+        assert narration.user_query == request.query
+        narrated_picks = narration.picks
+        assert len(narrated_picks) == 2
+        assert tuple(pick.title for pick in narrated_picks) == tuple(
+            pick.title for pick in picker.picks
+        )
+        assert all(pick.attributes for pick in narrated_picks)
+        assert all(
+            attribute.evidence_ids for pick in narrated_picks for attribute in pick.attributes
+        )
+
     asyncio.run(scenario())
 
 
@@ -873,7 +1436,11 @@ def test_dependency_failure_remains_a_safe_port_code() -> None:
             execute_business_tool(
                 ToolName.WEB_SEARCH,
                 WebSearchInput(query="guide", evidence_kind=EvidenceKind.GUIDE),
-                ToolDependencies(web_search=BrokenWeb()),
+                ToolDependencies(
+                    semantic_assertion=AcceptAllSemanticAssertion(),
+                    shopping_summary=VerifiedShoppingSummary(),
+                    web_search=BrokenWeb(),
+                ),
             )
         )
     assert captured.value.code is ToolFailureCode.PROVIDER_UNAVAILABLE
@@ -900,21 +1467,13 @@ def test_business_executor_rejects_one_more_tool_result_byte(
             execute_business_tool(
                 ToolName.PLANNER,
                 object(),
-                ToolDependencies(),
+                ToolDependencies(
+                    semantic_assertion=AcceptAllSemanticAssertion(),
+                    shopping_summary=VerifiedShoppingSummary(),
+                ),
             )
         )
     assert captured.value.code is ToolFailureCode.TOOL_RESULT_TOO_LARGE
-
-
-def test_dispatch_is_contract_only_and_cannot_be_executed_in_a01_registry() -> None:
-    with pytest.raises(ValueError, match="business tool"):
-        asyncio.run(
-            execute_business_tool(
-                ToolName.DISPATCH_TOOL,
-                object(),
-                ToolDependencies(),
-            )
-        )
 
 
 def test_planner_rejects_required_drift_and_routes_unavailable_platform_to_fallback() -> None:
@@ -935,11 +1494,15 @@ def test_planner_rejects_required_drift_and_routes_unavailable_platform_to_fallb
                     interpreted_request=changed,
                     required_baseline=interpreted,
                     capabilities=AgentCapabilities(
-                        data_mode=DataMode.DEMO_SNAPSHOT,
+                        data_mode=DataMode.SYNTHETIC_INTERVIEW,
                         available_platforms=(Platform.AMAZON,),
-                        supported_categories=("laptop",),
+                        web_search_enabled=False,
                         embedding_enabled=True,
                     ),
+                    declared_intent=PlannerIntentKind.SHOPPING,
+                    requested_platforms=(Platform.EBAY,),
+                    search_query="笔记本 800美元",
+                    comparison_targets=(),
                 )
             )
 
@@ -949,11 +1512,15 @@ def test_planner_rejects_required_drift_and_routes_unavailable_platform_to_fallb
                 interpreted_request=interpreted,
                 required_baseline=interpreted,
                 capabilities=AgentCapabilities(
-                    data_mode=DataMode.DEMO_SNAPSHOT,
+                    data_mode=DataMode.SYNTHETIC_INTERVIEW,
                     available_platforms=(Platform.AMAZON,),
-                    supported_categories=("laptop",),
+                    web_search_enabled=False,
                     embedding_enabled=True,
                 ),
+                declared_intent=PlannerIntentKind.SHOPPING,
+                requested_platforms=(Platform.EBAY,),
+                search_query="笔记本 800美元",
+                comparison_targets=(),
             )
         )
         assert fallback.intent_kind is PlannerIntentKind.UNSUPPORTED_OR_NON_SHOPPING
@@ -962,32 +1529,35 @@ def test_planner_rejects_required_drift_and_routes_unavailable_platform_to_fallb
     asyncio.run(scenario())
 
 
-def test_planner_routes_missing_unsupported_and_supported_categories_honestly() -> None:
+def test_planner_uses_model_declared_intent_and_defers_category_grounding() -> None:
     async def scenario() -> None:
         capabilities = AgentCapabilities(
-            data_mode=DataMode.DEMO_SNAPSHOT,
+            data_mode=DataMode.SYNTHETIC_INTERVIEW,
             available_platforms=(Platform.AMAZON,),
-            supported_categories=("laptop",),
+            web_search_enabled=False,
             embedding_enabled=True,
         )
         expectations = (
             (
                 "今天天气如何",
                 PlannerIntentKind.UNSUPPORTED_OR_NON_SHOPPING,
+                PlannerIntentKind.UNSUPPORTED_OR_NON_SHOPPING,
                 PlannerFallbackReason.NON_SHOPPING,
             ),
             (
                 "推荐一台旅行相机",
-                PlannerIntentKind.UNSUPPORTED_OR_NON_SHOPPING,
-                PlannerFallbackReason.UNSUPPORTED_CATEGORY,
+                PlannerIntentKind.SHOPPING,
+                PlannerIntentKind.SHOPPING,
+                None,
             ),
             (
                 "推荐一台旅行笔记本",
                 PlannerIntentKind.SHOPPING,
+                PlannerIntentKind.SHOPPING,
                 None,
             ),
         )
-        for query, expected_kind, expected_reason in expectations:
+        for query, declared_kind, expected_kind, expected_reason in expectations:
             request = SearchRequest(query=query)
             interpreted = await RuleIntentInterpreter().interpret(request)
             plan = run_planner(
@@ -996,6 +1566,10 @@ def test_planner_routes_missing_unsupported_and_supported_categories_honestly() 
                     interpreted_request=interpreted,
                     required_baseline=interpreted,
                     capabilities=capabilities,
+                    declared_intent=declared_kind,
+                    requested_platforms=(),
+                    search_query=query if declared_kind is PlannerIntentKind.SHOPPING else None,
+                    comparison_targets=(),
                 )
             )
             assert plan.intent_kind is expected_kind
@@ -1004,35 +1578,14 @@ def test_planner_routes_missing_unsupported_and_supported_categories_honestly() 
     asyncio.run(scenario())
 
 
-@pytest.mark.parametrize(
-    "supported_categories",
-    [
-        (),
-        ("laptop", "laptop"),
-        ("x" * 129,),
-        ["laptop"],
-    ],
-)
-def test_agent_supported_categories_are_strict_unique_nonempty_and_bounded(
-    supported_categories: object,
-) -> None:
-    with pytest.raises(ValidationError):
-        AgentCapabilities(
-            data_mode=DataMode.DEMO_SNAPSHOT,
-            available_platforms=(Platform.AMAZON,),
-            supported_categories=supported_categories,  # type: ignore[arg-type]
-        )
-
-
 def test_provider_and_tool_boundaries_fail_closed_without_partial_facts() -> None:
     class OversizedCategory:
         async def retrieve(self, request: CategoryInsightInput) -> CategoryInsightOutput:
-            del request
             return CategoryInsightOutput(
                 status=InsightStatus.FOUND,
+                category=request.category,
                 components=("a", "b", "c", "d"),
                 confidence=Decimal("0.5"),
-                card_ids=("card-1",),
             )
 
     class WrongPlatformItems:
@@ -1041,42 +1594,37 @@ def test_provider_and_tool_boundaries_fail_closed_without_partial_facts() -> Non
             request: ItemSearchInput,
             *,
             query_vector: tuple[float, ...] | None,
+            preference_vector: tuple[float, ...] | None,
         ) -> ItemSearchRuntimeResult:
             del request
             del query_vector
+            del preference_vector
             return _item_result()
 
-    vector = (1.0, *(0.0 for _ in range(1_023)))
     with pytest.raises(ToolPortError) as category_error:
         asyncio.run(
             run_category_insight(
                 CategoryInsightInput(
                     category="laptop",
                     depth=InsightDepth.QUICK,
-                    query="laptop",
-                    query_vector=vector,
-                    index_version="m1d-demo-v1",
                 ),
                 OversizedCategory(),
             )
         )
     assert category_error.value.code is ToolFailureCode.INDEX_INVALID
 
-    with pytest.raises(ToolPortError) as item_error:
-        asyncio.run(
-            run_item_search(
-                ItemSearchToolInput(
-                    request=ItemSearchInput(
-                        query="phone",
-                        platform=Platform.EBAY,
-                    ),
-                    data_mode=DataMode.LIVE_MARKETPLACE,
-                    query_vector=None,
-                ),
-                WrongPlatformItems(),
-            )
+    with pytest.raises(ValueError, match="snapshot item search requires a query vector"):
+        ItemSearchToolInput(
+            request=ItemSearchInput(
+                query="phone",
+                platform=Platform.EBAY,
+                category="phone",
+                min_landed_cost_cny=None,
+                max_landed_cost_cny=None,
+            ),
+            data_mode=DataMode.SYNTHETIC_INTERVIEW,
+            query_vector=None,
         )
-    assert item_error.value.code is ToolFailureCode.ITEM_SOURCE_INVALID
 
 
 def test_source_known_shipping_tax_and_duty_are_fx_exact_with_evidence() -> None:
@@ -1086,6 +1634,7 @@ def test_source_known_shipping_tax_and_duty_are_fx_exact_with_evidence() -> None
         ShippingCalcInput(
             pool=pool,
             price_points=prices,
+            destination_country="CN",
             rules=(
                 ShippingRule(
                     platform=Platform.AMAZON,
@@ -1118,9 +1667,27 @@ def test_source_known_shipping_tax_and_duty_are_fx_exact_with_evidence() -> None
     assert advisory.tax_evidence_id == "ev-offer-tax"
     assert advisory.duty_evidence_id == "ev-offer-duty"
     assert advisory.fx_evidence_id == prices.ranked[0].fx_evidence_id
-    assert advisory.rule_effective_date == "2026-07-01"
+    assert advisory.eta_days_min == 2
+    assert advisory.eta_days_max == 10
+    assert advisory.rule_effective_date is None
     assert advisory.calculation_date == "2026-07-29"
     assert result.ruleset_version == "cn-v1"
+    assert result.destination_country == "CN"
+
+
+def test_shipping_calc_rejects_a_non_cn_destination() -> None:
+    pool = _pool()
+    prices = run_price_compare(PriceCompareInput(pool=pool))
+
+    with pytest.raises(ValueError, match="destination must be CN"):
+        ShippingCalcInput(
+            pool=pool,
+            price_points=prices,
+            destination_country="US",  # type: ignore[arg-type]
+            rules=(),
+            ruleset_version="cn-v1",
+            calculation_date="2026-07-29",
+        )
 
 
 def test_unknown_source_costs_use_active_rule_and_duty_threshold() -> None:
@@ -1132,6 +1699,7 @@ def test_unknown_source_costs_use_active_rule_and_duty_threshold() -> None:
             ShippingCalcInput(
                 pool=pool,
                 price_points=prices,
+                destination_country="CN",
                 rules=(
                     ShippingRule(
                         platform=Platform.AMAZON,
@@ -1157,6 +1725,9 @@ def test_unknown_source_costs_use_active_rule_and_duty_threshold() -> None:
     assert taxable.duty == Decimal("503.2800")
     assert taxable.duty_status.value == "ESTIMATE"
     assert taxable.landed_total == Decimal("5968.7040")
+    assert taxable.eta_days_min == 3
+    assert taxable.eta_days_max == 7
+    assert taxable.rule_effective_date == "2026-07-01"
 
     exempt = calculate(Decimal("6000"))
     assert exempt.duty == Decimal("0")
@@ -1186,6 +1757,7 @@ def test_unknown_tax_and_future_rules_remain_unknown_without_zero_fill() -> None
         ShippingCalcInput(
             pool=pool,
             price_points=prices,
+            destination_country="CN",
             rules=(future_rule,),
             ruleset_version="cn-v1",
             calculation_date="2026-07-29",
@@ -1200,12 +1772,13 @@ def test_unknown_tax_and_future_rules_remain_unknown_without_zero_fill() -> None
     assert future.duty_status.value == "UNKNOWN"
     assert future.item_status.value == "UNKNOWN"
     assert future.landed_total is None
-    assert future.rule_effective_date == "2026-08-01"
+    assert future.rule_effective_date is None
 
     active = run_shipping_calc(
         ShippingCalcInput(
             pool=pool,
             price_points=prices,
+            destination_country="CN",
             rules=(replace(future_rule, effective_date="2026-07-01"),),
             ruleset_version="cn-v1",
             calculation_date="2026-07-29",
@@ -1217,6 +1790,7 @@ def test_unknown_tax_and_future_rules_remain_unknown_without_zero_fill() -> None
     assert active.tax_status.value == "UNKNOWN"
     assert active.item_status.value == "UNKNOWN"
     assert active.landed_total is None
+    assert active.rule_effective_date == "2026-07-01"
 
 
 def test_unknown_fx_shipping_and_picker_forgery_are_separate() -> None:
@@ -1229,11 +1803,12 @@ def test_unknown_fx_shipping_and_picker_forgery_are_separate() -> None:
     unknown_pool = _pool(fx_source_batch=_cny_only_fx_batch())
     unknown_prices = run_price_compare(PriceCompareInput(pool=unknown_pool))
     assert unknown_prices.ranked[0].status.value == "UNKNOWN_FX"
-    assert unknown_prices.cheapest_per_platform == ()
+    assert unknown_prices.cheapest_per_platform == {}
     unknown_shipping = run_shipping_calc(
         ShippingCalcInput(
             pool=unknown_pool,
             price_points=unknown_prices,
+            destination_country="CN",
             rules=(),
             ruleset_version="cn-v1",
             calculation_date="2026-07-29",
@@ -1270,6 +1845,9 @@ def test_unknown_fx_shipping_and_picker_forgery_are_separate() -> None:
         lambda: ItemSearchInput(
             query="phone",
             platform=Platform.EBAY,
+            category="phone",
+            min_landed_cost_cny=None,
+            max_landed_cost_cny=None,
             top_k=51,
         ),
         lambda: PriceCompareInput(
@@ -1322,7 +1900,11 @@ def test_summary_rejects_real_search_service_final_gate_drift() -> None:
             del request
             raise RuntimeError("unavailable")
 
-    def drifting_factory(gateway: InMemoryCatalogGateway) -> SearchService:
+    def drifting_factory(
+        gateway: InMemoryCatalogGateway,
+        interpreted_request: InterpretedRequest,
+    ) -> SearchService:
+        del interpreted_request
         gateways.append(gateway)
         return SearchService(
             config=GlodexConfig(
@@ -1353,6 +1935,28 @@ def test_summary_rejects_real_search_service_final_gate_drift() -> None:
             interpreted,
             display_currency=request.display_currency,
         )
+        prices = run_price_compare(PriceCompareInput(pool=pool))
+        shipping = run_shipping_calc(
+            ShippingCalcInput(
+                pool=pool,
+                price_points=prices,
+                destination_country="CN",
+                rules=(),
+                ruleset_version="cn-v1",
+                calculation_date="2026-07-29",
+            )
+        )
+        picker = run_item_picker(
+            ItemPickerInput(
+                eligibility=eligibility,
+                prices=prices,
+                shipping=shipping,
+                preferred=interpreted.preferred,
+                category_insight=None,
+                target_candidate_groups=(),
+                max_items=1,
+            )
+        )
         with pytest.raises(ToolPortError) as captured:
             await execute_business_tool(
                 ToolName.SHOPPING_SUMMARY,
@@ -1361,14 +1965,14 @@ def test_summary_rejects_real_search_service_final_gate_drift() -> None:
                     request=request,
                     interpreted_request=interpreted,
                     eligibility=eligibility,
-                    picker=ItemPickerOutput(
-                        selected_candidate_ids=("amazon.product-1",),
-                        reason_codes=("eligible",),
-                    ),
+                    picker=picker,
                     fx_source_batch=build_catalog_batch(),
                     search_service_factory=drifting_factory,
                 ),
-                ToolDependencies(),
+                ToolDependencies(
+                    semantic_assertion=AcceptAllSemanticAssertion(),
+                    shopping_summary=VerifiedShoppingSummary(),
+                ),
             )
         assert captured.value.code is ToolFailureCode.FINAL_GATE_FAILED
         assert len(gateways) == 1
@@ -1398,8 +2002,8 @@ def test_summary_emits_no_match_only_from_typed_empty_eligibility() -> None:
         )
         assert eligibility.eligible_candidate_ids == ()
         empty_picker = ItemPickerOutput(
-            selected_candidate_ids=(),
-            reason_codes=(ToolFailureCode.NO_ELIGIBLE_CANDIDATE.value,),
+            picks=(),
+            rejected_brief=(ToolFailureCode.NO_ELIGIBLE_CANDIDATE.value,),
         )
         summary = await execute_business_tool(
             ToolName.SHOPPING_SUMMARY,
@@ -1412,7 +2016,10 @@ def test_summary_emits_no_match_only_from_typed_empty_eligibility() -> None:
                 fx_source_batch=build_catalog_batch(),
                 search_service_factory=_service_factory,
             ),
-            ToolDependencies(),
+            ToolDependencies(
+                semantic_assertion=AcceptAllSemanticAssertion(),
+                shopping_summary=VerifiedShoppingSummary(),
+            ),
         )
         assert summary.status == RunStatus.NO_MATCH.value  # type: ignore[union-attr]
         assert summary.search_response.results == ()  # type: ignore[union-attr]
@@ -1438,5 +2045,59 @@ def test_summary_emits_no_match_only_from_typed_empty_eligibility() -> None:
                 fx_source_batch=build_catalog_batch(),
                 search_service_factory=_service_factory,
             )
+
+    asyncio.run(scenario())
+
+
+def test_picker_skips_preference_model_when_no_candidate_is_eligible() -> None:
+    class UnexpectedPreferenceAssessment:
+        async def assess(self, _request: object) -> Never:
+            raise AssertionError("preference model must not run for an empty eligible set")
+
+    async def scenario() -> None:
+        pool = _pool()
+        preference = PreferredCriterion(
+            value="游戏性能要好",
+            source_span=SourceSpan(start=0, end=6, text="游戏性能要好"),
+        )
+        eligibility = evaluate_candidate_pool(
+            pool,
+            InterpretedRequest(required=(), preferred=(preference,), parser_version="test"),
+            display_currency="USD",
+            excluded_candidate_ids=tuple(candidate.candidate_id for candidate in pool.candidates),
+        )
+        prices = run_price_compare(PriceCompareInput(pool=pool))
+        shipping = run_shipping_calc(
+            ShippingCalcInput(
+                pool=pool,
+                price_points=prices,
+                destination_country="CN",
+                rules=(),
+                ruleset_version="test-v1",
+                calculation_date="2026-08-11",
+            )
+        )
+
+        result = await execute_business_tool(
+            ToolName.ITEM_PICKER,
+            ItemPickerInput(
+                eligibility=eligibility,
+                prices=prices,
+                shipping=shipping,
+                preferred=(preference,),
+                category_insight=None,
+                target_candidate_groups=(),
+                max_items=3,
+            ),
+            ToolDependencies(
+                semantic_assertion=AcceptAllSemanticAssertion(),
+                shopping_summary=VerifiedShoppingSummary(),
+                preference_assessment=UnexpectedPreferenceAssessment(),
+            ),
+        )
+
+        assert isinstance(result, ItemPickerOutput)
+        assert result.picks == ()
+        assert result.rejected_brief == (ToolFailureCode.NO_ELIGIBLE_CANDIDATE.value,)
 
     asyncio.run(scenario())

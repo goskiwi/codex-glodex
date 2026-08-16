@@ -42,6 +42,9 @@ SnapshotVersion = Annotated[
 ]
 CurrencyCode = Annotated[str, StringConstraints(pattern=r"^[A-Z]{3}$")]
 ConfigFingerprint = Annotated[str, StringConstraints(pattern=r"^[0-9a-f]{64}$")]
+MAX_SEARCH_RESULTS = 3
+MAX_RESULT_EVIDENCE_IDS = 64
+MAX_RESPONSE_EVIDENCE_IDS = MAX_SEARCH_RESULTS * MAX_RESULT_EVIDENCE_IDS
 
 
 class FrozenDTO(BaseModel):
@@ -55,6 +58,55 @@ class FrozenDTO(BaseModel):
     )
 
 
+SemanticCategoryId = Annotated[
+    str,
+    StringConstraints(
+        min_length=3,
+        max_length=128,
+        pattern=r"^[a-z][a-z0-9_]*(?:\.[a-z][a-z0-9_]*)*$",
+    ),
+]
+
+
+class SemanticQueryFilters(FrozenDTO):
+    """Literal semantic restrictions; query text and locale never infer these values."""
+
+    item_languages: Annotated[
+        tuple[Literal["en", "es", "ja", "zh", "und"], ...], Field(max_length=5)
+    ] = ()
+    canonical_category_ids: Annotated[tuple[SemanticCategoryId, ...], Field(max_length=8)] = ()
+    require_carried_source_category: bool = False
+    attribute_projection_provenance: Literal["SOURCE_ONLY", "HAS_SYNTHETIC_ENRICHMENT"] | None = (
+        None
+    )
+
+    @field_validator("item_languages", "canonical_category_ids", mode="before")
+    @classmethod
+    def json_arrays_are_normalized_once(cls, value: object) -> object:
+        """Normalize the one JSON wire representation before strict tuple validation."""
+
+        return tuple(value) if type(value) is list else value
+
+    @model_validator(mode="after")
+    def semantic_filter_members_are_unique(self) -> Self:
+        if len(self.item_languages) != len(set(self.item_languages)):
+            raise ValueError("semantic item languages must be unique")
+        if len(self.canonical_category_ids) != len(set(self.canonical_category_ids)):
+            raise ValueError("semantic canonical category IDs must be unique")
+        return self
+
+    @property
+    def is_empty(self) -> bool:
+        return not any(
+            (
+                self.item_languages,
+                self.canonical_category_ids,
+                self.require_carried_source_category,
+                self.attribute_projection_provenance,
+            )
+        )
+
+
 class SearchRequest(FrozenDTO):
     """A syntactically valid request at the pre-run boundary.
 
@@ -65,8 +117,9 @@ class SearchRequest(FrozenDTO):
     query: Annotated[str, StringConstraints(min_length=1, max_length=2_000)]
     locale: Literal["zh-CN"] = "zh-CN"
     display_currency: CurrencyCode = "USD"
-    top_k: Annotated[int, Field(ge=1, le=3)] = 3
+    top_k: Annotated[int, Field(ge=1, le=MAX_SEARCH_RESULTS)] = MAX_SEARCH_RESULTS
     snapshot_version: SnapshotVersion | None = None
+    semantic_filters: SemanticQueryFilters = SemanticQueryFilters()
 
     @field_validator("query", mode="before")
     @classmethod
@@ -218,9 +271,13 @@ class OfferSummary(FrozenDTO):
 
 
 class EvidenceSummary(FrozenDTO):
-    """Reference to evidence validated by the domain evidence closure."""
+    """Browser-safe provenance for evidence validated by the domain closure."""
 
     evidence_id: Identifier
+    provider_id: Identifier
+    source_uri: NonEmptyString
+    field_path: NonEmptyString
+    captured_at: NonEmptyString
 
 
 class SearchResult(FrozenDTO):
@@ -235,7 +292,10 @@ class SearchResult(FrozenDTO):
     matched_requirements: tuple[str, ...] = ()
     unknowns: tuple[str, ...] = ()
     reason: NonEmptyString
-    evidence: Annotated[tuple[EvidenceSummary, ...], Field(min_length=1)]
+    evidence: Annotated[
+        tuple[EvidenceSummary, ...],
+        Field(min_length=1, max_length=MAX_RESULT_EVIDENCE_IDS),
+    ]
 
     @model_validator(mode="after")
     def selected_offer_must_be_eligible_and_match_cost(self) -> Self:
@@ -272,26 +332,8 @@ class SearchResponse(FrozenDTO):
         product_ids = tuple(result.product_id for result in self.results)
         if len(set(product_ids)) != len(product_ids):
             raise ValueError("results cannot contain duplicate product_id values")
-        if len(self.results) > 3:
+        if len(self.results) > MAX_SEARCH_RESULTS:
             raise ValueError("M0 responses cannot contain more than three results")
-        return self
-
-
-class SnapshotValidationResponse(FrozenDTO):
-    """Structured outcome for the standalone snapshot validation command."""
-
-    type: Literal["snapshot_validation"] = "snapshot_validation"
-    snapshot_version: SnapshotVersion
-    valid: bool
-    product_count: Annotated[int, Field(ge=0)] = 0
-    offer_count: Annotated[int, Field(ge=0)] = 0
-    quarantine_count: Annotated[int, Field(ge=0)] = 0
-    issues: tuple[Issue, ...] = ()
-
-    @model_validator(mode="after")
-    def invalid_snapshot_cannot_report_materialized_records(self) -> Self:
-        if not self.valid and (self.product_count or self.offer_count):
-            raise ValueError("invalid snapshot cannot report materialized records")
         return self
 
 
@@ -319,6 +361,9 @@ def _format_location(location: tuple[int | str, ...]) -> str:
 
 
 __all__ = [
+    "MAX_RESPONSE_EVIDENCE_IDS",
+    "MAX_RESULT_EVIDENCE_IDS",
+    "MAX_SEARCH_RESULTS",
     "ConfigFingerprint",
     "CurrencyCode",
     "Detail",
@@ -340,7 +385,7 @@ __all__ = [
     "SearchRequest",
     "SearchResponse",
     "SearchResult",
-    "SnapshotValidationResponse",
+    "SemanticQueryFilters",
     "SnapshotVersion",
     "SourceSpanSummary",
     "StageDiagnostic",

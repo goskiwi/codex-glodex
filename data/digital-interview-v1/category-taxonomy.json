@@ -1,0 +1,1833 @@
+{
+  "schema_version": "glodex.digital-category-taxonomy.v3",
+  "catalog_as_of": "2026-08-13",
+  "interview_runtime_scope": {
+    "p0": [
+      "phone",
+      "tablet",
+      "laptop",
+      "desktop",
+      "monitor",
+      "keyboard",
+      "mouse",
+      "headphones",
+      "smartwatch",
+      "game_console",
+      "handheld_console",
+      "router",
+      "ssd",
+      "external_drive",
+      "printer"
+    ],
+    "p1": [
+      "mini_pc",
+      "cpu",
+      "gpu",
+      "memory",
+      "television",
+      "game_controller",
+      "speaker",
+      "microphone",
+      "camera",
+      "nas"
+    ]
+  },
+  "groups": [
+    {
+      "id": "computing_devices",
+      "label": "计算设备",
+      "categories": [
+        {
+          "id": "laptop",
+          "label": "笔记本电脑",
+          "aliases": [
+            "笔记本电脑",
+            "轻薄本",
+            "游戏本",
+            "laptop",
+            "notebook"
+          ],
+          "semantic_profile": "可放在膝上或桌面使用的便携式个人电脑，内置物理键盘和较大屏幕，运行桌面操作系统和本地开发环境，可用于办公学习、编程、多窗口文档、影音创作和游戏，可合盖装入背包并连接显示器鼠标。",
+          "scope_terms": [
+            "键盘",
+            "桌面软件",
+            "桌面操作系统",
+            "开发环境",
+            "开发工具",
+            "开发",
+            "编程",
+            "代码",
+            "论文",
+            "作业",
+            "学习",
+            "多窗口",
+            "盖子",
+            "合盖",
+            "显示器",
+            "膝上",
+            "内存",
+            "剪辑",
+            "计算",
+            "工作"
+          ]
+        },
+        {
+          "id": "desktop",
+          "label": "台式机",
+          "aliases": [
+            "台式电脑",
+            "台式主机",
+            "桌面电脑",
+            "desktop pc"
+          ]
+        },
+        {
+          "id": "all_in_one",
+          "label": "一体机",
+          "aliases": [
+            "一体电脑",
+            "AIO电脑",
+            "all-in-one pc"
+          ]
+        },
+        {
+          "id": "mini_pc",
+          "label": "迷你主机",
+          "aliases": [
+            "迷你电脑",
+            "小主机",
+            "mini pc"
+          ]
+        },
+        {
+          "id": "workstation",
+          "label": "工作站",
+          "aliases": [
+            "移动工作站",
+            "图形工作站",
+            "workstation"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "computer_components",
+      "label": "电脑组件",
+      "categories": [
+        {
+          "id": "cpu",
+          "label": "CPU",
+          "aliases": [
+            "处理器",
+            "中央处理器"
+          ]
+        },
+        {
+          "id": "gpu",
+          "label": "显卡",
+          "aliases": [
+            "独立显卡",
+            "GPU",
+            "graphics card"
+          ]
+        },
+        {
+          "id": "motherboard",
+          "label": "主板",
+          "aliases": [
+            "电脑主板",
+            "motherboard"
+          ],
+          "semantic_profile": "连接处理器、内存、显卡、存储和外设的电脑核心电路板，选购重点是处理器插槽、芯片组、板型、DDR代际、供电、PCIe与M.2扩展、网络以及机箱兼容性。",
+          "scope_terms": [
+            "主板",
+            "插槽",
+            "芯片组",
+            "供电",
+            "PCIe",
+            "M.2",
+            "DDR5",
+            "ATX",
+            "AM5",
+            "LGA 1851",
+            "装机"
+          ]
+        },
+        {
+          "id": "memory",
+          "label": "内存",
+          "aliases": [
+            "内存条",
+            "RAM",
+            "电脑内存"
+          ]
+        },
+        {
+          "id": "ssd",
+          "label": "SSD",
+          "aliases": [
+            "固态硬盘",
+            "NVMe SSD"
+          ]
+        },
+        {
+          "id": "hdd",
+          "label": "硬盘",
+          "aliases": [
+            "机械硬盘",
+            "台式机硬盘",
+            "HDD"
+          ],
+          "semantic_profile": "使用磁盘介质的大容量内部存储设备，适合桌面归档、NAS、监控和企业负载，核心判断包括容量、尺寸、SATA接口、转速、缓存、记录技术、持续负载与保修。",
+          "scope_terms": [
+            "机械硬盘",
+            "HDD",
+            "容量",
+            "SATA",
+            "转速",
+            "缓存",
+            "CMR",
+            "NAS硬盘",
+            "监控硬盘",
+            "企业硬盘",
+            "归档"
+          ]
+        },
+        {
+          "id": "power_supply",
+          "label": "电源",
+          "aliases": [
+            "电脑电源",
+            "PC电源",
+            "PSU"
+          ],
+          "semantic_profile": "为电脑各组件提供稳定直流供电的装机部件，核心判断包括额定功率、ATX或SFX尺寸、ATX版本、转换效率、模组方式、显卡供电接口和电气保护。",
+          "scope_terms": [
+            "电脑电源",
+            "PSU",
+            "瓦数",
+            "功率",
+            "ATX 3.1",
+            "SFX",
+            "金牌",
+            "白金牌",
+            "全模组",
+            "12V-2x6",
+            "显卡供电"
+          ]
+        },
+        {
+          "id": "cooling",
+          "label": "散热",
+          "aliases": [
+            "CPU散热器",
+            "水冷散热",
+            "风冷散热"
+          ],
+          "semantic_profile": "将处理器热量传递到空气或水冷排的电脑散热部件，核心判断包括风冷或一体式水冷形态、冷排和风扇尺寸、插槽支持、散热能力、噪声、机箱高度与冷排兼容性。",
+          "scope_terms": [
+            "CPU散热器",
+            "风冷",
+            "水冷",
+            "冷排",
+            "风扇",
+            "散热能力",
+            "噪声",
+            "散热高度",
+            "AM5",
+            "LGA 1851",
+            "装机"
+          ]
+        },
+        {
+          "id": "pc_case",
+          "label": "机箱",
+          "aliases": [
+            "电脑机箱",
+            "PC机箱",
+            "computer case"
+          ],
+          "semantic_profile": "容纳并保护主板、显卡、电源、存储和散热器的电脑结构件，选购重点是塔式尺寸、主板支持、显卡长度、散热器高度、冷排规格、硬盘位、前置接口和风道。",
+          "scope_terms": [
+            "机箱",
+            "中塔",
+            "全塔",
+            "ITX",
+            "ATX",
+            "显卡限长",
+            "散热限高",
+            "冷排",
+            "硬盘位",
+            "前置接口",
+            "风道",
+            "装机"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "mobile_devices",
+      "label": "移动设备",
+      "categories": [
+        {
+          "id": "phone",
+          "label": "手机",
+          "aliases": [
+            "智能手机",
+            "移动电话手机",
+            "phone",
+            "smartphone"
+          ],
+          "semantic_profile": "蜂窝网络移动通信设备，支持 SIM、eSIM 或双卡，主要用于通话、视频通话、消息、拍照录像、移动应用、导航、扫码支付和手游，具有触屏、高刷新率、续航、口袋携带和单手使用等特征。",
+          "scope_terms": [
+            "蜂窝",
+            "SIM",
+            "eSIM",
+            "双卡",
+            "电话卡",
+            "打电话",
+            "接听电话",
+            "通话",
+            "视频通话",
+            "消息",
+            "通信",
+            "拍照",
+            "录像",
+            "移动应用",
+            "导航",
+            "扫码",
+            "移动支付",
+            "手游",
+            "触屏",
+            "触摸屏",
+            "口袋",
+            "单手",
+            "掌上",
+            "移动网络",
+            "每天充电"
+          ]
+        },
+        {
+          "id": "tablet",
+          "label": "平板",
+          "aliases": [
+            "平板电脑",
+            "tablet"
+          ]
+        },
+        {
+          "id": "ebook_reader",
+          "label": "电子书阅读器",
+          "aliases": [
+            "电纸书",
+            "墨水屏阅读器",
+            "e-reader"
+          ],
+          "semantic_profile": "以电子墨水屏为核心的长时间阅读设备，强调低功耗、前光、便携、电子书格式、批注和手写能力，不以彩色视频、游戏或高刷新率为主要用途。",
+          "scope_terms": [
+            "电子墨水",
+            "墨水屏",
+            "阅读",
+            "电子书",
+            "前光",
+            "批注",
+            "手写",
+            "护眼",
+            "长续航",
+            "Kindle",
+            "Kobo"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "display_devices",
+      "label": "显示设备",
+      "categories": [
+        {
+          "id": "monitor",
+          "label": "显示器",
+          "aliases": [
+            "电脑显示器",
+            "monitor"
+          ]
+        },
+        {
+          "id": "television",
+          "label": "电视",
+          "aliases": [
+            "智能电视",
+            "电视机",
+            "TV"
+          ]
+        },
+        {
+          "id": "projector",
+          "label": "投影仪",
+          "aliases": [
+            "投影机",
+            "家用投影",
+            "projector"
+          ],
+          "semantic_profile": "将视频或电脑画面投射到墙面或幕布的大屏显示设备，核心判断包括投影技术、分辨率、亮度、光源、投射比、自动校正、接口和使用环境。",
+          "scope_terms": [
+            "投影",
+            "幕布",
+            "墙面",
+            "流明",
+            "亮度",
+            "投射比",
+            "梯形校正",
+            "自动对焦",
+            "家庭影院",
+            "大屏"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "input_devices",
+      "label": "输入设备",
+      "categories": [
+        {
+          "id": "keyboard",
+          "label": "键盘",
+          "aliases": [
+            "机械键盘",
+            "无线键盘",
+            "keyboard"
+          ]
+        },
+        {
+          "id": "mouse",
+          "label": "鼠标",
+          "aliases": [
+            "游戏鼠标",
+            "无线鼠标",
+            "mouse"
+          ]
+        },
+        {
+          "id": "pen_tablet",
+          "label": "数位板",
+          "aliases": [
+            "绘图板",
+            "手绘板",
+            "graphics tablet"
+          ]
+        },
+        {
+          "id": "game_controller",
+          "label": "游戏手柄",
+          "aliases": [
+            "手柄",
+            "无线手柄",
+            "gamepad"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "audio_devices",
+      "label": "音频设备",
+      "categories": [
+        {
+          "id": "headphones",
+          "label": "耳机",
+          "aliases": [
+            "头戴耳机",
+            "入耳耳机",
+            "蓝牙耳机"
+          ]
+        },
+        {
+          "id": "speaker",
+          "label": "音箱",
+          "aliases": [
+            "电脑音箱",
+            "蓝牙音箱",
+            "扬声器"
+          ]
+        },
+        {
+          "id": "microphone",
+          "label": "麦克风",
+          "aliases": [
+            "话筒",
+            "直播麦克风",
+            "microphone"
+          ]
+        },
+        {
+          "id": "sound_card",
+          "label": "声卡",
+          "aliases": [
+            "外置声卡",
+            "USB声卡",
+            "sound card"
+          ]
+        },
+        {
+          "id": "audio_interface",
+          "label": "音频接口",
+          "aliases": [
+            "录音接口",
+            "专业声卡",
+            "audio interface"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "imaging_devices",
+      "label": "影像设备",
+      "categories": [
+        {
+          "id": "camera",
+          "label": "相机",
+          "aliases": [
+            "数码相机",
+            "微单相机",
+            "单反相机"
+          ]
+        },
+        {
+          "id": "camera_lens",
+          "label": "镜头",
+          "aliases": [
+            "相机镜头",
+            "定焦镜头",
+            "变焦镜头"
+          ],
+          "semantic_profile": "安装在可换镜头相机上的光学组件，核心判断包括卡口与画幅兼容性、焦距范围、最大光圈、自动对焦马达、光学防抖、滤镜口径和防护。",
+          "scope_terms": [
+            "镜头",
+            "卡口",
+            "焦距",
+            "光圈",
+            "定焦",
+            "变焦",
+            "广角",
+            "长焦",
+            "全画幅",
+            "APS-C",
+            "滤镜",
+            "光学防抖"
+          ]
+        },
+        {
+          "id": "action_camera",
+          "label": "运动相机",
+          "aliases": [
+            "运动摄像机",
+            "action camera"
+          ],
+          "semantic_profile": "面向户外运动、旅行和第一视角拍摄的小型耐用摄像设备，强调高帧率视频、电子防抖、防水、广角、续航、安装配件与无线传输。",
+          "scope_terms": [
+            "运动相机",
+            "防抖",
+            "防水",
+            "广角",
+            "第一视角",
+            "骑行",
+            "潜水",
+            "Vlog",
+            "高帧率",
+            "头盔"
+          ]
+        },
+        {
+          "id": "webcam",
+          "label": "摄像头",
+          "aliases": [
+            "电脑摄像头",
+            "网络摄像头",
+            "webcam"
+          ],
+          "semantic_profile": "通过USB连接电脑进行视频会议、直播或在线教学的桌面摄像设备，核心判断包括分辨率、帧率、视野、自动对焦、追踪、麦克风、隐私遮罩和会议软件兼容性。",
+          "scope_terms": [
+            "视频会议",
+            "网课",
+            "直播",
+            "摄像头",
+            "USB",
+            "自动对焦",
+            "人脸追踪",
+            "隐私遮罩",
+            "麦克风",
+            "会议软件"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "wearable_devices",
+      "label": "可穿戴设备",
+      "categories": [
+        {
+          "id": "smartwatch",
+          "label": "智能手表",
+          "aliases": [
+            "运动手表",
+            "smart watch"
+          ]
+        },
+        {
+          "id": "fitness_tracker",
+          "label": "智能手环",
+          "aliases": [
+            "运动手环",
+            "fitness band"
+          ],
+          "semantic_profile": "轻量腕带式健康与运动记录设备，主要用于心率、血氧、睡眠、步数和运动模式记录，强调长续航、轻便、防水和手机通知，不以完整智能应用生态为主要用途。",
+          "scope_terms": [
+            "手环",
+            "心率",
+            "血氧",
+            "睡眠",
+            "步数",
+            "运动记录",
+            "健康",
+            "长续航",
+            "防水",
+            "轻量"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "gaming_devices",
+      "label": "游戏设备",
+      "categories": [
+        {
+          "id": "game_console",
+          "label": "游戏主机",
+          "aliases": [
+            "家用游戏机",
+            "电视游戏机",
+            "console"
+          ]
+        },
+        {
+          "id": "handheld_console",
+          "label": "掌机",
+          "aliases": [
+            "掌上游戏机",
+            "handheld console"
+          ]
+        },
+        {
+          "id": "vr_device",
+          "label": "VR",
+          "aliases": [
+            "VR头显",
+            "虚拟现实设备",
+            "VR headset"
+          ]
+        },
+        {
+          "id": "ar_device",
+          "label": "AR",
+          "aliases": [
+            "AR眼镜",
+            "增强现实设备",
+            "AR glasses"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "network_devices",
+      "label": "网络设备",
+      "categories": [
+        {
+          "id": "router",
+          "label": "路由器",
+          "aliases": [
+            "无线路由器",
+            "Wi-Fi路由器",
+            "router"
+          ]
+        },
+        {
+          "id": "mesh_wifi",
+          "label": "Mesh",
+          "aliases": [
+            "Mesh路由",
+            "分布式路由",
+            "mesh wifi"
+          ],
+          "semantic_profile": "由两个或更多节点组成、支持统一网络名称和无缝漫游的全屋无线系统，核心判断包括Wi-Fi代际、频段、回程、覆盖、节点数量、多千兆网口和安全能力。",
+          "scope_terms": [
+            "Mesh",
+            "分布式路由",
+            "全屋覆盖",
+            "无缝漫游",
+            "节点",
+            "回程",
+            "Wi-Fi 7",
+            "6 GHz",
+            "多千兆",
+            "大户型"
+          ]
+        },
+        {
+          "id": "network_switch",
+          "label": "交换机",
+          "aliases": [
+            "网络交换机",
+            "以太网交换机",
+            "switch"
+          ]
+        },
+        {
+          "id": "wifi_adapter",
+          "label": "无线网卡",
+          "aliases": [
+            "Wi-Fi网卡",
+            "USB无线网卡",
+            "wireless adapter"
+          ],
+          "semantic_profile": "为台式机或笔记本增加无线联网能力的USB或PCIe适配器，核心判断包括主机接口、Wi-Fi代际、频段、理论速率、蓝牙、天线和操作系统兼容性。",
+          "scope_terms": [
+            "无线网卡",
+            "Wi-Fi网卡",
+            "USB网卡",
+            "PCIe网卡",
+            "Wi-Fi 7",
+            "Wi-Fi 6E",
+            "蓝牙",
+            "天线",
+            "无线联网"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "storage_devices",
+      "label": "存储设备",
+      "categories": [
+        {
+          "id": "nas",
+          "label": "NAS",
+          "aliases": [
+            "网络存储",
+            "家庭云存储"
+          ]
+        },
+        {
+          "id": "external_drive",
+          "label": "移动硬盘",
+          "aliases": [
+            "便携硬盘",
+            "移动固态硬盘",
+            "外置硬盘"
+          ]
+        },
+        {
+          "id": "usb_flash_drive",
+          "label": "U盘",
+          "aliases": [
+            "优盘",
+            "USB闪存盘",
+            "flash drive"
+          ],
+          "semantic_profile": "通过USB接口直接连接电脑、手机或平板的便携闪存设备，核心判断包括容量、USB代际、接口形态、读写速度、双接口能力、加密和耐用性。",
+          "scope_terms": [
+            "U盘",
+            "优盘",
+            "USB闪存",
+            "USB-C",
+            "USB-A",
+            "双接口",
+            "读写速度",
+            "便携存储",
+            "加密U盘"
+          ]
+        },
+        {
+          "id": "memory_card",
+          "label": "存储卡",
+          "aliases": [
+            "内存卡",
+            "SD卡",
+            "microSD卡"
+          ],
+          "semantic_profile": "用于相机、运动相机、掌机和移动设备的可移除闪存卡，核心判断包括SD、microSD或CFexpress格式、容量、速度等级、持续写入、读写速度和耐用性。",
+          "scope_terms": [
+            "存储卡",
+            "内存卡",
+            "SD卡",
+            "microSD",
+            "CFexpress",
+            "V30",
+            "V60",
+            "V90",
+            "UHS-II",
+            "相机卡",
+            "高速连拍",
+            "视频录制"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "office_digital",
+      "label": "办公数码",
+      "categories": [
+        {
+          "id": "printer",
+          "label": "打印机",
+          "aliases": [
+            "激光打印机",
+            "喷墨打印机",
+            "printer"
+          ]
+        },
+        {
+          "id": "scanner",
+          "label": "扫描仪",
+          "aliases": [
+            "文档扫描仪",
+            "高拍仪",
+            "scanner"
+          ]
+        },
+        {
+          "id": "conference_device",
+          "label": "会议设备",
+          "aliases": [
+            "视频会议设备",
+            "会议摄像机",
+            "会议一体机"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "lifestyle_appliances",
+      "label": "生活家电",
+      "categories": [
+        {
+          "id": "air_conditioner",
+          "label": "空调",
+          "aliases": [
+            "壁挂空调",
+            "柜式空调",
+            "air conditioner"
+          ],
+          "semantic_profile": "用于室内制冷、制热和空气调节的固定家电，核心判断包括匹数、制冷量、能效等级、适用面积、噪声、新风能力和安装条件。",
+          "scope_terms": [
+            "空调",
+            "制冷",
+            "制热",
+            "匹数",
+            "适用面积",
+            "能效",
+            "新风",
+            "壁挂",
+            "柜机",
+            "安装"
+          ]
+        },
+        {
+          "id": "refrigerator",
+          "label": "冰箱",
+          "aliases": [
+            "家用冰箱",
+            "refrigerator"
+          ],
+          "semantic_profile": "用于低温保存食品的家用制冷设备，核心判断包括容量、外形尺寸、门体结构、风冷方式、能效、分区、净味和嵌入空间。",
+          "scope_terms": [
+            "冰箱",
+            "冷藏",
+            "冷冻",
+            "容量",
+            "风冷无霜",
+            "零嵌",
+            "多门",
+            "保鲜",
+            "净味",
+            "变温区"
+          ]
+        },
+        {
+          "id": "washing_machine",
+          "label": "洗衣机",
+          "aliases": [
+            "滚筒洗衣机",
+            "洗烘一体机",
+            "washer"
+          ],
+          "semantic_profile": "用于衣物清洗、脱水及可选烘干的家电，核心判断包括洗涤容量、滚筒或波轮、烘干方式、电机、尺寸、能效和除菌程序。",
+          "scope_terms": [
+            "洗衣机",
+            "滚筒",
+            "波轮",
+            "洗烘一体",
+            "洗涤容量",
+            "烘干",
+            "直驱",
+            "除菌",
+            "超薄嵌入"
+          ]
+        },
+        {
+          "id": "robot_vacuum",
+          "label": "扫地机器人",
+          "aliases": [
+            "扫拖机器人",
+            "robot vacuum"
+          ],
+          "semantic_profile": "自主规划路径并完成地面吸尘和拖洗的清洁设备，核心判断包括吸力、导航、避障、基站功能、拖地结构、贴边和越障能力。",
+          "scope_terms": [
+            "扫地机器人",
+            "扫拖",
+            "吸力",
+            "导航",
+            "避障",
+            "基站",
+            "自动集尘",
+            "洗拖布",
+            "越障",
+            "贴边"
+          ]
+        },
+        {
+          "id": "vacuum_cleaner",
+          "label": "吸尘器",
+          "aliases": [
+            "无线吸尘器",
+            "手持吸尘器",
+            "vacuum cleaner"
+          ],
+          "semantic_profile": "通过电机负压吸除地面和家具灰尘的清洁设备，核心判断包括吸力、续航、重量、过滤、尘杯、刷头和灰尘感应。",
+          "scope_terms": [
+            "吸尘器",
+            "无线吸尘器",
+            "手持",
+            "吸力",
+            "续航",
+            "重量",
+            "HEPA",
+            "刷头",
+            "除螨"
+          ]
+        },
+        {
+          "id": "air_purifier",
+          "label": "空气净化器",
+          "aliases": [
+            "空气净化机",
+            "air purifier"
+          ],
+          "semantic_profile": "循环过滤室内空气中颗粒物、异味和可选气态污染物的设备，核心判断包括CADR、适用面积、滤芯、噪声、传感器和甲醛净化能力。",
+          "scope_terms": [
+            "空气净化器",
+            "CADR",
+            "PM2.5",
+            "甲醛",
+            "滤芯",
+            "HEPA",
+            "适用面积",
+            "噪声",
+            "传感器"
+          ]
+        },
+        {
+          "id": "water_purifier",
+          "label": "净水器",
+          "aliases": [
+            "RO净水器",
+            "直饮机",
+            "water purifier"
+          ],
+          "semantic_profile": "通过滤芯和可选RO反渗透膜处理家庭饮用水的设备，核心判断包括通量、膜类型、净废比、滤芯寿命、安装方式和加热能力。",
+          "scope_terms": [
+            "净水器",
+            "RO",
+            "反渗透",
+            "通量",
+            "净废比",
+            "滤芯",
+            "厨下式",
+            "直饮",
+            "即热"
+          ]
+        },
+        {
+          "id": "rice_cooker",
+          "label": "电饭煲",
+          "aliases": [
+            "电饭锅",
+            "rice cooker"
+          ],
+          "semantic_profile": "用于自动煮饭和多功能烹饪的厨房小家电，核心判断包括容量、加热方式、内胆、压力、预约和适用人数。",
+          "scope_terms": [
+            "电饭煲",
+            "电饭锅",
+            "容量",
+            "IH加热",
+            "内胆",
+            "压力",
+            "预约",
+            "煮饭",
+            "低糖饭"
+          ]
+        },
+        {
+          "id": "coffee_machine",
+          "label": "咖啡机",
+          "aliases": [
+            "意式咖啡机",
+            "全自动咖啡机",
+            "coffee machine"
+          ],
+          "semantic_profile": "使用咖啡豆、咖啡粉或胶囊制作咖啡饮品的设备，核心判断包括机器类型、泵压、研磨、奶泡、饮品菜单和清洁维护。",
+          "scope_terms": [
+            "咖啡机",
+            "意式",
+            "全自动",
+            "半自动",
+            "胶囊",
+            "泵压",
+            "研磨",
+            "奶泡",
+            "浓缩",
+            "拿铁"
+          ]
+        },
+        {
+          "id": "electric_toothbrush",
+          "label": "电动牙刷",
+          "aliases": [
+            "声波牙刷",
+            "electric toothbrush"
+          ],
+          "semantic_profile": "由电机驱动刷头进行高频清洁的个护设备，核心判断包括振动方式、清洁模式、压力感应、续航、防水和替换刷头成本。",
+          "scope_terms": [
+            "电动牙刷",
+            "声波牙刷",
+            "振动频率",
+            "清洁模式",
+            "压力感应",
+            "续航",
+            "防水",
+            "刷头"
+          ]
+        },
+        {
+          "id": "dishwasher",
+          "label": "洗碗机",
+          "aliases": [
+            "嵌入式洗碗机",
+            "dishwasher"
+          ],
+          "semantic_profile": "自动清洗餐具并完成烘干的厨房家电，核心判断包括套数、安装方式、喷淋结构、烘干方式、程序、水耗和噪声。",
+          "scope_terms": [
+            "洗碗机",
+            "餐具",
+            "嵌入式",
+            "台式",
+            "套数",
+            "喷淋",
+            "烘干",
+            "水耗",
+            "洗涤程序"
+          ]
+        },
+        {
+          "id": "water_heater",
+          "label": "热水器",
+          "aliases": [
+            "燃气热水器",
+            "电热水器",
+            "water heater"
+          ],
+          "semantic_profile": "为家庭沐浴和生活用水提供热水的设备，核心判断包括燃气或储水类型、升数或容量、恒温、能效、安全和安装条件。",
+          "scope_terms": [
+            "热水器",
+            "燃气热水器",
+            "电热水器",
+            "升数",
+            "容量",
+            "恒温",
+            "水量伺服",
+            "零冷水",
+            "安装"
+          ]
+        },
+        {
+          "id": "microwave",
+          "label": "微波炉",
+          "aliases": [
+            "微蒸烤一体机",
+            "microwave oven"
+          ],
+          "semantic_profile": "使用微波快速加热并可集成烧烤、蒸汽或烘烤的厨房电器，核心判断包括容量、微波功率、变频、烹饪模式、温区和清洁。",
+          "scope_terms": [
+            "微波炉",
+            "微蒸烤",
+            "微波",
+            "烧烤",
+            "蒸汽",
+            "烘烤",
+            "变频",
+            "容量",
+            "加热"
+          ]
+        },
+        {
+          "id": "air_fryer",
+          "label": "空气炸锅",
+          "aliases": [
+            "无油炸锅",
+            "air fryer"
+          ],
+          "semantic_profile": "通过高速热风循环完成少油烘炸的厨房小家电，核心判断包括容量、功率、温区、加热结构、可视窗和清洗便利性。",
+          "scope_terms": [
+            "空气炸锅",
+            "无油炸锅",
+            "热风循环",
+            "容量",
+            "功率",
+            "可视窗",
+            "双热源",
+            "炸篮",
+            "烘烤"
+          ]
+        },
+        {
+          "id": "induction_cooker",
+          "label": "电磁炉",
+          "aliases": [
+            "电磁灶",
+            "induction cooker"
+          ],
+          "semantic_profile": "通过电磁感应加热导磁锅具的厨房电器，核心判断包括功率、单灶或双灶、火力档位、低功率连续性、锅具兼容和安全保护。",
+          "scope_terms": [
+            "电磁炉",
+            "电磁灶",
+            "功率",
+            "火力",
+            "双灶",
+            "低功率",
+            "导磁锅具",
+            "童锁",
+            "嵌入式"
+          ]
+        },
+        {
+          "id": "electric_kettle",
+          "label": "电水壶",
+          "aliases": [
+            "烧水壶",
+            "electric kettle"
+          ],
+          "semantic_profile": "用于快速烧水并可提供恒温功能的小家电，核心判断包括容量、功率、温控、内胆材质、保温和防干烧。",
+          "scope_terms": [
+            "电水壶",
+            "烧水壶",
+            "容量",
+            "功率",
+            "恒温",
+            "保温",
+            "内胆",
+            "防干烧",
+            "调奶"
+          ]
+        },
+        {
+          "id": "hair_dryer",
+          "label": "吹风机",
+          "aliases": [
+            "高速吹风机",
+            "hair dryer"
+          ],
+          "semantic_profile": "通过高速气流吹干头发的个护电器，核心判断包括电机转速、风速、温控、负离子或水离子、功率、重量和风嘴。",
+          "scope_terms": [
+            "吹风机",
+            "高速吹风机",
+            "电机转速",
+            "风速",
+            "温控",
+            "负离子",
+            "水离子",
+            "护发",
+            "重量"
+          ]
+        },
+        {
+          "id": "electric_fan",
+          "label": "电风扇",
+          "aliases": [
+            "循环扇",
+            "落地扇",
+            "塔扇",
+            "electric fan"
+          ],
+          "semantic_profile": "通过风叶或无叶风道促进室内空气流动的设备，核心判断包括风扇类型、电机、送风距离、摇头范围、噪声和智能控制。",
+          "scope_terms": [
+            "电风扇",
+            "循环扇",
+            "落地扇",
+            "塔扇",
+            "直流变频",
+            "送风",
+            "摇头",
+            "噪声",
+            "自然风"
+          ]
+        },
+        {
+          "id": "humidifier",
+          "label": "加湿器",
+          "aliases": [
+            "无雾加湿器",
+            "humidifier"
+          ],
+          "semantic_profile": "提高室内空气湿度的设备，核心判断包括有雾或蒸发式、加湿量、水箱、适用面积、噪声、恒湿和卫生设计。",
+          "scope_terms": [
+            "加湿器",
+            "无雾加湿器",
+            "蒸发式",
+            "超声波",
+            "加湿量",
+            "水箱",
+            "恒湿",
+            "适用面积",
+            "除菌"
+          ]
+        },
+        {
+          "id": "dehumidifier",
+          "label": "除湿机",
+          "aliases": [
+            "抽湿机",
+            "dehumidifier"
+          ],
+          "semantic_profile": "降低室内空气湿度并辅助衣物干燥的设备，核心判断包括日除湿量、适用面积、水箱、连续排水、噪声、湿度控制和干衣模式。",
+          "scope_terms": [
+            "除湿机",
+            "抽湿机",
+            "除湿量",
+            "适用面积",
+            "水箱",
+            "连续排水",
+            "湿度控制",
+            "干衣",
+            "地下室"
+          ]
+        },
+        {
+          "id": "oven",
+          "label": "烤箱",
+          "aliases": [
+            "电烤箱",
+            "家用烤箱",
+            "oven"
+          ],
+          "semantic_profile": "通过上下加热管和热风烘烤食物的厨房电器，核心判断包括容量、温区、加热结构、控温、烹饪模式和清洁。",
+          "scope_terms": [
+            "烤箱",
+            "电烤箱",
+            "烘焙",
+            "烧烤",
+            "热风循环",
+            "上下管",
+            "控温",
+            "容量",
+            "发酵"
+          ]
+        },
+        {
+          "id": "steam_oven",
+          "label": "蒸烤箱",
+          "aliases": [
+            "蒸烤一体机",
+            "steam oven"
+          ],
+          "semantic_profile": "集成蒸汽与烘烤能力的嵌入式厨房电器，核心判断包括容量、蒸汽模式、温区、热风、水箱和清洁烘干。",
+          "scope_terms": [
+            "蒸烤箱",
+            "蒸烤一体",
+            "纯蒸",
+            "蒸汽",
+            "烘烤",
+            "热风",
+            "水箱",
+            "嵌入式",
+            "高温蒸"
+          ]
+        },
+        {
+          "id": "range_hood",
+          "label": "油烟机",
+          "aliases": [
+            "抽油烟机",
+            "range hood"
+          ],
+          "semantic_profile": "排出烹饪油烟的厨房设备，核心判断包括风量、静压、形态、噪声、自清洁和烟灶联动。",
+          "scope_terms": [
+            "油烟机",
+            "抽油烟机",
+            "风量",
+            "静压",
+            "侧吸",
+            "顶吸",
+            "近吸",
+            "自清洁",
+            "烟灶联动"
+          ]
+        },
+        {
+          "id": "gas_stove",
+          "label": "燃气灶",
+          "aliases": [
+            "煤气灶",
+            "gas stove"
+          ],
+          "semantic_profile": "使用天然气或液化气进行烹饪的灶具，核心判断包括热负荷、灶头、热效率、点火、熄火保护和锅架。",
+          "scope_terms": [
+            "燃气灶",
+            "煤气灶",
+            "天然气灶",
+            "热负荷",
+            "火力",
+            "热效率",
+            "双灶",
+            "熄火保护",
+            "防干烧"
+          ]
+        },
+        {
+          "id": "electric_pressure_cooker",
+          "label": "电压力锅",
+          "aliases": [
+            "压力锅",
+            "electric pressure cooker"
+          ],
+          "semantic_profile": "以密闭加压方式自动烹饪的厨房电器，核心判断包括容量、压力、加热方式、内胆、程序和泄压安全。",
+          "scope_terms": [
+            "电压力锅",
+            "压力锅",
+            "容量",
+            "压力",
+            "IH加热",
+            "内胆",
+            "煲汤",
+            "炖肉",
+            "泄压"
+          ]
+        },
+        {
+          "id": "blender",
+          "label": "破壁机",
+          "aliases": [
+            "料理机",
+            "blender"
+          ],
+          "semantic_profile": "通过高速刀组搅打并可加热制作饮品或食物的厨房电器，核心判断包括容量、电机功率、转速、噪声、加热和自动清洗。",
+          "scope_terms": [
+            "破壁机",
+            "料理机",
+            "豆浆",
+            "果汁",
+            "电机功率",
+            "转速",
+            "静音",
+            "加热",
+            "免手洗"
+          ]
+        },
+        {
+          "id": "juicer",
+          "label": "榨汁机",
+          "aliases": [
+            "原汁机",
+            "juicer"
+          ],
+          "semantic_profile": "通过离心或低速冷压方式分离果蔬汁液的设备，核心判断包括榨汁方式、投料口、出汁率、转速、清洗和容量。",
+          "scope_terms": [
+            "榨汁机",
+            "原汁机",
+            "冷压",
+            "果汁",
+            "出汁率",
+            "低速",
+            "投料口",
+            "果渣",
+            "清洗"
+          ]
+        },
+        {
+          "id": "garment_steamer",
+          "label": "挂烫机",
+          "aliases": [
+            "蒸汽熨斗",
+            "garment steamer"
+          ],
+          "semantic_profile": "使用蒸汽去除衣物褶皱的护理电器，核心判断包括蒸汽量、压力、预热、水箱、挂烫或平烫模式和安全。",
+          "scope_terms": [
+            "挂烫机",
+            "蒸汽熨斗",
+            "熨烫",
+            "蒸汽量",
+            "增压",
+            "预热",
+            "水箱",
+            "平烫",
+            "衣物护理"
+          ]
+        },
+        {
+          "id": "electric_shaver",
+          "label": "电动剃须刀",
+          "aliases": [
+            "剃须刀",
+            "electric shaver"
+          ],
+          "semantic_profile": "由电机驱动刀头完成面部剃须的个护设备，核心判断包括旋转或往复式、刀头数量、电机、干湿双剃、续航和清洁。",
+          "scope_terms": [
+            "电动剃须刀",
+            "剃须刀",
+            "往复式",
+            "旋转式",
+            "刀头",
+            "干湿双剃",
+            "水洗",
+            "续航",
+            "清洁中心"
+          ]
+        },
+        {
+          "id": "massage_gun",
+          "label": "筋膜枪",
+          "aliases": [
+            "按摩枪",
+            "massage gun"
+          ],
+          "semantic_profile": "通过高频冲击辅助肌肉放松的运动恢复设备，核心判断包括振幅、推力、档位、冲击频率、续航和重量。",
+          "scope_terms": [
+            "筋膜枪",
+            "按摩枪",
+            "肌肉放松",
+            "振幅",
+            "推力",
+            "档位",
+            "冲击频率",
+            "续航",
+            "重量"
+          ]
+        },
+        {
+          "id": "floor_washer",
+          "label": "洗地机",
+          "aliases": [
+            "洗拖一体机",
+            "floor washer"
+          ],
+          "semantic_profile": "同步吸除干湿垃圾并滚刷拖洗地面的清洁设备，核心判断包括吸力、滚刷、自清洁、续航、贴边和重量。",
+          "scope_terms": [
+            "洗地机",
+            "洗拖一体",
+            "干湿垃圾",
+            "滚刷",
+            "自清洁",
+            "热水洗",
+            "烘干",
+            "贴边",
+            "续航"
+          ]
+        },
+        {
+          "id": "mite_vacuum",
+          "label": "除螨仪",
+          "aliases": [
+            "除螨机",
+            "mite vacuum"
+          ],
+          "semantic_profile": "面向床褥和织物进行拍打吸尘的清洁设备，核心判断包括吸力、拍打频率、紫外线、热风、过滤和尘杯。",
+          "scope_terms": [
+            "除螨仪",
+            "除螨机",
+            "床褥",
+            "拍打",
+            "紫外线",
+            "热风",
+            "吸力",
+            "HEPA",
+            "尘杯"
+          ]
+        },
+        {
+          "id": "smart_lock",
+          "label": "智能门锁",
+          "aliases": [
+            "指纹锁",
+            "smart lock"
+          ],
+          "semantic_profile": "通过指纹、人脸、密码或移动设备控制入户门的锁具，核心判断包括解锁方式、生物识别、锁芯、续航、连接和安全报警。",
+          "scope_terms": [
+            "智能门锁",
+            "指纹锁",
+            "人脸识别",
+            "密码锁",
+            "NFC",
+            "C级锁芯",
+            "临时密码",
+            "防撬报警",
+            "续航"
+          ]
+        },
+        {
+          "id": "security_camera",
+          "label": "智能摄像头",
+          "aliases": [
+            "监控摄像头",
+            "家用摄像机",
+            "security camera"
+          ],
+          "semantic_profile": "用于家庭室内外看护和安全监控的联网摄像设备，核心判断包括分辨率、视野、夜视、识别追踪、存储和隐私。",
+          "scope_terms": [
+            "智能摄像头",
+            "监控摄像头",
+            "家用摄像机",
+            "分辨率",
+            "夜视",
+            "人形识别",
+            "宠物识别",
+            "云存储",
+            "隐私遮蔽"
+          ]
+        },
+        {
+          "id": "dash_cam",
+          "label": "行车记录仪",
+          "aliases": [
+            "车载记录仪",
+            "dash cam"
+          ],
+          "semantic_profile": "安装于车辆并连续记录道路画面的设备，核心判断包括分辨率、传感器、视野、停车监控、GPS和前后录制。",
+          "scope_terms": [
+            "行车记录仪",
+            "车载记录仪",
+            "4K",
+            "星光夜视",
+            "停车监控",
+            "GPS",
+            "前后双录",
+            "广角",
+            "碰撞监控"
+          ]
+        },
+        {
+          "id": "drone",
+          "label": "无人机",
+          "aliases": [
+            "航拍无人机",
+            "drone"
+          ],
+          "semantic_profile": "用于航拍或自动跟拍的飞行设备，核心判断包括相机、续航、避障、图传距离、重量和云台。",
+          "scope_terms": [
+            "无人机",
+            "航拍无人机",
+            "航拍",
+            "跟拍",
+            "飞行时间",
+            "避障",
+            "图传",
+            "249克",
+            "云台"
+          ]
+        },
+        {
+          "id": "power_bank",
+          "label": "移动电源",
+          "aliases": [
+            "充电宝",
+            "power bank"
+          ],
+          "semantic_profile": "通过内置电池为移动设备补充电量的便携设备，核心判断包括容量、输出功率、接口、快充协议、显示和航空携带。",
+          "scope_terms": [
+            "移动电源",
+            "充电宝",
+            "电池容量",
+            "输出功率",
+            "快充",
+            "PD",
+            "PPS",
+            "自带线",
+            "航空携带"
+          ]
+        },
+        {
+          "id": "charger",
+          "label": "充电器",
+          "aliases": [
+            "氮化镓充电器",
+            "GaN charger"
+          ],
+          "semantic_profile": "将市电转换为设备所需直流电的电源适配器，核心判断包括功率、接口数量、氮化镓、快充协议、功率分配和插脚。",
+          "scope_terms": [
+            "充电器",
+            "氮化镓充电器",
+            "GaN",
+            "功率",
+            "USB-C",
+            "多口",
+            "PD",
+            "PPS",
+            "功率分配"
+          ]
+        },
+        {
+          "id": "dock",
+          "label": "扩展坞",
+          "aliases": [
+            "雷电扩展坞",
+            "USB-C扩展坞",
+            "dock"
+          ],
+          "semantic_profile": "通过USB-C或雷电接口扩展电脑端口的设备，核心判断包括端口数量、主机接口、显示输出、供电、网口和存储扩展。",
+          "scope_terms": [
+            "扩展坞",
+            "雷电扩展坞",
+            "USB-C扩展坞",
+            "Thunderbolt",
+            "端口",
+            "双4K",
+            "PD供电",
+            "网口",
+            "SD卡"
+          ]
+        },
+        {
+          "id": "smart_scale",
+          "label": "体脂秤",
+          "aliases": [
+            "智能体重秤",
+            "smart scale"
+          ],
+          "semantic_profile": "测量体重并通过生物电阻抗估算身体成分的设备，核心判断包括指标、电极、精度、连接、用户识别和心率。",
+          "scope_terms": [
+            "体脂秤",
+            "智能体重秤",
+            "体脂率",
+            "肌肉量",
+            "八电极",
+            "测量精度",
+            "蓝牙",
+            "Wi-Fi",
+            "用户识别"
+          ]
+        },
+        {
+          "id": "oral_irrigator",
+          "label": "冲牙器",
+          "aliases": [
+            "冲牙器",
+            "水牙线",
+            "洗牙器",
+            "oral irrigator"
+          ],
+          "semantic_profile": "通过脉冲水流清洁牙缝和牙龈边缘的口腔护理设备，重点比较水压范围、档位、水箱、喷嘴和续航。",
+          "scope_terms": [
+            "水压",
+            "脉冲",
+            "水箱",
+            "喷嘴",
+            "续航",
+            "便携"
+          ]
+        },
+        {
+          "id": "hair_clipper",
+          "label": "理发器",
+          "aliases": [
+            "理发器",
+            "电推剪",
+            "剃头刀",
+            "hair clipper"
+          ],
+          "semantic_profile": "用于修剪头发和造型的电动工具，重点比较刀头、长度调节、转速、防水、续航和限位梳。",
+          "scope_terms": [
+            "刀头",
+            "长度调节",
+            "电推剪",
+            "防水",
+            "续航",
+            "限位梳"
+          ]
+        },
+        {
+          "id": "blood_pressure_monitor",
+          "label": "血压计",
+          "aliases": [
+            "血压计",
+            "电子血压计",
+            "blood pressure monitor"
+          ],
+          "semantic_profile": "用于家庭血压测量与趋势记录的健康设备，重点比较测量部位、袖带范围、精度、心律提示和记忆功能。",
+          "scope_terms": [
+            "上臂式",
+            "袖带",
+            "精度",
+            "心律不齐",
+            "记忆",
+            "血压"
+          ]
+        },
+        {
+          "id": "thermometer",
+          "label": "体温计",
+          "aliases": [
+            "体温计",
+            "电子体温计",
+            "额温枪",
+            "thermometer"
+          ],
+          "semantic_profile": "用于人体温度测量的健康设备，重点比较测量方式、速度、精度、发热提醒和历史记录。",
+          "scope_terms": [
+            "体温",
+            "额温",
+            "耳温",
+            "测量速度",
+            "精度",
+            "发热提醒"
+          ]
+        },
+        {
+          "id": "desk_lamp",
+          "label": "护眼台灯",
+          "aliases": [
+            "台灯",
+            "护眼台灯",
+            "学习灯",
+            "desk lamp"
+          ],
+          "semantic_profile": "用于阅读和学习照明的桌面灯具，重点比较照度、显色指数、色温、调光、防频闪和遮光设计。",
+          "scope_terms": [
+            "照度",
+            "显色指数",
+            "色温",
+            "调光",
+            "防频闪",
+            "学习"
+          ]
+        },
+        {
+          "id": "steam_iron",
+          "label": "电熨斗",
+          "aliases": [
+            "电熨斗",
+            "蒸汽熨斗",
+            "steam iron"
+          ],
+          "semantic_profile": "通过加热底板和蒸汽整理衣物褶皱的设备，重点比较功率、蒸汽量、底板、温控和水箱。",
+          "scope_terms": [
+            "蒸汽",
+            "功率",
+            "底板",
+            "温控",
+            "水箱",
+            "除皱"
+          ]
+        },
+        {
+          "id": "bread_maker",
+          "label": "面包机",
+          "aliases": [
+            "面包机",
+            "家用面包机",
+            "bread maker"
+          ],
+          "semantic_profile": "自动完成和面、发酵和烘烤的厨房电器，重点比较容量、菜单、加热、预约和自动投料。",
+          "scope_terms": [
+            "和面",
+            "发酵",
+            "烘烤",
+            "容量",
+            "预约",
+            "投料"
+          ]
+        },
+        {
+          "id": "toaster",
+          "label": "多士炉",
+          "aliases": [
+            "多士炉",
+            "烤面包机",
+            "吐司机",
+            "toaster"
+          ],
+          "semantic_profile": "用于快速烘烤切片面包的厨房电器，重点比较槽位、烘烤档位、槽宽、解冻复热和清洁。",
+          "scope_terms": [
+            "烘烤",
+            "槽位",
+            "档位",
+            "解冻",
+            "复热",
+            "面包"
+          ]
+        },
+        {
+          "id": "food_processor",
+          "label": "食物处理器",
+          "aliases": [
+            "食物处理器",
+            "绞肉机",
+            "切碎机",
+            "food processor"
+          ],
+          "semantic_profile": "用于切碎、搅拌、切片和揉面的厨房电器，重点比较容量、功率、附件、档位和安全设计。",
+          "scope_terms": [
+            "切碎",
+            "绞肉",
+            "搅拌",
+            "容量",
+            "功率",
+            "附件"
+          ]
+        },
+        {
+          "id": "electric_lunch_box",
+          "label": "电热饭盒",
+          "aliases": [
+            "电热饭盒",
+            "加热饭盒",
+            "蒸煮饭盒",
+            "electric lunch box"
+          ],
+          "semantic_profile": "用于便携加热、保温或蒸煮饭菜的小家电，重点比较容量、功率、加热方式、分盒和预约。",
+          "scope_terms": [
+            "加热",
+            "保温",
+            "蒸煮",
+            "容量",
+            "分盒",
+            "预约"
+          ]
+        }
+      ]
+    }
+  ],
+  "ambiguity_rules": [
+    {
+      "input": "主机",
+      "resolution": "不得直接映射；出现显卡、CPU、装机时判为 desktop，出现电视、游戏、PS5、Xbox 时判为 game_console"
+    },
+    {
+      "input": "硬盘",
+      "resolution": "默认映射 hdd；出现移动、便携、外置时映射 external_drive，出现固态、NVMe 时映射 ssd"
+    },
+    {
+      "input": "内存",
+      "resolution": "电脑装机语境映射 memory；出现相机、手机、SD、microSD 时映射 memory_card"
+    },
+    {
+      "input": "声卡",
+      "resolution": "消费级电脑声卡映射 sound_card；出现录音、乐器、卡侬、话放时映射 audio_interface"
+    }
+  ]
+}

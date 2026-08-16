@@ -4,7 +4,7 @@ import asyncio
 
 import pytest
 
-from glodex.adapters.rule_intent import RuleIntentInterpreter
+from glodex.agent.rule_intent import RuleIntentInterpreter
 from glodex.application.ports import IntentInterpreter
 from glodex.contracts import SearchRequest
 from glodex.domain.intent import InterpretedRequest, validate_interpreted_request

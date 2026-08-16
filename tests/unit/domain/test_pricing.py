@@ -99,13 +99,22 @@ def _require_failure(result: LandedCost | PricingFailure) -> PricingFailure:
     return result
 
 
+def _maximum_budget(amount: object) -> dict[str, object]:
+    return {
+        "budget_mode": "maximum",
+        "budget_target_amount": amount,
+        "budget_lower_bound": None,
+        "budget_upper_bound": amount,
+    }
+
+
 def test_base_per_unit_formula_produces_display_budget_and_quantized_totals() -> None:
     result = _require_success(
         calculate_landed_cost(
             _complete_costs(),
             _rates("EUR", "GBP", "JPY"),
             display_currency="GBP",
-            budget_max=Decimal("13800"),
+            **_maximum_budget(Decimal("13800")),
             budget_currency="JPY",
         )
     )
@@ -116,7 +125,10 @@ def test_base_per_unit_formula_produces_display_budget_and_quantized_totals() ->
     assert result.display_exact == Decimal("92")
     assert result.budget_exact == Decimal("13800")
     assert result.display_quantized == Decimal("92.00")
-    assert result.budget_max == Decimal("13800")
+    assert result.budget_mode == "maximum"
+    assert result.budget_target_amount == Decimal("13800")
+    assert result.budget_lower_bound is None
+    assert result.budget_upper_bound == Decimal("13800")
     assert result.within_budget is True
     assert result.display_exact_json == "92"
     assert result.budget_exact_json == "13800"
@@ -172,7 +184,7 @@ def test_budget_comparison_is_exact_inclusive_and_ignores_display_rounding(
             ),
             _rates(),
             display_currency="USD",
-            budget_max=budget_max,
+            **_maximum_budget(budget_max),
         )
     )
 
@@ -187,7 +199,7 @@ def test_undeclared_budget_currency_inherits_display_currency() -> None:
             _complete_costs(),
             _rates("EUR", "GBP"),
             display_currency="GBP",
-            budget_max=Decimal("92"),
+            **_maximum_budget(Decimal("92")),
         )
     )
 
@@ -208,7 +220,10 @@ def test_no_budget_still_produces_budget_currency_exact_value_without_a_verdict(
 
     assert result.budget_currency == "GBP"
     assert result.budget_exact == Decimal("92")
-    assert result.budget_max is None
+    assert result.budget_mode is None
+    assert result.budget_target_amount is None
+    assert result.budget_lower_bound is None
+    assert result.budget_upper_bound is None
     assert result.within_budget is None
 
 
@@ -226,7 +241,7 @@ def test_unknown_costs_return_an_explicit_failure_with_verbatim_reasons() -> Non
             costs,
             _rates(),
             display_currency="GBP",
-            budget_max=Decimal("90"),
+            **_maximum_budget(Decimal("90")),
             budget_currency="JPY",
         )
     )
@@ -247,7 +262,7 @@ def test_all_missing_direct_rates_are_reported_once_in_semantic_order() -> None:
             _complete_costs(currency="CAD"),
             _rates("EUR"),
             display_currency="GBP",
-            budget_max=Decimal("100"),
+            **_maximum_budget(Decimal("100")),
             budget_currency="JPY",
         )
     )
@@ -276,7 +291,7 @@ def test_pricing_v1_trace_is_evidence_complete_and_recomputable() -> None:
             _complete_costs(),
             _rates("EUR", "GBP", "JPY"),
             display_currency="GBP",
-            budget_max=Decimal("14000"),
+            **_maximum_budget(Decimal("14000")),
             budget_currency="JPY",
         )
     )
@@ -437,7 +452,10 @@ def test_landed_cost_recomputes_totals_from_its_nested_trace() -> None:
             display_exact=result.display_exact + Decimal("1"),
             budget_exact=result.budget_exact,
             display_quantized=result.display_quantized,
-            budget_max=result.budget_max,
+            budget_mode=result.budget_mode,
+            budget_target_amount=result.budget_target_amount,
+            budget_lower_bound=result.budget_lower_bound,
+            budget_upper_bound=result.budget_upper_bound,
             within_budget=result.within_budget,
             trace=result.trace,
         )
@@ -487,7 +505,7 @@ def test_budget_max_rejects_non_decimal_and_invalid_values(
             _complete_costs(),
             _rates("EUR", "GBP"),
             display_currency="GBP",
-            budget_max=budget_max,  # type: ignore[arg-type]
+            **_maximum_budget(budget_max),
         )
 
 

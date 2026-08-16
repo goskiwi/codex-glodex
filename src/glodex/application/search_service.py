@@ -48,6 +48,7 @@ from glodex.domain.assembly import (
     assemble_result_drafts,
     guard_result_drafts,
     require_guarded_results,
+    require_verified_claims,
     result_evidence_closure,
 )
 from glodex.domain.catalog import CatalogAggregationResult, CatalogBatch, aggregate_catalog_batch
@@ -925,7 +926,19 @@ def _phase_d_result(draft: ResultDraft) -> SearchResult:
         if eligible is candidate.selected_offer
     )
     selected_summary = offer_summaries[selected_index]
-    evidence = tuple(EvidenceSummary(evidence_id=evidence_id) for evidence_id in draft.evidence_ids)
+    evidence_by_id = {
+        item.evidence_id: item for item in require_verified_claims(draft.verified_claims).evidence
+    }
+    evidence = tuple(
+        EvidenceSummary(
+            evidence_id=evidence_id,
+            provider_id=evidence_by_id[evidence_id].provider_id,
+            source_uri=evidence_by_id[evidence_id].source_uri,
+            field_path=evidence_by_id[evidence_id].field_path,
+            captured_at=evidence_by_id[evidence_id].captured_at.isoformat(),
+        )
+        for evidence_id in draft.evidence_ids
+    )
     return SearchResult(
         product_id=candidate.product.product_id,
         title=candidate.product.title,
@@ -967,7 +980,14 @@ def _summarize_criterion(
     criterion: BudgetMax | TargetCategory | StockRequired | Exclusion | PreferredCriterion,
 ) -> InterpretedCriterionSummary:
     if isinstance(criterion, BudgetMax):
-        value = format(criterion.amount, "f")
+        bounds = (
+            f"{format(criterion.upper_bound, 'f')}"
+            if criterion.lower_bound is None
+            else (f"{format(criterion.lower_bound, 'f')}..{format(criterion.upper_bound, 'f')}")
+        )
+        value = (
+            f"mode={criterion.mode};target={format(criterion.target_amount, 'f')};bounds={bounds}"
+        )
         if criterion.currency is not None:
             value = f"{value} {criterion.currency}"
     elif isinstance(criterion, TargetCategory):

@@ -115,7 +115,6 @@ def score_eligible_product(
     attribute_tokens = _verified_attribute_tokens(product.attributes)
     verified_product_tokens = title_tokens | category_tokens | attribute_tokens
     matched_preferred_tokens = _preferred_tokens(preferred) & verified_product_tokens
-
     query_score = (
         TITLE_TOKEN_WEIGHT * len(query_tokens & title_tokens)
         + CATEGORY_TOKEN_WEIGHT * len(query_tokens & category_tokens)

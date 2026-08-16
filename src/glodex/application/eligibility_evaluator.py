@@ -78,7 +78,10 @@ def evaluate_eligibility(
                 offer.cost_components,
                 exchange_rates,
                 display_currency=display_currency,
-                budget_max=None if budget is None else budget.amount,
+                budget_mode=None if budget is None else budget.mode,
+                budget_target_amount=None if budget is None else budget.target_amount,
+                budget_lower_bound=None if budget is None else budget.lower_bound,
+                budget_upper_bound=None if budget is None else budget.upper_bound,
                 budget_currency=None if budget is None else budget.currency,
             ),
         )

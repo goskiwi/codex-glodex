@@ -1065,16 +1065,6 @@ def _is_valid_offer_output_with_product(
     return _verify_offer_seal(value, signature)
 
 
-def _is_valid_eligibility_output(value: object) -> bool:
-    if type(value) is not EligibilityOutput:
-        return False
-    try:
-        signature = _eligibility_output_signature(value)
-    except (AttributeError, TypeError, ValueError):
-        return False
-    return _verify_eligibility_seal(value, signature)
-
-
 def _is_valid_assembled_eligibility_output(value: object) -> bool:
     if type(value) is not EligibilityOutput:
         return False
@@ -1418,8 +1408,34 @@ def _offer_budget(context: EligibilityContext) -> BudgetMax | None:
     if not budgets:
         return None
     budget = budgets[0]
-    if type(budget.amount) is not Decimal or not budget.amount.is_finite() or budget.amount <= 0:
-        raise ValueError("budget maximum must be a finite positive Decimal")
+    amounts = (budget.target_amount, budget.upper_bound)
+    if any(
+        type(amount) is not Decimal or not amount.is_finite() or amount <= 0 for amount in amounts
+    ):
+        raise ValueError("budget target and upper bound must be finite positive Decimals")
+    if budget.lower_bound is not None and (
+        type(budget.lower_bound) is not Decimal
+        or not budget.lower_bound.is_finite()
+        or budget.lower_bound <= 0
+    ):
+        raise ValueError("budget lower bound must be a finite positive Decimal or None")
+    if budget.mode == "maximum":
+        if budget.lower_bound is not None or budget.upper_bound != budget.target_amount:
+            raise ValueError("maximum budget bounds are inconsistent")
+    elif budget.mode == "around":
+        if budget.lower_bound != budget.target_amount * Decimal(
+            "0.90"
+        ) or budget.upper_bound != budget.target_amount * Decimal("1.10"):
+            raise ValueError("around budget requires exact ten-percent bounds")
+    elif budget.mode == "range":
+        if (
+            budget.lower_bound is None
+            or budget.lower_bound >= budget.upper_bound
+            or budget.target_amount != budget.upper_bound
+        ):
+            raise ValueError("range budget requires explicit ordered bounds")
+    else:
+        raise ValueError("budget mode must be maximum, around, or range")
     if budget.currency is not None:
         _require_currency_code(budget.currency, "budget currency")
     if type(budget.kind) is not str or budget.kind != "budget_max":
@@ -1571,9 +1587,24 @@ def _require_pricing_context_contract(
             raise ValueError("pricing display currency does not match the request")
         if result.budget_currency != effective_budget_currency:
             raise ValueError("pricing budget currency does not match the effective budget")
-        expected_max = None if budget is None else budget.amount
-        if result.budget_max != expected_max:
-            raise ValueError("pricing budget maximum does not match the request")
+        expected_constraint = (
+            (None, None, None, None)
+            if budget is None
+            else (
+                budget.mode,
+                budget.target_amount,
+                budget.lower_bound,
+                budget.upper_bound,
+            )
+        )
+        actual_constraint = (
+            result.budget_mode,
+            result.budget_target_amount,
+            result.budget_lower_bound,
+            result.budget_upper_bound,
+        )
+        if actual_constraint != expected_constraint:
+            raise ValueError("pricing budget constraint does not match the request")
     elif isinstance(result, PricingFailure) and (
         result.code is PricingFailureCode.MISSING_EXCHANGE_RATE
     ):
@@ -1640,7 +1671,7 @@ def _business_offer_reasons(
         if (
             budget is not None
             and type(candidate.pricing) is LandedCost
-            and candidate.pricing.budget_exact > budget.amount
+            and candidate.pricing.within_budget is not True
         ):
             return (OfferRejectionCode.OVER_BUDGET.value,)
         return ()
